@@ -4,6 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CatererController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MenuItemController;
+use App\Http\Controllers\PackageController;
 use Illuminate\Support\Facades\Route;
 
 // Public route
@@ -50,6 +53,22 @@ Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->group(function 
     Route::get('/caterer/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('caterer.verifyReceipt');
     Route::get('/caterer/payments', [CatererController::class, 'payments'])->name('caterer.payments');
     Route::get('/caterer/reviews', [CatererController::class, 'reviews'])->name('caterer.reviews');
+    Route::get('/caterer/menus', [CatererController::class, 'menus'])->name('caterer.menus');
+
+    Route::post('/caterer/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::delete('/caterer/categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::put('/caterer/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
+
+    Route::post('/caterer/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
+    Route::put('/caterer/menu-items/{id}', [MenuItemController::class, 'update'])->name('menu-items.update');
+    Route::delete('/caterer/menu-items/{id}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
+
+    Route::resource('packages', \App\Http\Controllers\PackageController::class);
+    Route::get('/caterer/packages', [CatererController::class, 'packages'])->name('caterer.packages');
+    Route::post('/caterer/packages', [PackageController::class, 'store'])->name('packages.store');
+    Route::patch('/caterer/packages/{id}/toggle', [PackageController::class, 'toggle'])
+    ->name('packages.toggle');
+
 });
 
 // Admin routes

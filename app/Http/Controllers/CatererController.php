@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\Category;
+use App\Models\Package;
 
 use Illuminate\Http\Request;
 
@@ -18,12 +20,28 @@ class CatererController extends Controller
 
     public function menus()
     {
-        return view('caterer.menus');
+        $userId = auth()->id();
+
+        // categories owned by the current user (with their items)
+        $categories = Category::with('items')
+            ->where('user_id', $userId)     // or ->where('caterer_id', $userId) if your table uses 'caterer_id'
+            ->get();
+
+        // packages owned by the current user (with their items)
+        $packages = Package::with('items')
+            ->where('user_id', $userId)     // change to 'caterer_id' if needed
+            ->get();
+
+        return view('caterer.menus', compact('categories', 'packages'));
     }
 
     public function packages()
     {
-        return view('caterer.packages');
+        $categories = \App\Models\Category::with('items')
+            ->where('user_id', auth()->id())
+            ->get();
+
+        return view('caterer.packages', compact('categories'));
     }
 
     public function verifyReceipt()
