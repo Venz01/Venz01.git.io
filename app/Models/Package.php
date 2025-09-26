@@ -15,5 +15,10 @@ class Package extends Model
         return $this->belongsToMany(MenuItem::class, 'menu_item_package', 'package_id', 'menu_item_id')
                     ->withTimestamps();
     }
+
+        public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 

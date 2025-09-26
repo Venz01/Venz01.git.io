@@ -60,6 +60,35 @@ class User extends Authenticatable
         ];
     }
 
+        public function packages()
+    {
+        return $this->hasMany(Package::class);
+    }
+
+    /**
+     * Get the menu items for the caterer.
+     */
+    public function menuItems()
+    {
+        return $this->hasMany(MenuItem::class);
+    }
+
+    /**
+     * Get the categories for the caterer.
+     */
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    /**
+     * Check if caterer is approved
+     */
+    public function isApproved()
+    {
+        return $this->status === 'approved';
+    }
+
     // Check for specific role
     public function isCustomer()
     {

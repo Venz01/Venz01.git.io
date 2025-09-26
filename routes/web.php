@@ -34,53 +34,55 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Customer routes
-Route::middleware(['auth', 'role:customer'])->group(function () {
-    Route::get('/customer/dashboard', [CustomerController::class, 'home'])->name('customer.dashboard');
-    Route::get('/customer/caterers', [CustomerController::class, 'browseCaterers'])->name('customer.caterers');
-    Route::get('/customer/bookings', [CustomerController::class, 'bookings'])->name('customer.bookings');
-    Route::get('/customer/cart', [CustomerController::class, 'cart'])->name('customer.cart');
-    Route::get('/customer/payments', [CustomerController::class, 'payments'])->name('customer.payments');
-    Route::get('/customer/notifications', [CustomerController::class, 'notifications'])->name('customer.notifications');
-    Route::get('/customer/summary', [CustomerController::class, 'summary'])->name('customer.summary');
+Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/dashboard', [CustomerController::class, 'home'])->name('dashboard');
+    Route::get('/caterers', [CustomerController::class, 'caterers'])->name('caterers');
+    Route::get('/customer/caterers/{id}', [CustomerController::class, 'showCaterer'])->name('customer.caterer.profile');
+    Route::get('/customer/caterers/{catererId}/packages/{packageId}', [CustomerController::class, 'showPackage'])->name('customer.package.details');
+    Route::get('/bookings', [CustomerController::class, 'bookings'])->name('bookings');
+    Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
+    Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');
+    Route::get('/notifications', [CustomerController::class, 'notifications'])->name('notifications');
+    Route::get('/summary', [CustomerController::class, 'summary'])->name('summary');
 });
 
 // Caterer routes
-Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->group(function () {
-    Route::get('/caterer/dashboard', [CatererController::class, 'dashboard'])->name('caterer.dashboard');
-    Route::get('/caterer/bookings', [CatererController::class, 'bookings'])->name('caterer.bookings');
-    Route::get('/caterer/menus', [CatererController::class, 'menus'])->name('caterer.menus');
-    Route::get('/caterer/packages', [CatererController::class, 'packages'])->name('caterer.packages');
-    Route::get('/caterer/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('caterer.verifyReceipt');
-    Route::get('/caterer/payments', [CatererController::class, 'payments'])->name('caterer.payments');
-    Route::get('/caterer/reviews', [CatererController::class, 'reviews'])->name('caterer.reviews');
-    Route::get('/caterer/menus', [CatererController::class, 'menus'])->name('caterer.menus');
+Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->prefix('caterer')->name('caterer.')->group(function () {
+    // Main caterer pages
+    Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
+    Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
+    Route::get('/menus', [CatererController::class, 'menus'])->name('menus');
+    Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
+    Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
+    Route::get('/reviews', [CatererController::class, 'reviews'])->name('reviews');
 
-    Route::post('/caterer/categories', [CategoryController::class, 'store'])->name('categories.store');
-    Route::delete('/caterer/categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-    Route::put('/caterer/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
+    // Category management - using resource pattern for consistency
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-    Route::post('/caterer/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
-    Route::put('/caterer/menu-items/{id}', [MenuItemController::class, 'update'])->name('menu-items.update');
-    Route::delete('/caterer/menu-items/{id}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
+    // Menu item management - using resource pattern
+    Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
+    Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
+    Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
 
-    Route::resource('packages', \App\Http\Controllers\PackageController::class);
-    Route::get('/caterer/packages', [CatererController::class, 'packages'])->name('caterer.packages');
-    Route::post('/caterer/packages', [PackageController::class, 'store'])->name('packages.store');
-    Route::patch('/caterer/packages/{id}/toggle', [PackageController::class, 'toggle'])
-    ->name('packages.toggle');
-
+    // Package management - clean resource routes
+    Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
+    Route::put('/packages/{package}', [PackageController::class, 'update'])->name('packages.update');
+    Route::delete('/packages/{package}', [PackageController::class, 'destroy'])->name('packages.destroy');
+    Route::patch('/packages/{package}/toggle', [PackageController::class, 'toggle'])->name('packages.toggle');
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/admin/users', [AdminController::class, 'userManagement'])->name('admin.users');
-    Route::patch('/admin/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('admin.users.status');
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'userManagement'])->name('users');
+    Route::patch('/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
 });
 
+// Registration pending page
 Route::get('/register-pending', function () {
     return view('auth.register-pending');
 })->name('register.pending');
-
 
 require __DIR__.'/auth.php';
