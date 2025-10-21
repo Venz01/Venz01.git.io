@@ -14,7 +14,7 @@ class CustomerController extends Controller
         return view('customer.dashboard');
     }
 
-    public function browseCaterers(Request $request)
+    public function caterers(Request $request)
     {
         // Get caterers with their packages and ratings
         $query = User::where('role', 'caterer')

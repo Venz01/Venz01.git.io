@@ -35,6 +35,9 @@ class User extends Authenticatable
         'business_permit_file_path',
         'business_permit_photo_path',
         'status',
+        'facebook_link',
+        'contact_number',
+        'other_contact',
     ];
 
     /**

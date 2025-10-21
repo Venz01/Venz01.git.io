@@ -170,7 +170,7 @@
                 <!-- Sidebar -->
                 <div class="space-y-6">
                     <!-- Booking Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 sticky top-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                         <div class="text-center mb-6">
                             <div class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                                 ₱{{ number_format($package->price, 0) }}
