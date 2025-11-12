@@ -1,27 +1,24 @@
-# Use PHP with Apache
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# Install required PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Copy Laravel project files
-COPY . /var/www/html
-
-# Set working directory
-WORKDIR /var/www/html
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl unzip libpq-dev libonig-dev libzip-dev zip \
+    && docker-php-ext-install pdo pdo_mysql mbstring zip
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Give permissions to storage and bootstrap cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+WORKDIR /var/www
 
-# Expose port 80
-EXPOSE 80
+# Copy app files
+COPY . .
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Laravel setup
+RUN php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan view:clear
+
+CMD ["php-fpm"]
