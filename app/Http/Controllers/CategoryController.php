@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
@@ -21,7 +22,9 @@ class CategoryController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:categories,name,NULL,id,user_id,' . auth()->id()
+                Rule::unique('categories', 'name')->where(function ($query) {
+                    return $query->where('user_id', auth()->id());
+                })
             ],
             'description' => 'nullable|string|max:1000',
         ], [
@@ -37,7 +40,9 @@ class CategoryController extends Controller
 
             return back()->with('success', 'Category created successfully!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to create category. Please try again.');
+            // Log the actual error for debugging
+            \Log::error('Category creation failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to create category: ' . $e->getMessage());
         }
     }
 
@@ -56,7 +61,11 @@ class CategoryController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:categories,name,' . $category->id . ',id,user_id,' . auth()->id()
+                Rule::unique('categories', 'name')
+                    ->where(function ($query) {
+                        return $query->where('user_id', auth()->id());
+                    })
+                    ->ignore($category->id)
             ],
             'description' => 'nullable|string|max:1000',
         ], [

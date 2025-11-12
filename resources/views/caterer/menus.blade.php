@@ -194,7 +194,8 @@
 
                         <div class="space-y-1 mb-4">
                             <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                ₱{{ number_format($package->price, 2) }} <span class="text-sm font-normal text-gray-500">per head</span>
+                                ₱{{ number_format($package->price, 2) }} <span
+                                    class="text-sm font-normal text-gray-500">per head</span>
                             </p>
                             <p class="text-sm text-gray-500">
                                 Base price for <strong>{{ $package->pax }}</strong> guests
@@ -307,10 +308,51 @@
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" required>
                     <textarea name="description" placeholder="Description (optional)"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" rows="3"></textarea>
-                    <input type="number" name="price" id="editPrice" step="0.01" min="0"
+                    <input type="number" name="price" step="0.01" min="0" placeholder="Price per serving"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" required>
                     <input type="file" name="image" accept="image/*"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200">
+                    <select name="status" class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200">
+                        <option value="available">Available</option>
+                        <option value="unavailable">Unavailable</option>
+                    </select>
+                </div>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('itemModal')"
+                        class="px-4 py-2 rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+                        Add Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editItemModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Menu Item</h2>
+            <form id="editItemForm" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="space-y-3">
+                    <input type="text" name="name" id="editName" placeholder="Item Name"
+                        class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" required>
+                    <textarea name="description" id="editDescription" placeholder="Description (optional)"
+                        class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" rows="3"></textarea>
+                    <input type="number" name="price" id="editPrice" step="0.01" min="0" placeholder="Price per serving"
+                        class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" required>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Change Image (optional)
+                        </label>
+                        <input type="file" name="image" accept="image/*"
+                            class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200">
+                        <p class="text-xs text-gray-500 mt-1">Leave empty to keep current image</p>
+                    </div>
                     <select name="status" id="editStatus"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200">
                         <option value="available">Available</option>
@@ -334,19 +376,23 @@
     <div id="packageModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Create Package</h2>
-            <form action="{{ route('caterer.packages.store') }}" method="POST" enctype="multipart/form-data" x-data="packagePriceCalculator()">
+            <form action="{{ route('caterer.packages.store') }}" method="POST" enctype="multipart/form-data"
+                x-data="packagePriceCalculator()">
                 @csrf
                 <div class="space-y-3">
                     <input type="text" name="name" placeholder="Package Name"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" required>
                     <textarea name="description" placeholder="Package Description (optional)"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" rows="3"></textarea>
-                    
+
                     <!-- Auto-calculated price display -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div
+                        class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per Head:</span>
-                            <span class="text-xl font-bold text-blue-600 dark:text-blue-400" x-text="'₱' + calculatedPrice.toFixed(2)"></span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per
+                                Head:</span>
+                            <span class="text-xl font-bold text-blue-600 dark:text-blue-400"
+                                x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
                             Price automatically calculated from selected menu items
@@ -355,12 +401,15 @@
 
                     <input type="number" name="pax" placeholder="Number of guests" min="1" x-model="pax"
                         class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-gray-200" required>
-                    
+
                     <!-- Total package cost display -->
-                    <div x-show="pax > 0" class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                    <div x-show="pax > 0"
+                        class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package Cost:</span>
-                            <span class="text-lg font-bold text-green-600 dark:text-green-400" x-text="'₱' + (calculatedPrice * pax).toFixed(2)"></span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package
+                                Cost:</span>
+                            <span class="text-lg font-bold text-green-600 dark:text-green-400"
+                                x-text="'₱' + (calculatedPrice * pax).toFixed(2)"></span>
                         </div>
                     </div>
 
@@ -374,11 +423,11 @@
                         <p class="font-medium text-sm mt-2 text-gray-600 dark:text-gray-400 border-b pb-1">
                             {{ $category->name }}</p>
                         @foreach($category->items as $item)
-                        <label class="flex items-center gap-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 px-2 rounded cursor-pointer">
-                            <input type="checkbox" name="menu_items[]" value="{{ $item->id }}" 
-                                   data-price="{{ $item->price }}"
-                                   @change="updatePrice()"
-                                   class="rounded menu-item-checkbox">
+                        <label
+                            class="flex items-center gap-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 px-2 rounded cursor-pointer">
+                            <input type="checkbox" name="menu_items[]" value="{{ $item->id }}"
+                                data-price="{{ $item->price }}" @change="updatePrice()"
+                                class="rounded menu-item-checkbox">
                             <span class="text-sm text-gray-800 dark:text-gray-200">{{ $item->name }} -
                                 ₱{{ number_format($item->price, 2) }}</span>
                         </label>
@@ -388,7 +437,8 @@
                     </div>
 
                     <!-- Price Breakdown -->
-                    <div x-show="selectedItems.length > 0" class="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm">
+                    <div x-show="selectedItems.length > 0"
+                        class="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm">
                         <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown:</h4>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
@@ -417,7 +467,7 @@
                 <div class="mt-4 flex justify-end gap-2">
                     <button type="button" onclick="closeModal('packageModal')"
                         class="px-4 py-2 rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Cancel</button>
-                    <button type="submit" :disabled="selectedItems.length === 0" 
+                    <button type="submit" :disabled="selectedItems.length === 0"
                         :class="selectedItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
                         class="px-4 py-2 rounded-lg text-white transition-colors">
                         Save Package
@@ -432,7 +482,8 @@
         class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Package</h2>
-            <form id="editPackageForm" method="POST" enctype="multipart/form-data" x-data="editPackagePriceCalculator()">
+            <form id="editPackageForm" method="POST" enctype="multipart/form-data"
+                x-data="editPackagePriceCalculator()">
                 @csrf
                 @method('PUT')
                 <div class="space-y-3">
@@ -445,10 +496,13 @@
                         placeholder="Package Description (optional)" rows="3"></textarea>
 
                     <!-- Auto-calculated price display -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div
+                        class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per Head:</span>
-                            <span class="text-xl font-bold text-blue-600 dark:text-blue-400" x-text="'₱' + calculatedPrice.toFixed(2)"></span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per
+                                Head:</span>
+                            <span class="text-xl font-bold text-blue-600 dark:text-blue-400"
+                                x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
                             Price automatically calculated from selected menu items
@@ -460,10 +514,13 @@
                         placeholder="Number of guests" required>
 
                     <!-- Total package cost display -->
-                    <div x-show="pax > 0" class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                    <div x-show="pax > 0"
+                        class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package Cost:</span>
-                            <span class="text-lg font-bold text-green-600 dark:text-green-400" x-text="'₱' + (calculatedPrice * pax).toFixed(2)"></span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package
+                                Cost:</span>
+                            <span class="text-lg font-bold text-green-600 dark:text-green-400"
+                                x-text="'₱' + (calculatedPrice * pax).toFixed(2)"></span>
                         </div>
                     </div>
 
@@ -500,8 +557,7 @@
                                 <label
                                     class="flex items-center gap-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 px-2 rounded cursor-pointer">
                                     <input type="checkbox" name="menu_items[]" value="{{ $item->id }}"
-                                        data-item-name="{{ $item->name }}"
-                                        data-item-price="{{ $item->price }}"
+                                        data-item-name="{{ $item->name }}" data-item-price="{{ $item->price }}"
                                         class="rounded edit-menu-item-checkbox"
                                         @change="updateEditPrice(); updateEditSelectedItemsDisplay()">
                                     <span class="text-sm text-gray-800 dark:text-gray-200">
@@ -516,7 +572,8 @@
                     </div>
 
                     <!-- Price Breakdown -->
-                    <div x-show="selectedEditItems.length > 0" class="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm">
+                    <div x-show="selectedEditItems.length > 0"
+                        class="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm">
                         <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown:</h4>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
@@ -566,20 +623,20 @@
                 foodCost: 0,
                 calculatedPrice: 0,
                 pax: 1,
-                
+
                 updatePrice() {
                     const checkboxes = document.querySelectorAll('.menu-item-checkbox:checked');
                     this.selectedItems = Array.from(checkboxes).map(cb => ({
                         id: cb.value,
                         price: parseFloat(cb.dataset.price)
                     }));
-                    
+
                     this.foodCost = this.selectedItems.reduce((sum, item) => sum + item.price, 0);
-                    
+
                     const laborUtilities = this.foodCost * 0.20;
                     const equipmentTransport = this.foodCost * 0.10;
                     const profitMargin = this.foodCost * 0.25;
-                    
+
                     const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
                     this.calculatedPrice = Math.round(total / 5) * 5; // Round to nearest 5
                 }
@@ -593,20 +650,20 @@
                 foodCost: 0,
                 calculatedPrice: 0,
                 pax: 1,
-                
+
                 updateEditPrice() {
                     const checkboxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
                     this.selectedEditItems = Array.from(checkboxes).map(cb => ({
                         id: cb.value,
                         price: parseFloat(cb.dataset.itemPrice)
                     }));
-                    
+
                     this.foodCost = this.selectedEditItems.reduce((sum, item) => sum + item.price, 0);
-                    
+
                     const laborUtilities = this.foodCost * 0.20;
                     const equipmentTransport = this.foodCost * 0.10;
                     const profitMargin = this.foodCost * 0.25;
-                    
+
                     const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
                     this.calculatedPrice = Math.round(total / 5) * 5; // Round to nearest 5
                 }
@@ -647,8 +704,10 @@
                     });
 
                     // Trigger Alpine.js to update price
-                    const event = new Event('change', { bubbles: true });
-                    document.querySelector('.edit-menu-item-checkbox')?.dispatchEvent(event);
+                    const event = new Event('change', {
+                        bubbles: true
+                    });
+                    document.querySelector('.edit-menu-item-checkbox') ? .dispatchEvent(event);
 
                     // Update the display
                     updateEditSelectedItemsDisplay();
@@ -707,7 +766,9 @@
             const checkbox = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
             if (checkbox) {
                 checkbox.checked = false;
-                const event = new Event('change', { bubbles: true });
+                const event = new Event('change', {
+                    bubbles: true
+                });
                 checkbox.dispatchEvent(event);
                 updateEditSelectedItemsDisplay();
             }
