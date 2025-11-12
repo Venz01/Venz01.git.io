@@ -643,7 +643,7 @@
             }
         }
 
-        // Package Price Calculator for Edit Modal
+        // Package Price Calculator for Edit Modal (FIXED)
         function editPackagePriceCalculator() {
             return {
                 selectedEditItems: [],
@@ -651,11 +651,18 @@
                 calculatedPrice: 0,
                 pax: 1,
 
+                init() {
+                    // Listen for checkbox changes
+                    this.$nextTick(() => {
+                        this.updateEditPrice();
+                    });
+                },
+
                 updateEditPrice() {
                     const checkboxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
                     this.selectedEditItems = Array.from(checkboxes).map(cb => ({
                         id: cb.value,
-                        price: parseFloat(cb.dataset.itemPrice)
+                        price: parseFloat(cb.dataset.itemPrice) || 0
                     }));
 
                     this.foodCost = this.selectedEditItems.reduce((sum, item) => sum + item.price, 0);
@@ -666,16 +673,22 @@
 
                     const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
                     this.calculatedPrice = Math.round(total / 5) * 5; // Round to nearest 5
+                },
+
+                updateEditSelectedItemsDisplay() {
+                    updateEditSelectedItemsDisplay();
                 }
             }
         }
 
-        // Edit Package Modal Functions
+        // Edit Package Modal Functions (FIXED)
         function openEditPackageModal(id, name, description, pax) {
+            // Set form values
             document.getElementById('editPackageName').value = name;
-            document.getElementById('editPackageDescription').value = description;
+            document.getElementById('editPackageDescription').value = description || '';
             document.getElementById('editPackagePax').value = pax;
 
+            // Set form action
             document.getElementById('editPackageForm').action = `/caterer/packages/${id}`;
 
             // Clear all edit checkboxes first
@@ -687,35 +700,47 @@
             const container = document.getElementById('editSelectedItemsContainer');
             container.innerHTML = '<p class="text-sm text-gray-500 italic">Loading items...</p>';
 
-            // Open modal first
+            // Open modal
             document.getElementById('editPackageModal').classList.remove('hidden');
 
             // Fetch and set current package items
             fetch(`/caterer/packages/${id}/items`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch package items');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     // Check the boxes for items in this package
-                    data.items.forEach(itemId => {
-                        const checkbox = document.querySelector(
-                            `.edit-menu-item-checkbox[value="${itemId}"]`);
-                        if (checkbox) {
-                            checkbox.checked = true;
+                    if (data.items && Array.isArray(data.items)) {
+                        data.items.forEach(itemId => {
+                            const checkbox = document.querySelector(
+                                `.edit-menu-item-checkbox[value="${itemId}"]`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
+                        });
+                    }
+
+                    // Trigger change event to update Alpine.js price calculation
+                    setTimeout(() => {
+                        const firstCheckbox = document.querySelector('.edit-menu-item-checkbox');
+                        if (firstCheckbox) {
+                            const event = new Event('change', {
+                                bubbles: true
+                            });
+                            firstCheckbox.dispatchEvent(event);
                         }
-                    });
 
-                    // Trigger Alpine.js to update price
-                    const event = new Event('change', {
-                        bubbles: true
-                    });
-                    document.querySelector('.edit-menu-item-checkbox') ? .dispatchEvent(event);
-
-                    // Update the display
-                    updateEditSelectedItemsDisplay();
+                        // Update the selected items display
+                        updateEditSelectedItemsDisplay();
+                    }, 100);
                 })
                 .catch(error => {
                     console.error('Error fetching package items:', error);
                     container.innerHTML =
-                        '<p class="text-sm text-red-500">Error loading items. Please try again.</p>';
+                        '<p class="text-sm text-red-500">Error loading items. Please refresh and try again.</p>';
                 });
         }
 
@@ -748,7 +773,7 @@
                     ${itemName} - ₱${itemPrice}
                 </span>
                 <button type="button" 
-                        onclick="removeEditMenuItem(${itemId}); event.preventDefault();"
+                        onclick="removeEditMenuItem(${itemId})"
                         class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
