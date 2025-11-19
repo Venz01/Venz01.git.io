@@ -38,16 +38,18 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/dashboard', [CustomerController::class, 'home'])->name('dashboard');
     Route::get('/caterers', [CustomerController::class, 'caterers'])->name('caterers');
     
-    // Remove the duplicate '/customer' prefix - these routes are already inside the customer group
+    // Caterer and package viewing
     Route::get('/caterers/{id}', [CustomerController::class, 'showCaterer'])->name('caterer.profile');
     Route::get('/caterers/{catererId}/packages/{packageId}', [CustomerController::class, 'showPackage'])->name('package.details');
+    
+    // Calculate custom package price
+    Route::post('/calculate-price', [CustomerController::class, 'calculateCustomPrice'])->name('calculate.price');
     
     Route::get('/bookings', [CustomerController::class, 'bookings'])->name('bookings');
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');
     Route::get('/notifications', [CustomerController::class, 'notifications'])->name('notifications');
     Route::get('/summary', [CustomerController::class, 'summary'])->name('summary');
-
 });
 
 // Caterer routes
@@ -60,23 +62,23 @@ Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->prefix('caterer
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
     Route::get('/reviews', [CatererController::class, 'reviews'])->name('reviews');
 
-    // Category management - using resource pattern for consistency
+    // Category management
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-    // Menu item management - using resource pattern
+    // Menu item management
     Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
     Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
     Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
 
-    // Package management - clean resource routes
+    // Package management
     Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
     Route::put('/packages/{package}', [PackageController::class, 'update'])->name('packages.update');
     Route::delete('/packages/{package}', [PackageController::class, 'destroy'])->name('packages.destroy');
     Route::patch('/packages/{package}/toggle', [PackageController::class, 'toggle'])->name('packages.toggle');
-    // Add this route inside the caterer routes group in web.php
     Route::get('/packages/{package}/items', [PackageController::class, 'getItems'])->name('packages.items');
+    Route::get('/packages/{package}/price-breakdown', [PackageController::class, 'getPriceBreakdown'])->name('packages.price-breakdown');
 });
 
 // Admin routes

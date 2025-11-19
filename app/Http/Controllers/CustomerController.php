@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Package;
+use App\Models\MenuItem;
 use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
@@ -84,6 +85,52 @@ class CustomerController extends Controller
             ->firstOrFail();
 
         return view('customer.package-details', compact('package'));
+    }
+
+    /**
+     * Calculate customized package price based on selected items
+     */
+    public function calculateCustomPrice(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*' => 'exists:menu_items,id',
+            'guests' => 'required|integer|min:1'
+        ]);
+
+        $menuItems = MenuItem::whereIn('id', $request->items)->get();
+        
+        // Calculate food cost
+        $foodCost = $menuItems->sum('price');
+        
+        // Apply markups
+        $laborAndUtilities = $foodCost * 0.20;
+        $equipmentTransport = $foodCost * 0.10;
+        $profitMargin = $foodCost * 0.25;
+        
+        $pricePerHead = $foodCost + $laborAndUtilities + $equipmentTransport + $profitMargin;
+        $pricePerHead = round($pricePerHead / 5) * 5; // Round to nearest 5
+        
+        $totalPrice = $pricePerHead * $request->guests;
+
+        return response()->json([
+            'success' => true,
+            'price_per_head' => $pricePerHead,
+            'total_price' => $totalPrice,
+            'breakdown' => [
+                'food_cost' => $foodCost,
+                'labor_utilities' => $laborAndUtilities,
+                'equipment_transport' => $equipmentTransport,
+                'profit_margin' => $profitMargin,
+            ],
+            'items' => $menuItems->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'price' => $item->price
+                ];
+            })
+        ]);
     }
 
     public function bookings()
