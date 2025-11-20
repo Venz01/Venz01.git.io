@@ -45,6 +45,13 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     // Calculate custom package price
     Route::post('/calculate-price', [CustomerController::class, 'calculateCustomPrice'])->name('calculate.price');
     
+    // Booking routes
+    Route::post('/booking/store-event', [\App\Http\Controllers\BookingController::class, 'storeEventDetails'])->name('booking.store-event');
+    Route::get('/booking/payment', [\App\Http\Controllers\BookingController::class, 'payment'])->name('booking.payment');
+    Route::post('/booking/process-payment', [\App\Http\Controllers\BookingController::class, 'processPayment'])->name('booking.process-payment');
+    Route::get('/booking/confirmation/{booking}', [\App\Http\Controllers\BookingController::class, 'confirmation'])->name('booking.confirmation');
+    Route::get('/booking/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('booking.cancel');
+    
     Route::get('/bookings', [CustomerController::class, 'bookings'])->name('bookings');
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');

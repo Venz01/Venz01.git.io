@@ -61,13 +61,6 @@
                                     @endif
                                 </span>
                             </div>
-                            <div class="absolute bottom-6 left-6 right-6">
-                                <h1 class="text-4xl font-bold text-white mb-2">{{ $package->name }}</h1>
-                                <div class="flex items-center text-white text-lg">
-                                    <span class="text-3xl font-bold" id="displayPrice">₱{{ number_format($package->price, 0) }}</span>
-                                    <span class="ml-2 opacity-90">/ <span id="displayPax">{{ $package->pax }}</span> pax</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -189,7 +182,7 @@
                                         <span class="font-medium">₱<span id="profitMargin">0</span></span>
                                     </div>
                                     <div class="border-t-2 border-gray-300 dark:border-gray-600 my-3"></div>
-                                    <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
+                                    <div class="flex justify-between text-base font-semibold text-gray-900 dark:text-white">
                                         <span>Price per Head:</span>
                                         <span>₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span></span>
                                     </div>
@@ -197,110 +190,51 @@
                             </div>
                         </div>
                     @endif
-
-                    <!-- Reviews Section -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Customer Reviews</h2>
-                            <div class="flex items-center">
-                                <div class="flex items-center mr-4">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <svg class="w-5 h-5 {{ $i <= 4 ? 'text-yellow-400' : 'text-gray-300' }} fill-current" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                        </svg>
-                                    @endfor
-                                </div>
-                                <span class="text-gray-600 dark:text-gray-400">4.2 out of 5 (127 reviews)</span>
-                            </div>
-                        </div>
-
-                        <!-- Sample Reviews -->
-                        <div class="space-y-6">
-                            @for($i = 1; $i <= 3; $i++)
-                                <div class="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
-                                    <div class="flex items-start space-x-4">
-                                        <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                                            {{ ['M', 'S', 'J'][$i-1] }}
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <h4 class="font-medium text-gray-900 dark:text-white">
-                                                    {{ ['Maria Santos', 'Sarah Johnson', 'John Dela Cruz'][$i-1] }}
-                                                </h4>
-                                                <div class="flex items-center">
-                                                    @for($j = 1; $j <= 5; $j++)
-                                                        <svg class="w-4 h-4 {{ $j <= [5, 4, 5][$i-1] ? 'text-yellow-400' : 'text-gray-300' }} fill-current" viewBox="0 0 20 20">
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                        </svg>
-                                                    @endfor
-                                                </div>
-                                            </div>
-                                            <p class="text-gray-600 dark:text-gray-400 mb-2">
-                                                @if($i == 1)
-                                                    Excellent service and delicious food! The team was very professional and everything was perfectly organized. Highly recommended!
-                                                @elseif($i == 2)
-                                                    Good food quality and reasonable pricing. The staff was helpful throughout the event. Would book again.
-                                                @else
-                                                    Amazing experience! The food was outstanding and the presentation was beautiful. Perfect for our wedding celebration.
-                                                @endif
-                                            </p>
-                                            <span class="text-sm text-gray-500 dark:text-gray-500">
-                                                {{ ['2 weeks ago', '1 month ago', '3 months ago'][$i-1] }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endfor
-                        </div>
-
-                        <div class="mt-6 text-center">
-                            <button class="text-green-600 hover:text-green-700 font-medium">View all reviews</button>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Sidebar -->
+                <!-- Sidebar - Sticky Booking Card -->
                 <div class="space-y-6">
-                    <!-- Booking Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 sticky top-6">
-                        <div class="text-center mb-6">
-                            <div class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                                ₱<span id="sidebarPrice">{{ number_format($package->price, 0) }}</span>
-                            </div>
-                            <div class="text-gray-600 dark:text-gray-400">
-                                For <span id="sidebarPax">{{ $package->pax }}</span> people
+                        <!-- Prominent Total Price Display -->
+                        <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 text-white mb-6">
+                            <div class="text-center">
+                                <p class="text-sm font-medium opacity-90 mb-2">Total Package Price</p>
+                                <div class="text-5xl font-bold mb-2">
+                                    ₱<span id="totalPriceMain">{{ number_format($package->price * $package->pax, 0) }}</span>
+                                </div>
+                                <div class="text-sm opacity-90">
+                                    <span id="perHeadPriceDisplay">₱{{ number_format($package->price, 0) }}</span> per head × 
+                                    <span id="guestCountDisplay">{{ $package->pax }}</span> guests
+                                </div>
                             </div>
                         </div>
 
-                        <form id="bookingForm" class="space-y-4 mb-6">
+                        <form id="bookingForm" action="{{ route('customer.booking.store-event') }}" method="POST" class="space-y-4 mb-6">
                             @csrf
                             <input type="hidden" name="package_id" value="{{ $package->id }}">
                             <input type="hidden" name="caterer_id" value="{{ $package->user_id }}">
+                            <input type="hidden" name="price_per_head" id="hiddenPricePerHead" value="{{ $package->price }}">
+                            <input type="hidden" name="total_price" id="hiddenTotalPrice" value="{{ $package->price * $package->pax }}">
+                            <input type="hidden" name="selected_items_json" id="selectedItemsJson">
                             
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Date *</label>
-                                <input 
-                                    type="date" 
-                                    name="event_date"
-                                    min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
-                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number of Guests *</label>
                                 <input 
                                     type="number" 
                                     name="guests"
                                     id="guestCount"
-                                    placeholder="{{ $package->pax ?? '50' }}" 
+                                    placeholder="{{ $package->pax }}" 
                                     value="{{ $package->pax }}"
                                     min="1"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    max="1000"
+                                    class="w-full px-4 py-3 text-lg font-semibold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     onchange="updateTotalPrice()"
+                                    oninput="updateTotalPrice()"
                                     required
                                 >
+                                <p class="text-xs text-gray-500 mt-1">Minimum package serves {{ $package->pax }} guests</p>
                             </div>
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Type *</label>
                                 <select 
@@ -313,13 +247,63 @@
                                     <option value="Corporate Event">Corporate Event</option>
                                     <option value="Birthday Party">Birthday Party</option>
                                     <option value="Anniversary">Anniversary</option>
+                                    <option value="Reunion">Reunion</option>
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
+
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Special Requests (Optional)</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Date *</label>
+                                <input 
+                                    type="date" 
+                                    name="event_date"
+                                    min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Slot *</label>
+                                <select 
+                                    name="time_slot"
+                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    required
+                                >
+                                    <option value="">Select time slot</option>
+                                    <option value="Morning (6:00 AM - 12:00 PM)">Morning (6:00 AM - 12:00 PM)</option>
+                                    <option value="Afternoon (12:00 PM - 6:00 PM)">Afternoon (12:00 PM - 6:00 PM)</option>
+                                    <option value="Evening (6:00 PM - 12:00 AM)">Evening (6:00 PM - 12:00 AM)</option>
+                                    <option value="Whole Day (6:00 AM - 12:00 AM)">Whole Day (6:00 AM - 12:00 AM)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Venue Name *</label>
+                                <input 
+                                    type="text" 
+                                    name="venue_name"
+                                    placeholder="e.g., Grand Ballroom, Home Address, etc."
+                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Venue Address *</label>
                                 <textarea 
-                                    name="special_requests"
+                                    name="venue_address"
+                                    rows="2"
+                                    placeholder="Full address of the venue"
+                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Special Instructions (Optional)</label>
+                                <textarea 
+                                    name="special_instructions"
                                     rows="3"
                                     class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     placeholder="Any dietary restrictions or special requirements..."
@@ -330,37 +314,34 @@
                         <div class="space-y-3">
                             <button 
                                 onclick="submitBooking()"
-                                class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center"
+                                class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-lg"
                             >
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 Book Now
                             </button>
-                            <button 
-                                onclick="addToCart()"
-                                class="w-full border border-green-600 text-green-600 py-3 px-6 rounded-xl font-semibold hover:bg-green-50 transition-colors flex items-center justify-center"
+                            <a 
+                                href="{{ route('customer.caterer.profile', $package->user->id) }}"
+                                class="block w-full text-center border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                             >
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 3H4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
-                                </svg>
-                                Add to Cart
-                            </button>
+                                Cancel
+                            </a>
                         </div>
 
                         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
                                 <div class="flex justify-between">
-                                    <span>Price per Head:</span>
-                                    <span class="font-medium">₱<span id="perHeadPrice">{{ number_format($package->price, 0) }}</span></span>
+                                    <span>Deposit Required (25%):</span>
+                                    <span class="font-medium text-green-600">₱<span id="depositAmount">{{ number_format(($package->price * $package->pax) * 0.25, 0) }}</span></span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span>Number of Guests:</span>
-                                    <span class="font-medium" id="guestDisplay">{{ $package->pax }}</span>
+                                    <span>Service Fee:</span>
+                                    <span class="font-medium">₱500</span>
                                 </div>
-                                <div class="flex justify-between font-medium text-gray-900 dark:text-white text-base">
-                                    <span>Total Price:</span>
-                                    <span>₱<span id="totalPrice">{{ number_format($package->price * $package->pax, 0) }}</span></span>
+                                <div class="flex justify-between font-semibold text-base text-gray-900 dark:text-white">
+                                    <span>Due Now:</span>
+                                    <span class="text-green-600">₱<span id="dueNow">{{ number_format((($package->price * $package->pax) * 0.25) + 500, 0) }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -413,24 +394,6 @@
                             @endif
                         </div>
                     </div>
-
-                    <!-- Share & Save -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <button class="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                </svg>
-                                <span>Save</span>
-                            </button>
-                            <button onclick="sharePackage()" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-                                </svg>
-                                <span>Share</span>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -447,9 +410,11 @@
             const checkboxes = document.querySelectorAll('.menu-item-checkbox:checked');
             let foodCost = 0;
             
+            const selectedItems = [];
             checkboxes.forEach(checkbox => {
                 const price = parseFloat(checkbox.closest('.menu-item').dataset.itemPrice);
                 foodCost += price;
+                selectedItems.push(checkbox.value);
             });
             
             // Calculate markups
@@ -461,15 +426,17 @@
             let pricePerHead = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
             pricePerHead = Math.round(pricePerHead / 5) * 5; // Round to nearest 5
             
-            // Update all price displays
+            // Update breakdown displays
             document.getElementById('foodCost').textContent = foodCost.toFixed(2);
             document.getElementById('laborCost').textContent = laborAndUtilities.toFixed(2);
             document.getElementById('equipmentCost').textContent = equipmentTransport.toFixed(2);
             document.getElementById('profitMargin').textContent = profitMargin.toFixed(2);
             document.getElementById('pricePerHead').textContent = pricePerHead.toLocaleString();
-            document.getElementById('displayPrice').textContent = '₱' + pricePerHead.toLocaleString();
-            document.getElementById('sidebarPrice').textContent = pricePerHead.toLocaleString();
-            document.getElementById('perHeadPrice').textContent = pricePerHead.toLocaleString();
+            document.getElementById('perHeadPriceDisplay').textContent = '₱' + pricePerHead.toLocaleString();
+            
+            // Update hidden form fields
+            document.getElementById('hiddenPricePerHead').value = pricePerHead;
+            document.getElementById('selectedItemsJson').value = JSON.stringify(selectedItems);
             
             // Update selected count
             document.getElementById('selectedCount').textContent = checkboxes.length;
@@ -491,13 +458,19 @@
         // Update total price based on guest count
         function updateTotalPrice() {
             const guests = parseInt(document.getElementById('guestCount').value) || originalPax;
-            const pricePerHead = parseFloat(document.getElementById('pricePerHead').textContent.replace(/,/g, ''));
+            const pricePerHead = parseFloat(document.getElementById('hiddenPricePerHead').value || originalPrice);
             const totalPrice = pricePerHead * guests;
             
-            document.getElementById('totalPrice').textContent = totalPrice.toLocaleString();
-            document.getElementById('guestDisplay').textContent = guests;
-            document.getElementById('displayPax').textContent = guests;
-            document.getElementById('sidebarPax').textContent = guests;
+            // Update all total price displays
+            document.getElementById('totalPriceMain').textContent = totalPrice.toLocaleString();
+            document.getElementById('guestCountDisplay').textContent = guests;
+            document.getElementById('hiddenTotalPrice').value = totalPrice;
+            
+            // Update deposit and due now
+            const deposit = totalPrice * 0.25;
+            const dueNow = deposit + 500;
+            document.getElementById('depositAmount').textContent = deposit.toLocaleString();
+            document.getElementById('dueNow').textContent = dueNow.toLocaleString();
         }
         
         // Select all items
@@ -546,83 +519,31 @@
                 return;
             }
             
-            // Create form data
-            const formData = new FormData(form);
-            selectedItems.forEach(item => {
-                formData.append('selected_items[]', item);
+            // Update hidden field with selected items
+            document.getElementById('selectedItemsJson').value = JSON.stringify(selectedItems);
+            
+            // Add selected items as hidden inputs
+            const form_element = document.getElementById('bookingForm');
+            selectedItems.forEach(itemId => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_items[]';
+                input.value = itemId;
+                form_element.appendChild(input);
             });
             
-            const pricePerHead = parseFloat(document.getElementById('pricePerHead').textContent.replace(/,/g, ''));
-            const guests = parseInt(document.getElementById('guestCount').value);
-            
-            formData.append('price_per_head', pricePerHead);
-            formData.append('total_price', pricePerHead * guests);
-            
-            // For now, show success message
-            // In production, you would send this to your backend
-            alert('Booking feature coming soon! Your customized package:\n' +
-                  'Items: ' + selectedItems.length + '\n' +
-                  'Price per head: ₱' + pricePerHead.toLocaleString() + '\n' +
-                  'Guests: ' + guests + '\n' +
-                  'Total: ₱' + (pricePerHead * guests).toLocaleString());
-            
-            console.log('Booking data:', Object.fromEntries(formData));
-        }
-        
-        // Add to cart
-        function addToCart() {
-            const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked'))
-                .map(cb => cb.value);
-            
-            if (selectedItems.length === 0) {
-                alert('Please select at least one menu item.');
-                return;
-            }
-            
-            const pricePerHead = parseFloat(document.getElementById('pricePerHead').textContent.replace(/,/g, ''));
-            const guests = parseInt(document.getElementById('guestCount').value) || originalPax;
-            
-            // Store in localStorage (temporary solution)
-            const cartItem = {
-                package_id: {{ $package->id }},
-                caterer_id: {{ $package->user_id }},
-                package_name: '{{ $package->name }}',
-                caterer_name: '{{ $package->user->business_name ?? $package->user->name }}',
-                selected_items: selectedItems,
-                price_per_head: pricePerHead,
-                guests: guests,
-                total_price: pricePerHead * guests,
-                added_at: new Date().toISOString()
-            };
-            
-            // Get existing cart
-            let cart = JSON.parse(localStorage.getItem('catering_cart') || '[]');
-            cart.push(cartItem);
-            localStorage.setItem('catering_cart', JSON.stringify(cart));
-            
-            alert('Package added to cart!');
-            console.log('Cart:', cart);
-        }
-        
-        // Share package
-        function sharePackage() {
-            if (navigator.share) {
-                navigator.share({
-                    title: '{{ $package->name }}',
-                    text: 'Check out this catering package from {{ $package->user->business_name ?? $package->user->name }}',
-                    url: window.location.href
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                // Fallback: copy to clipboard
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                    alert('Link copied to clipboard!');
-                });
-            }
+            // Submit the form
+            form.submit();
         }
         
         // Initialize price calculation on page load
         document.addEventListener('DOMContentLoaded', function() {
             updatePrice();
+            
+            // Add input event listener for real-time guest count updates
+            document.getElementById('guestCount').addEventListener('input', function() {
+                updateTotalPrice();
+            });
         });
     </script>
 
@@ -642,6 +563,12 @@
         
         .menu-item-checkbox:not(:checked) + div {
             opacity: 0.7;
+        }
+
+        /* Smooth number transitions */
+        #totalPriceMain, #perHeadPriceDisplay, #guestCountDisplay,
+        #depositAmount, #dueNow {
+            transition: all 0.3s ease;
         }
     </style>
 </x-app-layout>
