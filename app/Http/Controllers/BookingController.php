@@ -50,7 +50,18 @@ class BookingController extends Controller
             'selected_items.*' => 'exists:menu_items,id',
             'price_per_head' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
+        ], [
+            'event_date.after' => 'Event date must be at least 1 day in advance. Please select a future date.',
         ]);
+
+        // Additional date validation
+        $eventDate = \Carbon\Carbon::parse($request->event_date);
+        $tomorrow = \Carbon\Carbon::tomorrow();
+        
+        if ($eventDate->lt($tomorrow)) {
+            return back()->withInput()
+                ->with('error', 'Event date must be at least 1 day in advance. Please select a future date.');
+        }
 
         // Store booking details in session
         session([
@@ -179,5 +190,85 @@ class BookingController extends Controller
     {
         session()->forget(['booking_details', 'booking_customization']);
         return redirect()->route('customer.caterers');
+    }
+
+    /**
+     * Show booking details
+     */
+    public function show($bookingId)
+    {
+        $booking = Booking::with(['package', 'caterer', 'menuItems.category'])
+            ->where('customer_id', auth()->id())
+            ->findOrFail($bookingId);
+
+        return view('customer.booking.details', compact('booking'));
+    }
+
+    /**
+     * Cancel a confirmed booking
+     */
+    public function cancelBooking(Request $request, $bookingId)
+    {
+        $booking = Booking::where('customer_id', auth()->id())
+            ->where('id', $bookingId)
+            ->firstOrFail();
+
+        // Only allow cancellation if booking is pending or confirmed
+        if (!in_array($booking->booking_status, ['pending', 'confirmed'])) {
+            return back()->with('error', 'This booking cannot be cancelled.');
+        }
+
+        $booking->update([
+            'booking_status' => 'cancelled',
+            'special_instructions' => $booking->special_instructions . "\n\nCancellation Reason: " . ($request->cancellation_reason ?? 'No reason provided')
+        ]);
+
+        return redirect()->route('customer.bookings')
+            ->with('success', 'Booking has been cancelled successfully.');
+    }
+
+    /**
+     * Show pay balance page
+     */
+    public function payBalance($bookingId)
+    {
+        $booking = Booking::with(['package', 'caterer'])
+            ->where('customer_id', auth()->id())
+            ->where('payment_status', 'deposit_paid')
+            ->findOrFail($bookingId);
+
+        return view('customer.booking.pay-balance', compact('booking'));
+    }
+
+    /**
+     * Process balance payment
+     */
+    public function processBalancePayment(Request $request, $bookingId)
+    {
+        $request->validate([
+            'receipt' => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
+            'payment_method' => 'required|in:gcash,paymaya,bank_transfer',
+        ]);
+
+        $booking = Booking::where('customer_id', auth()->id())
+            ->where('payment_status', 'deposit_paid')
+            ->findOrFail($bookingId);
+
+        try {
+            // Handle receipt upload
+            $receiptPath = $request->file('receipt')->store('receipts/balance', 'public');
+
+            $booking->update([
+                'payment_status' => 'fully_paid',
+                'receipt_path' => $receiptPath, // Update with balance payment receipt
+            ]);
+
+            return redirect()->route('customer.booking.details', $booking->id)
+                ->with('success', 'Balance payment submitted successfully! Your booking is now fully paid.');
+
+        } catch (\Exception $e) {
+            \Log::error('Balance payment failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to process payment. Please try again.');
+        }
     }
 }

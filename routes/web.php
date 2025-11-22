@@ -52,7 +52,14 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/booking/confirmation/{booking}', [\App\Http\Controllers\BookingController::class, 'confirmation'])->name('booking.confirmation');
     Route::get('/booking/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('booking.cancel');
     
+    // View and manage bookings
     Route::get('/bookings', [CustomerController::class, 'bookings'])->name('bookings');
+    Route::get('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('booking.details');
+    Route::patch('/bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancelBooking'])->name('booking.cancel-booking');
+    
+    // Pay balance
+    Route::get('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'payBalance'])->name('booking.pay-balance');
+    Route::post('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'processBalancePayment'])->name('booking.process-balance');
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');
     Route::get('/notifications', [CustomerController::class, 'notifications'])->name('notifications');
@@ -64,6 +71,11 @@ Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->prefix('caterer
     // Main caterer pages
     Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
+    Route::get('/bookings/{booking}', [CatererController::class, 'showBooking'])->name('booking.details');
+    Route::patch('/bookings/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('booking.confirm');
+    Route::patch('/bookings/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('booking.reject');
+    Route::patch('/bookings/{booking}/complete', [CatererController::class, 'completeBooking'])->name('booking.complete');
+    
     Route::get('/menus', [CatererController::class, 'menus'])->name('menus');
     Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');

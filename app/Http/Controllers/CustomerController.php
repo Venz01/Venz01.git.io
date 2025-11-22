@@ -133,9 +133,43 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function bookings()
+    public function bookings(Request $request)
     {
-        return view('customer.bookings');
+        $query = \App\Models\Booking::where('customer_id', auth()->id())
+            ->with(['caterer', 'package', 'menuItems'])
+            ->orderBy('created_at', 'desc');
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('booking_status', $request->status);
+        }
+
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('booking_number', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhereHas('caterer', function($q) use ($searchTerm) {
+                      $q->where('business_name', 'LIKE', '%' . $searchTerm . '%')
+                        ->orWhere('name', 'LIKE', '%' . $searchTerm . '%');
+                  });
+            });
+        }
+
+        $bookings = $query->paginate(10);
+
+        // Get statistics
+        $stats = [
+            'pending' => \App\Models\Booking::where('customer_id', auth()->id())->where('booking_status', 'pending')->count(),
+            'confirmed' => \App\Models\Booking::where('customer_id', auth()->id())->where('booking_status', 'confirmed')->count(),
+            'completed' => \App\Models\Booking::where('customer_id', auth()->id())->where('booking_status', 'completed')->count(),
+            'cancelled' => \App\Models\Booking::where('customer_id', auth()->id())->where('booking_status', 'cancelled')->count(),
+        ];
+
+        return view('customer.bookings', compact('bookings', 'stats'));
     }
 
     public function cart()
