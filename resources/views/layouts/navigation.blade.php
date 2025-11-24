@@ -42,6 +42,9 @@
                     <x-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')">
+                        {{ __('Calendar') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('caterer.bookings')" :active="request()->routeIs('caterer.bookings')">
                         {{ __('Bookings') }}
                     </x-nav-link>

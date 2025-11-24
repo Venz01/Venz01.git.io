@@ -26,13 +26,19 @@ Route::get('/dashboard', function () {
     }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
 // Profile routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Portfolio management (Caterers only)
+    Route::post('/profile/portfolio/upload', [ProfileController::class, 'uploadPortfolio'])->name('profile.portfolio.upload');
+    Route::delete('/profile/portfolio/{id}', [ProfileController::class, 'deletePortfolio'])->name('profile.portfolio.delete');
+    Route::patch('/profile/portfolio/{id}/toggle-featured', [ProfileController::class, 'toggleFeatured'])->name('profile.portfolio.toggle-featured');
+    Route::post('/profile/portfolio/update-order', [ProfileController::class, 'updatePortfolioOrder'])->name('profile.portfolio.update-order');
 });
-
 // Customer routes
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [CustomerController::class, 'home'])->name('dashboard');
@@ -70,6 +76,13 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->prefix('caterer')->name('caterer.')->group(function () {
     // Main caterer pages
     Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
+    
+    // Calendar and Availability
+    Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
+    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
+    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
+    
+    // Bookings
     Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
     Route::get('/bookings/{booking}', [CatererController::class, 'showBooking'])->name('booking.details');
     Route::patch('/bookings/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('booking.confirm');
