@@ -133,4 +133,70 @@ class User extends Authenticatable
     {
         return is_array($this->business_days) ? implode(', ', array_map('ucfirst', $this->business_days)) : '';
     }
+
+   /**
+     * Get reviews written by this customer
+     */
+    public function reviewsGiven()
+    {
+        return $this->hasMany(Review::class, 'customer_id');
+    }
+
+    /**
+     * Get reviews received by this caterer
+     */
+    public function reviewsReceived()
+    {
+        return $this->hasMany(Review::class, 'caterer_id');
+    }
+
+    /**
+     * Get approved reviews for this caterer
+     */
+    public function approvedReviews()
+    {
+        return $this->hasMany(Review::class, 'caterer_id')->where('is_approved', true);
+    }
+
+    /**
+     * Get average rating for this caterer
+     */
+    public function averageRating()
+    {
+        return round($this->approvedReviews()->avg('rating') ?? 0, 1);
+    }
+
+    /**
+     * Get total review count for this caterer
+     */
+    public function totalReviews()
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get rating distribution
+     */
+    public function ratingDistribution()
+    {
+        return [
+            5 => $this->approvedReviews()->where('rating', 5)->count(),
+            4 => $this->approvedReviews()->where('rating', 4)->count(),
+            3 => $this->approvedReviews()->where('rating', 3)->count(),
+            2 => $this->approvedReviews()->where('rating', 2)->count(),
+            1 => $this->approvedReviews()->where('rating', 1)->count(),
+        ];
+    }
+
+    /**
+     * Get reviews with responses percentage
+     */
+    public function responseRate()
+    {
+        $total = $this->approvedReviews()->count();
+        if ($total === 0) return 0;
+        
+        $responded = $this->approvedReviews()->whereNotNull('caterer_response')->count();
+        return round(($responded / $total) * 100, 1);
+    }
 }

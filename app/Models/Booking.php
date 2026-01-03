@@ -88,4 +88,38 @@ class Booking extends Model
             default => 'gray',
         };
     }
+
+    /**
+     * Get the review for this booking
+     */
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    /**
+     * Check if this booking can be reviewed
+     */
+    public function canBeReviewed()
+    {
+        return $this->booking_status === 'completed' 
+            && !$this->review()->exists()
+            && $this->customer_id === auth()->id();
+    }
+
+    /**
+     * Check if this booking has been reviewed
+     */
+    public function hasReview()
+    {
+        return $this->review()->exists();
+    }
+
+    /**
+     * Get the review rating if exists
+     */
+    public function getReviewRatingAttribute()
+    {
+        return $this->review ? $this->review->rating : null;
+    }
 }

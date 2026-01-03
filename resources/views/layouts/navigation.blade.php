@@ -10,8 +10,8 @@
                     </a>
                 </div>
 
-                <!-- Desktop Navigation Links -->
-                <div class="hidden space-x-4 lg:space-x-8 sm:-my-px sm:ms-6 lg:ms-10 sm:flex">
+                <!-- Desktop Navigation Links - ALL VISIBLE -->
+                <div class="hidden space-x-2 md:space-x-4 lg:space-x-6 sm:-my-px sm:ms-4 lg:ms-8 sm:flex sm:overflow-x-auto">
                     @php $role = auth()->user()->role; @endphp
 
                     @if ($role === 'customer')
@@ -24,18 +24,24 @@
                     <x-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
                         {{ __('Bookings') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')" class="hidden lg:inline-flex">
+                    <x-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')">
                         {{ __('Payments') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('customer.notifications')" :active="request()->routeIs('customer.notifications')" class="hidden lg:inline-flex">
+                    <x-nav-link :href="route('customer.notifications')" :active="request()->routeIs('customer.notifications')">
                         {{ __('Notifications') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('customer.cart')" :active="request()->routeIs('customer.cart')">
+                        {{ __('Cart') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('customer.summary')" :active="request()->routeIs('customer.summary')">
+                        {{ __('Summary') }}
                     </x-nav-link>
 
                     @elseif ($role === 'caterer')
                     <x-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')" class="hidden md:inline-flex">
+                    <x-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')">
                         {{ __('Calendar') }}
                     </x-nav-link>
                     <x-nav-link :href="route('caterer.bookings')" :active="request()->routeIs('caterer.bookings')">
@@ -44,8 +50,14 @@
                     <x-nav-link :href="route('caterer.menus')" :active="request()->routeIs('caterer.menus')">
                         {{ __('Menus') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')" class="hidden lg:inline-flex">
+                    <x-nav-link :href="route('caterer.verifyReceipt')" :active="request()->routeIs('caterer.verifyReceipt')">
+                        {{ __('Receipts') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
                         {{ __('Payments') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
+                        {{ __('Reviews') }}
                     </x-nav-link>
 
                     @elseif ($role === 'admin')

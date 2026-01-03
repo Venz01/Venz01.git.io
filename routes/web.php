@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // Public route
@@ -70,6 +71,13 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');
     Route::get('/notifications', [CustomerController::class, 'notifications'])->name('notifications');
     Route::get('/summary', [CustomerController::class, 'summary'])->name('summary');
+
+    // Create review
+    Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('review.create');
+    Route::post('/bookings/{booking}/review', [ReviewController::class, 'store'])->name('review.store');
+    
+    // View caterer reviews
+    Route::get('/caterers/{caterer}/reviews', [ReviewController::class, 'index'])->name('caterer.reviews');
 });
 
 // Caterer routes
@@ -111,6 +119,14 @@ Route::middleware(['auth', 'role:caterer', 'caterer.approval'])->prefix('caterer
     Route::patch('/packages/{package}/toggle', [PackageController::class, 'toggle'])->name('packages.toggle');
     Route::get('/packages/{package}/items', [PackageController::class, 'getItems'])->name('packages.items');
     Route::get('/packages/{package}/price-breakdown', [PackageController::class, 'getPriceBreakdown'])->name('packages.price-breakdown');
+
+    // View own reviews (replace existing route if present)
+    Route::get('/reviews', [ReviewController::class, 'catererReviews'])->name('reviews');
+    
+    // Respond to reviews
+    Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
+    Route::post('/reviews/{review}/update-response', [ReviewController::class, 'updateResponse'])->name('reviews.update-response');
+    Route::delete('/reviews/{review}/delete-response', [ReviewController::class, 'deleteResponse'])->name('reviews.delete-response');
 });
 
 // Admin routes

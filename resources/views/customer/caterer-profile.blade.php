@@ -201,8 +201,132 @@
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No packages in this category</h3>
                 <p class="text-gray-600 dark:text-gray-400">Try selecting a different category to see more packages.</p>
             </div>
+
+            {{-- Reviews & Ratings Section --}}
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 mb-6">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Reviews</h3>
+        @php
+            $averageRating = $caterer->averageRating();
+            $totalReviews = $caterer->totalReviews();
+        @endphp
+        <div class="flex items-center">
+            <div class="flex text-yellow-400 mr-2">
+                @for($i = 1; $i <= 5; $i++)
+                    <span class="{{ $i <= round($averageRating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }} text-xl">★</span>
+                @endfor
+            </div>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ number_format($averageRating, 1) }} ({{ $totalReviews }} {{ Str::plural('review', $totalReviews) }})
+            </span>
         </div>
     </div>
+
+    @if($totalReviews > 0)
+        {{-- Rating Distribution --}}
+        <div class="mb-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Rating Distribution</h4>
+            @php $distribution = $caterer->ratingDistribution(); @endphp
+            <div class="space-y-2">
+                @foreach([5, 4, 3, 2, 1] as $rating)
+                    @php
+                        $count = $distribution[$rating];
+                        $percentage = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
+                    @endphp
+                    <div class="flex items-center text-sm">
+                        <span class="w-8 text-gray-600 dark:text-gray-400">{{ $rating }}★</span>
+                        <div class="flex-1 mx-3">
+                            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                                <div class="bg-yellow-400 h-full transition-all" style="width: {{ $percentage }}%"></div>
+                            </div>
+                        </div>
+                        <span class="w-12 text-right text-gray-600 dark:text-gray-400">{{ $count }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Recent Reviews --}}
+        @php
+            $recentReviews = $caterer->approvedReviews()
+                ->with(['customer', 'booking'])
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+        @endphp
+
+        <div class="space-y-4">
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Recent Reviews</h4>
+            @foreach($recentReviews as $review)
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                <span class="text-indigo-600 dark:text-indigo-400 font-medium text-sm">
+                                    {{ substr($review->customer->name, 0, 1) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $review->customer->name }}
+                                    </p>
+                                    <div class="flex items-center mt-1">
+                                        <div class="flex text-yellow-400">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <span class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}">★</span>
+                                            @endfor
+                                        </div>
+                                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $review->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                                {{ $review->comment }}
+                            </p>
+                            
+                            @if($review->hasResponse())
+                                <div class="mt-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-800">
+                                    <p class="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                        Response from {{ $caterer->business_name ?? $caterer->name }}
+                                    </p>
+                                    <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                                        {{ $review->caterer_response }}
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        @if($totalReviews > 5)
+            <div class="mt-6 text-center">
+                <a href="{{ route('customer.caterer.reviews', $caterer->id) }}" 
+                   class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                    View all {{ $totalReviews }} reviews →
+                </a>
+            </div>
+        @endif
+    @else
+        <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                No reviews yet. Be the first to review this caterer!
+            </p>
+        </div>
+    @endif
+</div>
+        </div>
+    </div>
+    
 
     <!-- JavaScript for category filtering -->
     <script>
