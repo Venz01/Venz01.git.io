@@ -10,8 +10,8 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <!-- Desktop Navigation Links -->
+                <div class="hidden space-x-4 lg:space-x-8 sm:-my-px sm:ms-6 lg:ms-10 sm:flex">
                     @php $role = auth()->user()->role; @endphp
 
                     @if ($role === 'customer')
@@ -24,42 +24,28 @@
                     <x-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
                         {{ __('Bookings') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('customer.cart')" :active="request()->routeIs('customer.cart')">
-                        {{ __('Cart') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')">
+                    <x-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')" class="hidden lg:inline-flex">
                         {{ __('Payments') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('customer.notifications')"
-                        :active="request()->routeIs('customer.notifications')">
+                    <x-nav-link :href="route('customer.notifications')" :active="request()->routeIs('customer.notifications')" class="hidden lg:inline-flex">
                         {{ __('Notifications') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('customer.summary')" :active="request()->routeIs('customer.summary')">
-                        {{ __('Summary') }}
                     </x-nav-link>
 
                     @elseif ($role === 'caterer')
                     <x-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')">
+                    <x-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')" class="hidden md:inline-flex">
                         {{ __('Calendar') }}
                     </x-nav-link>
                     <x-nav-link :href="route('caterer.bookings')" :active="request()->routeIs('caterer.bookings')">
                         {{ __('Bookings') }}
                     </x-nav-link>
                     <x-nav-link :href="route('caterer.menus')" :active="request()->routeIs('caterer.menus')">
-                        {{ __('Menus & Packages') }}
+                        {{ __('Menus') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('caterer.verifyReceipt')"
-                        :active="request()->routeIs('caterer.verifyReceipt')">
-                        {{ __('Verify Receipt') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
+                    <x-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')" class="hidden lg:inline-flex">
                         {{ __('Payments') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
-                        {{ __('Reviews') }}
                     </x-nav-link>
 
                     @elseif ($role === 'admin')
@@ -83,14 +69,15 @@
                     <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
-
+                            <div class="hidden md:block">{{ Auth::user()->name }}</div>
+                            <div class="md:hidden">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
                             <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>
@@ -104,9 +91,7 @@
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
-                                                this.closest('form').submit();">
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
@@ -132,10 +117,68 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        @php $role = auth()->user()->role; @endphp
+
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @if ($role === 'customer')
+                <x-responsive-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.dashboard')">
+                    {{ __('Home') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
+                    {{ __('Caterers') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
+                    {{ __('My Bookings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')">
+                    {{ __('Payments') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.notifications')" :active="request()->routeIs('customer.notifications')">
+                    {{ __('Notifications') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.cart')" :active="request()->routeIs('customer.cart')">
+                    {{ __('Cart') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.summary')" :active="request()->routeIs('customer.summary')">
+                    {{ __('Account Summary') }}
+                </x-responsive-nav-link>
+
+            @elseif ($role === 'caterer')
+                <x-responsive-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')">
+                    {{ __('Calendar') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.bookings')" :active="request()->routeIs('caterer.bookings')">
+                    {{ __('Bookings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.menus')" :active="request()->routeIs('caterer.menus')">
+                    {{ __('Menus & Packages') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.verifyReceipt')" :active="request()->routeIs('caterer.verifyReceipt')">
+                    {{ __('Verify Receipts') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
+                    {{ __('Payments & Revenue') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
+                    {{ __('Reviews') }}
+                </x-responsive-nav-link>
+
+            @elseif ($role === 'admin')
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
+                    {{ __('User Management') }}
+                </x-responsive-nav-link>
+
+            @else
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -153,12 +196,11 @@
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-dropdown-link :href="route('logout')"
-                        onclick="event.preventDefault();this.closest('form').submit();">
+                    <x-responsive-nav-link :href="route('logout')"
+                        onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Log Out') }}
-                    </x-dropdown-link>
+                    </x-responsive-nav-link>
                 </form>
-
             </div>
         </div>
     </div>
