@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // Public route
@@ -40,6 +41,17 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile/portfolio/{id}/toggle-featured', [ProfileController::class, 'toggleFeatured'])->name('profile.portfolio.toggle-featured');
     Route::post('/profile/portfolio/update-order', [ProfileController::class, 'updatePortfolioOrder'])->name('profile.portfolio.update-order');
 });
+
+// Notification routes (all authenticated users)
+Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::get('/unread', [NotificationController::class, 'getUnread'])->name('unread');
+    Route::get('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+    Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+    Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+    Route::delete('/read/all', [NotificationController::class, 'deleteAllRead'])->name('delete-all-read');
+});
+
 // Customer routes
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [CustomerController::class, 'home'])->name('dashboard');
@@ -69,7 +81,6 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'processBalancePayment'])->name('booking.process-balance');
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');
-    Route::get('/notifications', [CustomerController::class, 'notifications'])->name('notifications');
     Route::get('/summary', [CustomerController::class, 'summary'])->name('summary');
 
     // Create review

@@ -6,10 +6,19 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\MenuItem;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Show booking form (Step 1: Event Details)
      */
@@ -156,6 +165,23 @@ class BookingController extends Controller
             // Attach selected menu items
             $booking->menuItems()->attach($bookingDetails['selected_items']);
 
+            // Send notifications
+            try {
+                Log::info('Creating notifications for booking', ['booking_id' => $booking->id]);
+                
+                $this->notificationService->notifyBookingCreated($booking);
+                $this->notificationService->notifyCatererNewBooking($booking);
+                $this->notificationService->notifyPaymentReceived($booking, 'deposit');
+                
+                Log::info('Notifications created successfully', ['booking_id' => $booking->id]);
+            } catch (\Exception $e) {
+                Log::error('Failed to create notifications', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage()
+                ]);
+                // Don't fail the booking if notifications fail
+            }
+
             // Clear session
             session()->forget(['booking_details', 'booking_customization']);
 
@@ -166,7 +192,11 @@ class BookingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Booking creation failed: ' . $e->getMessage());
+            Log::error('Booking creation failed', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return back()->with('error', 'Failed to create booking. Please try again.');
         }
     }
@@ -263,11 +293,25 @@ class BookingController extends Controller
                 'receipt_path' => $receiptPath, // Update with balance payment receipt
             ]);
 
+            // Send notification
+            try {
+                $this->notificationService->notifyPaymentReceived($booking, 'balance');
+            } catch (\Exception $e) {
+                Log::error('Failed to create balance payment notification', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
             return redirect()->route('customer.booking.details', $booking->id)
                 ->with('success', 'Balance payment submitted successfully! Your booking is now fully paid.');
 
         } catch (\Exception $e) {
-            \Log::error('Balance payment failed: ' . $e->getMessage());
+            Log::error('Balance payment failed', [
+                'booking_id' => $bookingId,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
             return back()->with('error', 'Failed to process payment. Please try again.');
         }
     }

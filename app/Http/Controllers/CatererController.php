@@ -9,9 +9,17 @@ use App\Models\CatererAvailability;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\NotificationService;
 
 class CatererController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function dashboard()
     {
         $catererId = auth()->id();
@@ -347,6 +355,15 @@ class CatererController extends Controller
             ]
         );
 
+        try {
+            $this->notificationService->notifyBookingConfirmed($booking);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send booking confirmed notification', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return redirect()->route('caterer.bookings', ['tab' => 'confirmed'])
             ->with('success', 'Booking confirmed successfully! Customer will be notified.');
     }
@@ -369,6 +386,16 @@ class CatererController extends Controller
             'special_instructions' => $booking->special_instructions . "\n\nRejection Reason: " . $request->rejection_reason
         ]);
 
+        // ADD THIS: Send notification to customer
+        try {
+            $this->notificationService->notifyBookingRejected($booking);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send booking rejected notification', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return redirect()->route('caterer.bookings', ['tab' => 'cancelled'])
             ->with('success', 'Booking has been rejected. Customer will be notified.');
     }
@@ -390,6 +417,16 @@ class CatererController extends Controller
             'booking_status' => 'completed',
             'special_instructions' => $booking->special_instructions . "\n\nCompletion Notes: " . ($request->completion_notes ?? 'Event completed successfully.')
         ]);
+
+        // ADD THIS: Send notification to customer
+        try {
+            $this->notificationService->notifyBookingCompleted($booking);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send booking completed notification', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return redirect()->route('caterer.bookings', ['tab' => 'completed'])
             ->with('success', 'Booking marked as complete!');

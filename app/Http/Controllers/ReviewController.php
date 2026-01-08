@@ -5,9 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Review;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use App\Services\NotificationService;
 
 class ReviewController extends Controller
 {
+
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Show the form for creating a review
      */
@@ -53,7 +62,7 @@ class ReviewController extends Controller
             'comment.max' => 'Review must not exceed 1000 characters.',
         ]);
 
-        Review::create([
+        $review = Review::create([
             'booking_id' => $booking->id,
             'customer_id' => auth()->id(),
             'caterer_id' => $booking->caterer_id,
@@ -61,6 +70,16 @@ class ReviewController extends Controller
             'comment' => $request->comment,
             'is_approved' => true, // Auto-approve for now
         ]);
+
+        
+        try {
+            $this->notificationService->notifyReviewReceived($review);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send review notification', [
+                'review_id' => $review->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return redirect()->route('customer.booking.details', $booking->id)
             ->with('success', 'Thank you for your review! Your feedback helps other customers.');
@@ -147,6 +166,16 @@ class ReviewController extends Controller
             'responded_at' => now(),
         ]);
 
+        
+        try {
+            $this->notificationService->notifyReviewResponse($review);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send review response notification', [
+                'review_id' => $review->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return back()->with('success', 'Your response has been posted successfully!');
     }
 
@@ -164,10 +193,23 @@ class ReviewController extends Controller
             'response' => 'required|string|min:10|max:1000',
         ]);
 
+        $wasFirstResponse = is_null($review->caterer_response);
+
         $review->update([
             'caterer_response' => $request->response,
             'responded_at' => now(),
         ]);
+
+        if ($wasFirstResponse) {
+            try {
+                $this->notificationService->notifyReviewResponse($review);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send review response notification', [
+                    'review_id' => $review->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         return back()->with('success', 'Your response has been updated successfully!');
     }
