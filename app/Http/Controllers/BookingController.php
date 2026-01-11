@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\MenuItem;
+use App\Models\CatererAvailability;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -72,6 +73,28 @@ class BookingController extends Controller
                 ->with('error', 'Event date must be at least 1 day in advance. Please select a future date.');
         }
 
+        // ✅ NEW: Check if date is blocked by caterer
+        $isBlocked = CatererAvailability::where('caterer_id', $request->caterer_id)
+            ->where('date', $request->event_date)
+            ->where('status', 'blocked')
+            ->exists();
+
+        if ($isBlocked) {
+            return back()->withInput()
+                ->with('error', 'Sorry, this caterer is not available on the selected date. Please choose another date.');
+        }
+
+        // ✅ NEW: Check if caterer already has a booking on this date
+        $hasExistingBooking = Booking::where('caterer_id', $request->caterer_id)
+            ->where('event_date', $request->event_date)
+            ->whereIn('booking_status', ['pending', 'confirmed'])
+            ->exists();
+
+        if ($hasExistingBooking) {
+            return back()->withInput()
+                ->with('error', 'Sorry, this caterer is already booked for the selected date. Please choose another date.');
+        }
+
         // Store booking details in session
         session([
             'booking_details' => $request->all()
@@ -119,6 +142,29 @@ class BookingController extends Controller
         
         if (!$bookingDetails) {
             return redirect()->route('customer.caterers')->with('error', 'Booking session expired.');
+        }
+
+        // ✅ DOUBLE-CHECK: Verify availability again before creating booking
+        $isBlocked = CatererAvailability::where('caterer_id', $bookingDetails['caterer_id'])
+            ->where('date', $bookingDetails['event_date'])
+            ->where('status', 'blocked')
+            ->exists();
+
+        if ($isBlocked) {
+            session()->forget(['booking_details', 'booking_customization']);
+            return redirect()->route('customer.caterers')
+                ->with('error', 'Sorry, this date is no longer available. The caterer may have blocked it.');
+        }
+
+        $hasExistingBooking = Booking::where('caterer_id', $bookingDetails['caterer_id'])
+            ->where('event_date', $bookingDetails['event_date'])
+            ->whereIn('booking_status', ['pending', 'confirmed'])
+            ->exists();
+
+        if ($hasExistingBooking) {
+            session()->forget(['booking_details', 'booking_customization']);
+            return redirect()->route('customer.caterers')
+                ->with('error', 'Sorry, this date is no longer available. Another customer may have booked it.');
         }
 
         try {
@@ -314,5 +360,49 @@ class BookingController extends Controller
             ]);
             return back()->with('error', 'Failed to process payment. Please try again.');
         }
+    }
+
+    public function checkAvailability(Request $request)
+    {
+        $request->validate([
+            'caterer_id' => 'required|exists:users,id',
+            'event_date' => 'required|date|after:today',
+        ]);
+
+        $catererId = $request->caterer_id;
+        $eventDate = $request->event_date;
+
+        // Check if date is blocked
+        $isBlocked = \App\Models\CatererAvailability::where('caterer_id', $catererId)
+            ->where('date', $eventDate)
+            ->where('status', 'blocked')
+            ->exists();
+
+        if ($isBlocked) {
+            return response()->json([
+                'available' => false,
+                'reason' => 'blocked',
+                'message' => 'This caterer is not available on this date.'
+            ]);
+        }
+
+        // Check if caterer already has a booking
+        $hasBooking = \App\Models\Booking::where('caterer_id', $catererId)
+            ->where('event_date', $eventDate)
+            ->whereIn('booking_status', ['pending', 'confirmed'])
+            ->exists();
+
+        if ($hasBooking) {
+            return response()->json([
+                'available' => false,
+                'reason' => 'booked',
+                'message' => 'This caterer is already booked for this date.'
+            ]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'message' => 'This date is available!'
+        ]);
     }
 }
