@@ -154,6 +154,56 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
     Route::patch('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
 });
+
+// Caterer routes - Apply caterer.suspended middleware
+Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approval'])->prefix('caterer')->name('caterer.')->group(function () {
+    // Main caterer pages
+    Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
+    
+    // Calendar and Availability
+    Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
+    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
+    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
+    
+    // Bookings
+    Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
+    Route::get('/bookings/{booking}', [CatererController::class, 'showBooking'])->name('booking.details');
+    Route::patch('/bookings/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('booking.confirm');
+    Route::patch('/bookings/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('booking.reject');
+    Route::patch('/bookings/{booking}/complete', [CatererController::class, 'completeBooking'])->name('booking.complete');
+    
+    Route::get('/menus', [CatererController::class, 'menus'])->name('menus');
+    Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
+    Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
+    Route::get('/reviews', [CatererController::class, 'reviews'])->name('reviews');
+
+    // Category management
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Menu item management
+    Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
+    Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
+    Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
+
+    // Package management
+    Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
+    Route::put('/packages/{package}', [PackageController::class, 'update'])->name('packages.update');
+    Route::delete('/packages/{package}', [PackageController::class, 'destroy'])->name('packages.destroy');
+    Route::patch('/packages/{package}/toggle', [PackageController::class, 'toggle'])->name('packages.toggle');
+    Route::get('/packages/{package}/items', [PackageController::class, 'getItems'])->name('packages.items');
+    Route::get('/packages/{package}/price-breakdown', [PackageController::class, 'getPriceBreakdown'])->name('packages.price-breakdown');
+
+    // View own reviews
+    Route::get('/reviews', [ReviewController::class, 'catererReviews'])->name('reviews');
+    
+    // Respond to reviews
+    Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
+    Route::post('/reviews/{review}/update-response', [ReviewController::class, 'updateResponse'])->name('reviews.update-response');
+    Route::delete('/reviews/{review}/delete-response', [ReviewController::class, 'deleteResponse'])->name('reviews.delete-response');
+});
+
 // Registration pending page
 Route::get('/register-pending', function () {
     return view('auth.register-pending');
