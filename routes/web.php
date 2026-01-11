@@ -9,12 +9,19 @@ use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
-// Public route
-Route::get('/', function () {
-    return view('welcome');
-});
+// ============================================
+// 🏠 PUBLIC ROUTES (No Login Required)
+// ============================================
+
+// Landing Page - Guest users can browse caterers
+Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+
+// ============================================
+// 🔐 AUTHENTICATED ROUTES (Login Required)
+// ============================================
 
 // Redirect /dashboard to role-specific dashboard
 Route::get('/dashboard', function () {
@@ -155,6 +162,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
 });
 
+<<<<<<< HEAD
 // Caterer routes - Apply caterer.suspended middleware
 Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approval'])->prefix('caterer')->name('caterer.')->group(function () {
     // Main caterer pages
@@ -204,6 +212,8 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::delete('/reviews/{review}/delete-response', [ReviewController::class, 'deleteResponse'])->name('reviews.delete-response');
 });
 
+=======
+>>>>>>> d14d05dd9c327828a77cd1c70cd80aa4d882ac92
 // Registration pending page
 Route::get('/register-pending', function () {
     return view('auth.register-pending');
