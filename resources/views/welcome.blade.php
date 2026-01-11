@@ -1,9 +1,25 @@
-<x-guest-layout>
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'CaterEase') }} - Find Your Perfect Caterer</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="font-sans antialiased">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 w-full">
         
-        <!-- Navigation with animation -->
-        <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 transition-all duration-300">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Navigation - Fully Responsive -->
+        <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 transition-all duration-300 w-full">
+            <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16 sm:h-20">
                     <div class="flex items-center space-x-2 sm:space-x-3">
                         <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center transform hover:scale-110 transition-transform">
@@ -25,15 +41,15 @@
             </div>
         </nav>
 
-        <!-- Hero Section with enhanced visuals -->
-        <div class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700 text-white py-16 sm:py-24 lg:py-32 overflow-hidden">
+        <!-- Hero Section - Enhanced Responsiveness -->
+        <div class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700 text-white py-16 sm:py-24 lg:py-32 overflow-hidden w-full">
             <!-- Animated background elements -->
             <div class="absolute inset-0 opacity-20">
                 <div class="absolute top-10 left-10 w-32 h-32 sm:w-64 sm:h-64 bg-white rounded-full blur-3xl animate-pulse"></div>
                 <div class="absolute bottom-10 right-10 w-32 h-32 sm:w-64 sm:h-64 bg-purple-300 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
             </div>
             
-            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <div class="inline-block mb-4 sm:mb-6">
                     <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs sm:text-sm font-semibold tracking-wide uppercase">
                         🎉 Trusted by 1000+ Customers
@@ -73,8 +89,8 @@
             </div>
         </div>
 
-        <!-- Caterers List with enhanced cards -->
-        <div id="caterers-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <!-- Caterers List - Enhanced Responsive Grid -->
+        <div id="caterers-section" class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
             <div class="text-center mb-10 sm:mb-12">
                 <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
                     Discover Amazing Caterers
@@ -155,8 +171,8 @@
         </div>
 
         <!-- Features Section with icons -->
-        <div class="bg-white py-16 sm:py-20 lg:py-24">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white py-16 sm:py-20 lg:py-24 w-full">
+            <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12 sm:mb-16">
                     <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
                         How It Works
@@ -216,7 +232,7 @@
         </div>
 
         <!-- CTA Section -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 py-16 sm:py-20">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 py-16 sm:py-20 w-full">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
                     Ready to Make Your Event Special?
@@ -231,7 +247,7 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-10 sm:py-12">
+        <footer class="bg-gray-900 text-white py-10 sm:py-12 w-full">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col items-center space-y-4">
                     <div class="flex items-center space-x-2">
@@ -344,4 +360,5 @@
             });
         });
     </script>
-</x-guest-layout>
+</body>
+</html>
