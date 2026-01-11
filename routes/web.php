@@ -89,6 +89,9 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     
     // View caterer reviews
     Route::get('/caterers/{caterer}/reviews', [ReviewController::class, 'index'])->name('caterer.reviews');
+
+    Route::post('/check-availability', [\App\Http\Controllers\BookingController::class, 'checkAvailability'])
+        ->name('booking.check-availability');
 });
 
 // Caterer routes
