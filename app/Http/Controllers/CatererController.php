@@ -100,7 +100,7 @@ class CatererController extends Controller
         ];
         
         // Popular packages
-        $popularPackages = Package::where('user_id', $catererId)
+        $popularPackages = Package::where('id', $catererId)
             ->withCount('bookings')
             ->orderBy('bookings_count', 'desc')
             ->limit(5)

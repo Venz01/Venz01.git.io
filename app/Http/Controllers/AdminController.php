@@ -13,12 +13,24 @@ class AdminController extends Controller
         return view('admin.dashboard');
     }
 
-    public function userManagement()
-    {
-        // Fetch all users, optionally with pagination for efficiency
-        $users = User::orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.users', compact('users'));
+    public function userManagement(Request $request)
+{
+    $query = User::query();
+    
+    // Filter by role if requested
+    if ($request->has('role') && in_array($request->role, ['customer', 'caterer', 'admin'])) {
+        $query->where('role', $request->role);
     }
+    
+    // Order by created date (newest first)
+    $query->orderBy('created_at', 'desc');
+    
+    $users = $query->paginate(15);
+    
+    return view('admin.users', compact('users'));
+}
+
+    
 
     public function updateUserStatus(User $user, Request $request)
     {
@@ -29,5 +41,33 @@ class AdminController extends Controller
         }
         return back()->with('success', 'User status updated.');
     }
+
+    public function showCaterer($id)
+{
+    $caterer = \App\Models\User::where('role', 'caterer')->findOrFail($id);
+    return view('admin.caterers.show', compact('caterer'));
+}
+
+public function approveCaterer($id)
+{
+    $caterer = \App\Models\User::where('role', 'caterer')->findOrFail($id);
+    $caterer->update(['status' => 'approved']);
+    
+    // Optional: Send notification to caterer
+    
+    return redirect()->route('admin.dashboard')
+        ->with('success', 'Caterer approved successfully.');
+}
+
+public function rejectCaterer($id)
+{
+    $caterer = \App\Models\User::where('role', 'caterer')->findOrFail($id);
+    $caterer->update(['status' => 'rejected']);
+    
+    // Optional: Send notification to caterer
+    
+    return redirect()->route('admin.dashboard')
+        ->with('success', 'Caterer rejected.');
+}
 
 }

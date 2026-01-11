@@ -145,8 +145,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users', [AdminController::class, 'userManagement'])->name('users');
     Route::patch('/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
+    
+    // Add these caterer management routes
+    Route::get('/caterers/{caterer}', [AdminController::class, 'showCaterer'])->name('caterers.show');
+    Route::patch('/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
+    Route::patch('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
 });
-
 // Registration pending page
 Route::get('/register-pending', function () {
     return view('auth.register-pending');
