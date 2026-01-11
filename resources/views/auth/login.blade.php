@@ -1,4 +1,15 @@
 <x-guest-layout>
+    <!-- Logo Section at the Top -->
+    <div class="flex justify-center mb-6">
+        <img src="{{ asset('images/logo.jpg') }}" alt="Restaurant Logo" class="h-28 w-auto">
+    </div>
+    
+    <!-- Optional: Add site name/tagline below logo -->
+    <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">CaterEase</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Catering Management System</p>
+    </div>
+
     <!-- Display ALL errors at the top prominently -->
     @if ($errors->any())
         <div class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 border border-red-200 dark:border-red-800">
@@ -42,7 +53,6 @@
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required
                 autofocus autocomplete="username" />
-            <!-- Removed individual error display from here -->
         </div>
 
         <!-- Password -->
@@ -51,8 +61,6 @@
 
             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required
                 autocomplete="current-password" />
-
-            <!-- Removed individual error display from here -->
         </div>
 
         <!-- Remember Me -->
