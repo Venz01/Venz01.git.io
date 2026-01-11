@@ -199,4 +199,12 @@ class User extends Authenticatable
         $responded = $this->approvedReviews()->whereNotNull('caterer_response')->count();
         return round(($responded / $total) * 100, 1);
     }
+
+    /**
+     * Get the reviews for the caterer
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'caterer_id');
+    }
 }
