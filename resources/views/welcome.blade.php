@@ -36,66 +36,6 @@
                 </div>
             </div>
         </nav>
-
-        <!-- Hero Section - Enhanced Responsiveness -->
-        <div class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700 text-white py-16 sm:py-24 lg:py-32 overflow-hidden w-full">
-            <!-- Animated background elements -->
-            <div class="absolute inset-0 opacity-20">
-                <div class="absolute top-10 left-10 w-32 h-32 sm:w-64 sm:h-64 bg-white rounded-full blur-3xl animate-pulse"></div>
-                <div class="absolute bottom-10 right-10 w-32 h-32 sm:w-64 sm:h-64 bg-purple-300 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-            </div>
-            
-            <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <div class="inline-block mb-4 sm:mb-6">
-                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs sm:text-sm font-semibold tracking-wide uppercase">
-                        🎉 Trusted by 1000+ Customers
-                    </span>
-                </div>
-                <h2 class="text-3xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight animate-fade-in">
-                    Find Your Perfect<br class="hidden sm:block" />
-                    <span class="bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">Caterer</span>
-                </h2>
-                <p class="text-base sm:text-xl lg:text-2xl mb-8 sm:mb-10 px-4 text-blue-100 max-w-3xl mx-auto">
-                    Browse verified caterers, explore delicious menus, and book effortlessly for your special event
-                </p>
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a href="{{ route('register') }}" class="w-full sm:w-auto px-8 py-3 sm:py-4 bg-white text-blue-600 text-base sm:text-lg rounded-xl font-bold hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-2xl">
-                        Get Started Free
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    @auth
-                        @if(auth()->user()->role === 'customer')
-                            <a href="{{ route('customer.dashboard') }}"
-                                class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                Dashboard
-                            </a>
-                        @elseif(auth()->user()->role === 'caterer')
-                            <a href="{{ route('caterer.dashboard') }}"
-                                class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                Dashboard
-                            </a>
-                        @elseif(auth()->user()->role === 'admin')
-                            <a href="{{ route('admin.dashboard') }}"
-                                class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                Admin Panel
-                            </a>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}"
-                            class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                            Log in
-                        </a>
-                        <a href="{{ route('register') }}"
-                            class="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium">
-                            Sign up
-                        </a>
-                    @endauth
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <!-- Hero Section -->
     <div class="pt-16 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

@@ -163,6 +163,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Activity Logs
     Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
+
+    // Activity Logs Detail Route (for AJAX)
+    Route::get('/admin/activity-logs/{id}', [AdminController::class, 'getActivityLogDetails'])
+    ->name('admin.activity-log-details')
+    ->middleware(['auth', 'admin']);
 });
 
 

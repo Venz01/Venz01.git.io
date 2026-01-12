@@ -20,20 +20,19 @@ class ActivityLogger
                 'description' => $description,
                 'properties' => $properties,
                 'ip_address' => Request::ip(),
-                'user_agent' => Request::userAgent(),
+                'user_agent' => substr(Request::userAgent(), 0, 255),
             ]);
         } catch (\Exception $e) {
-            // Silently fail to not disrupt user experience
             \Log::error('Failed to log activity: ' . $e->getMessage());
         }
     }
 
     /**
-     * Log authentication events
+     * Log authentication events (login, logout, failed attempts)
      */
     public static function logAuth($action, $description, $userId = null)
     {
-        self::log('authentication', $action, $description, ['user_id' => $userId]);
+        self::log('authentication', $action, $description, ['target_user_id' => $userId]);
     }
 
     /**
@@ -59,5 +58,30 @@ class ActivityLogger
     public static function logPayment($action, $description, $properties = null)
     {
         self::log('payment', $action, $description, $properties);
+    }
+
+    /**
+     * Log profile updates
+     */
+    public static function logProfile($action, $description, $properties = null)
+    {
+        self::log('profile', $action, $description, $properties);
+    }
+
+    /**
+     * Log menu operations (for caterers)
+     */
+    public static function logMenu($action, $description, $menuId = null, $properties = null)
+    {
+        $data = $menuId ? array_merge(['menu_id' => $menuId], $properties ?? []) : $properties;
+        self::log('menu', $action, $description, $data);
+    }
+
+    /**
+     * Log security events
+     */
+    public static function logSecurity($action, $description, $properties = null)
+    {
+        self::log('security', $action, $description, $properties);
     }
 }
