@@ -160,6 +160,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/caterers/{caterer}', [AdminController::class, 'showCaterer'])->name('caterers.show');
     Route::patch('/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
     Route::patch('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
+
+    // Activity Logs
+    Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
 });
 
 

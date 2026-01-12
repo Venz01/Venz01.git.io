@@ -66,6 +66,12 @@ class CheckSuspendedCaterer
                     return redirect()->route('login')->withErrors([
                         'email' => 'Your caterer application has been reviewed and unfortunately was not approved at this time. Please contact the administrator if you have questions or would like to reapply.',
                     ]);
+                if ($user->status === 'suspended') {
+                    ActivityLogger::logAuth('login_blocked', "Suspended user attempted to login: {$user->email}", $user->id);
+                    
+                    Auth::logout();
+                    // ... rest of code
+}
                 }
             }
         }

@@ -93,6 +93,10 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                         {{ __('User Management') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.activity-logs')" :active="request()->routeIs('admin.activity-logs')">
+                        {{ __('Activity Logs') }}
+                    </x-nav-link>
+
                     @else
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
@@ -335,6 +339,9 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                     {{ __('User Management') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.activity-logs')" :active="request()->routeIs('admin.activity-logs')">
+                    {{ __('Activity Logs') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.index')">
                     <div class="flex items-center justify-between">
