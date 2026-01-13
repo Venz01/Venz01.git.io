@@ -9,13 +9,6 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             {{-- Statistics Cards --}}
-            @php
-                $totalUsers = \App\Models\User::count();
-                $totalCaterers = \App\Models\User::where('role', 'caterer')->count();
-                $pendingApprovals = \App\Models\User::where('role', 'caterer')->where('status', 'pending')->count();
-                $totalCustomers = \App\Models\User::where('role', 'customer')->count();
-            @endphp
-            
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
                 {{-- Total Users --}}
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
@@ -31,7 +24,7 @@
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Users</dt>
                                     <dd>
                                         <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $totalUsers }}
+                                            {{ $stats['total_users'] ?? 0 }}
                                         </div>
                                     </dd>
                                 </dl>
@@ -54,7 +47,7 @@
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Caterers</dt>
                                     <dd>
                                         <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $totalCaterers }}
+                                            {{ $stats['total_caterers'] ?? 0 }}
                                         </div>
                                     </dd>
                                 </dl>
@@ -77,7 +70,7 @@
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Pending Approvals</dt>
                                     <dd>
                                         <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $pendingApprovals }}
+                                            {{ $stats['pending_caterers'] ?? 0 }}
                                         </div>
                                     </dd>
                                 </dl>
@@ -100,7 +93,7 @@
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Customers</dt>
                                     <dd>
                                         <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $totalCustomers }}
+                                            {{ $stats['total_customers'] ?? 0 }}
                                         </div>
                                     </dd>
                                 </dl>
@@ -108,6 +101,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {{-- Activity Logs Statistics Row --}}
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
             </div>
 
             {{-- Pending Caterer Approvals --}}
@@ -155,7 +152,6 @@
                                         </a>
                                         <form action="{{ route('admin.caterers.approve', $caterer->id) }}" method="POST" class="inline">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="return confirm('Are you sure you want to approve this caterer?')">
                                                 <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -165,7 +161,6 @@
                                         </form>
                                         <form action="{{ route('admin.caterers.reject', $caterer->id) }}" method="POST" class="inline">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit" class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" onclick="return confirm('Are you sure you want to reject this caterer?')">
                                                 <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -193,27 +188,93 @@
             </div>
             @endif
 
-            {{-- Recent Activity --}}
+            {{-- Recent Activity Logs --}}
             <div class="mb-8">
-                <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Recent Activity Logs</h2>
+                    <a href="{{ route('admin.activity-logs') }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">
+                        View all logs →
+                    </a>
+                </div>
                 <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-                    @if(isset($recentActivities) && count($recentActivities) > 0)
+                    @if(isset($stats['recent_activity']) && $stats['recent_activity']->count() > 0)
                     <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($recentActivities as $activity)
+                        @foreach($stats['recent_activity'] as $log)
                         <li>
-                            <div class="px-4 py-4 sm:px-6">
-                                <div class="flex items-center">
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium text-indigo-600 dark:text-indigo-400 truncate">
-                                            {{ $activity->title }}
-                                        </p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $activity->description }}
-                                        </p>
+                            <div class="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center min-w-0 flex-1">
+                                        {{-- Icon based on type --}}
+                                        <div class="flex-shrink-0">
+                                            @if($log->type === 'authentication')
+                                                <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                                    <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                    </svg>
+                                                </div>
+                                            @elseif($log->type === 'admin')
+                                                <div class="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                                                    <svg class="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                </div>
+                                            @elseif($log->type === 'security')
+                                                <div class="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                                                    <svg class="h-5 w-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                </div>
+                                            @else
+                                                <div class="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                                    <svg class="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        
+                                        {{-- Log Details --}}
+                                        <div class="ml-4 min-w-0 flex-1">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                                    @if($log->type === 'authentication') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                                    @elseif($log->type === 'admin') bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
+                                                    @elseif($log->type === 'security') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                                    @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200
+                                                    @endif">
+                                                    {{ ucfirst($log->type) }}
+                                                </span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $log->action }}
+                                                </span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1 truncate">
+                                                {{ $log->description }}
+                                            </p>
+                                            <div class="flex items-center mt-1 space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                                                <span class="flex items-center">
+                                                    <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                    {{ $log->user ? $log->user->name : 'System' }}
+                                                </span>
+                                                @if($log->ip_address)
+                                                <span class="flex items-center">
+                                                    <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                                    </svg>
+                                                    {{ $log->ip_address }}
+                                                </span>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
+                                    
+                                    {{-- Timestamp --}}
                                     <div class="ml-4 flex-shrink-0">
                                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $activity->created_at->diffForHumans() }}
+                                            {{ $log->created_at->diffForHumans() }}
                                         </p>
                                     </div>
                                 </div>
@@ -222,8 +283,11 @@
                         @endforeach
                     </ul>
                     @else
-                    <div class="px-4 py-5 sm:px-6 text-center text-gray-500 dark:text-gray-400">
-                        No recent activity
+                    <div class="px-4 py-8 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No recent activity logs</p>
                     </div>
                     @endif
                 </div>
