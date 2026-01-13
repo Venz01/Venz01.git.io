@@ -142,34 +142,26 @@
 
                                             @if($user->status === 'pending')
                                                 <!-- Quick Approve Button -->
-                                                <form action="{{ route('admin.caterers.approve', $user->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" 
-                                                            class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                            onclick="return confirm('Are you sure you want to approve this caterer?')"
-                                                            title="Approve Caterer">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                        Approve
-                                                    </button>
-                                                </form>
+                                                <button type="button"
+                                                        onclick="showConfirmation('approve', {{ $user->id }}, '{{ $user->name }}', '{{ $user->business_name }}')"
+                                                        class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                        title="Approve Caterer">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Approve
+                                                </button>
 
                                                 <!-- Quick Reject Button -->
-                                                <form action="{{ route('admin.caterers.reject', $user->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" 
-                                                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                            onclick="return confirm('Are you sure you want to reject this caterer?')"
-                                                            title="Reject Caterer">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                        Reject
-                                                    </button>
-                                                </form>
+                                                <button type="button"
+                                                        onclick="showConfirmation('reject', {{ $user->id }}, '{{ $user->name }}', '{{ $user->business_name }}')"
+                                                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                                        title="Reject Caterer">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Reject
+                                                </button>
                                             @endif
                                         @endif
 
@@ -196,25 +188,16 @@
                                                      class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 z-10"
                                                      style="display: none;">
                                                     <div class="py-1">
-                                                        <form action="{{ route('admin.users.status', $user->id) }}" method="POST">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="suspended">
-                                                            <button type="submit" 
-                                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-                                                                    onclick="return confirm('Are you sure you want to suspend this user?')">
-                                                                Suspend User
-                                                            </button>
-                                                        </form>
-                                                        <form action="{{ route('admin.users.status', $user->id) }}" method="POST">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="active">
-                                                            <button type="submit" 
-                                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                                                Activate User
-                                                            </button>
-                                                        </form>
+                                                        <button type="button"
+                                                                onclick="showConfirmation('suspend', {{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}')"
+                                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                            Suspend User
+                                                        </button>
+                                                        <button type="button"
+                                                                onclick="showConfirmation('activate', {{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}')"
+                                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                            Activate User
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -248,4 +231,217 @@
             </div>
         </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div class="relative mx-auto p-0 w-full max-w-md">
+            <!-- Modal Content -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl transform transition-all">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            Confirm Action
+                        </h3>
+                        <button onclick="closeConfirmation()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-6 py-4">
+                    <!-- Icon -->
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" id="modalIconContainer">
+                        <svg id="modalIcon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+
+                    <!-- Message -->
+                    <div class="text-center">
+                        <p id="modalMessage" class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Are you sure you want to perform this action?
+                        </p>
+                        <div id="modalUserInfo" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-left">
+                            <!-- User info will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 rounded-b-lg flex items-center justify-end space-x-3">
+                    <button onclick="closeConfirmation()" 
+                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmButton" 
+                            onclick="confirmAction()" 
+                            class="px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Forms -->
+    <form id="approveForm" method="POST" style="display: none;">
+        @csrf
+        @method('PATCH')
+    </form>
+
+    <form id="rejectForm" method="POST" style="display: none;">
+        @csrf
+        @method('PATCH')
+    </form>
+
+    <form id="statusForm" method="POST" style="display: none;">
+        @csrf
+        @method('PATCH')
+        <input type="hidden" name="status" id="statusInput">
+    </form>
+
+    <script>
+        let currentAction = '';
+        let currentUserId = '';
+
+        function showConfirmation(action, userId, userName, userDetail) {
+            currentAction = action;
+            currentUserId = userId;
+
+            const modal = document.getElementById('confirmationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalUserInfo = document.getElementById('modalUserInfo');
+            const modalIconContainer = document.getElementById('modalIconContainer');
+            const modalIcon = document.getElementById('modalIcon');
+            const confirmButton = document.getElementById('confirmButton');
+
+            // Configure modal based on action
+            switch(action) {
+                case 'approve':
+                    modalTitle.textContent = 'Approve Caterer';
+                    modalMessage.textContent = 'Are you sure you want to approve this caterer? They will be able to access the platform and receive bookings.';
+                    modalIconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 bg-green-100 dark:bg-green-900';
+                    modalIcon.className = 'h-6 w-6 text-green-600 dark:text-green-300';
+                    modalIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+                    confirmButton.className = 'px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
+                    confirmButton.textContent = 'Approve Caterer';
+                    modalUserInfo.innerHTML = `
+                        <div class="text-sm">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">${userName}</div>
+                            <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'reject':
+                    modalTitle.textContent = 'Reject Caterer';
+                    modalMessage.textContent = 'Are you sure you want to reject this caterer application? This action will deny their access to the platform.';
+                    modalIconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 bg-red-100 dark:bg-red-900';
+                    modalIcon.className = 'h-6 w-6 text-red-600 dark:text-red-300';
+                    modalIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+                    confirmButton.className = 'px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+                    confirmButton.textContent = 'Reject Caterer';
+                    modalUserInfo.innerHTML = `
+                        <div class="text-sm">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">${userName}</div>
+                            <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'suspend':
+                    modalTitle.textContent = 'Suspend User';
+                    modalMessage.textContent = 'Are you sure you want to suspend this user? They will not be able to access their account until reactivated.';
+                    modalIconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 bg-yellow-100 dark:bg-yellow-900';
+                    modalIcon.className = 'h-6 w-6 text-yellow-600 dark:text-yellow-300';
+                    modalIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>';
+                    confirmButton.className = 'px-4 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500';
+                    confirmButton.textContent = 'Suspend User';
+                    modalUserInfo.innerHTML = `
+                        <div class="text-sm">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">${userName}</div>
+                            <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'activate':
+                    modalTitle.textContent = 'Activate User';
+                    modalMessage.textContent = 'Are you sure you want to activate this user? They will regain full access to their account.';
+                    modalIconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 bg-blue-100 dark:bg-blue-900';
+                    modalIcon.className = 'h-6 w-6 text-blue-600 dark:text-blue-300';
+                    modalIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+                    confirmButton.className = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+                    confirmButton.textContent = 'Activate User';
+                    modalUserInfo.innerHTML = `
+                        <div class="text-sm">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">${userName}</div>
+                            <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Show modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmation() {
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function confirmAction() {
+            let form;
+            
+            switch(currentAction) {
+                case 'approve':
+                    form = document.getElementById('approveForm');
+                    form.action = `/admin/caterers/${currentUserId}/approve`;
+                    break;
+                    
+                case 'reject':
+                    form = document.getElementById('rejectForm');
+                    form.action = `/admin/caterers/${currentUserId}/reject`;
+                    break;
+                    
+                case 'suspend':
+                    form = document.getElementById('statusForm');
+                    form.action = `/admin/users/${currentUserId}/status`;
+                    document.getElementById('statusInput').value = 'suspended';
+                    break;
+                    
+                case 'activate':
+                    form = document.getElementById('statusForm');
+                    form.action = `/admin/users/${currentUserId}/status`;
+                    document.getElementById('statusInput').value = 'active';
+                    break;
+            }
+            
+            if (form) {
+                form.submit();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('confirmationModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmation();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeConfirmation();
+            }
+        });
+    </script>
 </x-app-layout>
