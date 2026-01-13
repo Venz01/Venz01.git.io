@@ -1,28 +1,56 @@
-FROM php:8.2-cli
+# Use PHP 8.2 with Apache
+FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git curl unzip libpq-dev libonig-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libpq-dev \
+    zip \
+    unzip \
+    nodejs \
+    npm
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd
 
-# Copy app files
-COPY . .
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy existing application directory contents
+COPY . /var/www/html
+
+# Copy existing application directory permissions
+RUN chown -R www-data:www-data /var/www/html
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Clear caches
-RUN php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear
+# Install node dependencies and build assets
+RUN npm install && npm run build
 
-# Expose Render's dynamic port
-EXPOSE 10000
+# Configure Apache
+RUN a2enmod rewrite
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Start Laravel HTTP server
-CMD php artisan serve --host=0.0.0.0 --port=$PORT
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache
+CMD php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan migrate --force && \
+    apache2-foreground
