@@ -16,9 +16,12 @@ class DatabaseSeeder extends Seeder
 
         // Seed in the correct order due to foreign key dependencies
         $this->call([
-            CategorySeeder::class,      // Second: Create categories for caterers
-            MenuItemSeeder::class,      // Third: Create menu items for categories
-            PackageSeeder::class,       // Fourth: Create packages with menu items
+            UserSeeder::class,
+            CategorySeeder::class,
+            MenuItemSeeder::class,
+            PackageSeeder::class,
+            MenuItemPackageSeeder::class,
+            PortfolioImageSeeder::class,       // Fourth: Create packages with menu items
         ]);
 
         $this->command->newLine();

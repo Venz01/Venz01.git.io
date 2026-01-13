@@ -8,10 +8,13 @@ return new class extends Migration {
     {
         Schema::create('menu_items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->decimal('price', 10,2);
             $table->text('description')->nullable();
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->decimal('price', 10, 2);
+            $table->string('image_path')->nullable();
+            $table->enum('status', ['available', 'unavailable'])->default('available');
             $table->timestamps();
         });
     }
