@@ -70,12 +70,17 @@
             <div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3">
                 @php
                     $cuisineOptions = ['Filipino', 'Chinese', 'Japanese', 'Korean', 'Italian', 'American', 'Mexican', 'Indian', 'Thai', 'Mediterranean', 'Fusion', 'International'];
-                    $selectedCuisines = old('cuisine_types', $user->cuisine_types ?? []);
+                    $userCuisines = $user->cuisine_types ?? [];
+                    // Ensure it's an array
+                    if (!is_array($userCuisines)) {
+                        $userCuisines = is_string($userCuisines) ? json_decode($userCuisines, true) ?? [] : [];
+                    }
+                    $selectedCuisines = old('cuisine_types', $userCuisines);
                 @endphp
                 @foreach($cuisineOptions as $cuisine)
                     <label class="flex items-center">
                         <input type="checkbox" name="cuisine_types[]" value="{{ $cuisine }}"
-                               {{ in_array($cuisine, $selectedCuisines) ? 'checked' : '' }}
+                               {{ in_array($cuisine, (array)$selectedCuisines) ? 'checked' : '' }}
                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
                         <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $cuisine }}</span>
                     </label>
@@ -89,13 +94,18 @@
             <x-input-label for="service_areas" :value="__('Service Areas')" />
             <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
                 @php
-                    $areaOptions = ['General Santos', 'Koronadal', 'Polomolok', 'Tupi', 'Surallah', 'Tantangan', 'Banga', 'Lake Sebu'];
-                    $selectedAreas = old('service_areas', $user->service_areas ?? []);
+                    $areaOptions = ['Cagayan de Oro', 'Iligan', 'Valencia', 'Malaybalay', 'Bukidnon', 'Opol', 'Tagoloan', 'Jasaan'];
+                    $userAreas = $user->service_areas ?? [];
+                    // Ensure it's an array
+                    if (!is_array($userAreas)) {
+                        $userAreas = is_string($userAreas) ? json_decode($userAreas, true) ?? [] : [];
+                    }
+                    $selectedAreas = old('service_areas', $userAreas);
                 @endphp
                 @foreach($areaOptions as $area)
                     <label class="flex items-center">
                         <input type="checkbox" name="service_areas[]" value="{{ $area }}"
-                               {{ in_array($area, $selectedAreas) ? 'checked' : '' }}
+                               {{ in_array($area, (array)$selectedAreas) ? 'checked' : '' }}
                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
                         <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $area }}</span>
                     </label>

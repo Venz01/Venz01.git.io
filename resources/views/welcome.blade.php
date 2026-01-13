@@ -169,7 +169,7 @@
                         @endif
 
                         <!-- Cuisine Types -->
-                        @if($caterer->cuisine_types && count($caterer->cuisine_types) > 0)
+                        @if($caterer->cuisine_types && is_array($caterer->cuisine_types) && count($caterer->cuisine_types) > 0)
                         <div class="flex flex-wrap gap-2 mb-4">
                             @foreach(array_slice($caterer->cuisine_types, 0, 3) as $cuisine)
                             <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-medium">
