@@ -20,7 +20,7 @@ class AdminController extends Controller
             'total_logs' => ActivityLog::count(),
             'today_logs' => ActivityLog::whereDate('created_at', today())->count(),
             'week_logs' => ActivityLog::where('created_at', '>=', now()->subWeek())->count(),
-            'recent_activity' => ActivityLog::with('user')->latest()->take(10)->get(),
+            'recent_activity' => ActivityLog::with('user')->latest()->take(5)->get(),
         ];
         
         return view('admin.dashboard', compact('stats'));
