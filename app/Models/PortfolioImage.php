@@ -2,49 +2,60 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
 class PortfolioImage extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'image_path',
         'title',
         'description',
-        'order',
         'is_featured',
-    ];
-
-    protected $casts = [
-        'is_featured' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'order',
     ];
 
     /**
-     * Get the user that owns the portfolio image
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
      */
-    public function user()
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'order' => 'integer',
+    ];
+
+    /**
+     * Get the user that owns the portfolio image.
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * Scope for featured images
+     * Scope a query to only include ordered images.
      */
-    public function scopeFeatured($query)
+    public function scopeOrdered(Builder $query): Builder
     {
-        return $query->where('is_featured', true);
+        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
     }
 
     /**
-     * Scope for ordered images
+     * Scope a query to only include featured images.
      */
-    public function scopeOrdered($query)
+    public function scopeFeatured(Builder $query): Builder
     {
-        return $query->orderBy('order', 'asc')->orderBy('created_at', 'desc');
+        return $query->where('is_featured', true);
     }
 }
