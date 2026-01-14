@@ -356,12 +356,264 @@
                 <p class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No packages in this category</p>
                 <p class="text-gray-500 dark:text-gray-400">Try browsing all packages or select a different category</p>
             </div>
+
+            <!-- Featured Portfolio Gallery Section - MOVED BELOW PACKAGES -->
+            @if($caterer->portfolioImages->where('is_featured', true)->count() > 0)
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mt-8 overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <svg class="w-7 h-7 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                Featured Portfolio
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                See our best work and signature creations
+                            </p>
+                        </div>
+                        @if($caterer->portfolioImages->count() > $caterer->portfolioImages->where('is_featured', true)->count())
+                            <button 
+                                onclick="toggleFullGallery()"
+                                class="text-green-600 hover:text-green-700 font-semibold text-sm flex items-center transition-colors">
+                                View All Photos ({{ $caterer->portfolioImages->count() }})
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Featured Images Grid -->
+                <div class="p-6">
+                    <div class="flex flex-wrap justify-center gap-4">
+                        @foreach($caterer->portfolioImages->where('is_featured', true) as $image)
+                            <div class="relative group cursor-pointer w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)] max-w-sm" onclick="openLightbox({{ $loop->index }}, 'featured')">
+                                <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                                    <img src="{{ asset('storage/' . $image->image_path) }}" 
+                                         alt="{{ $image->title ?? 'Portfolio image' }}"
+                                         class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                </div>
+                                
+                                <!-- Hover Overlay -->
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 rounded-lg flex items-center justify-center">
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-3">
+                                        @if($image->title)
+                                            <p class="text-white font-semibold text-sm mb-1">{{ $image->title }}</p>
+                                        @endif
+                                        <svg class="w-8 h-8 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <!-- Featured Star Badge -->
+                                <div class="absolute top-2 right-2 bg-yellow-500 text-white p-1.5 rounded-full shadow-lg">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
-    <!-- INLINE JAVASCRIPT - GUARANTEED TO WORK -->
+
+    <!-- Image Lightbox Modal -->
+    <div id="lightboxModal" class="fixed inset-0 z-[60] hidden">
+        <div id="lightboxBackdrop" class="fixed inset-0 bg-black bg-opacity-95 transition-opacity duration-300 opacity-0"></div>
+        
+        <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+            <!-- Close Button -->
+            <button onclick="closeLightbox()" 
+                    class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-20">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <!-- Previous Button -->
+            <button onclick="previousImage()" 
+                    class="absolute left-4 text-white hover:text-gray-300 transition-colors z-20">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Next Button -->
+            <button onclick="nextImage()" 
+                    class="absolute right-4 text-white hover:text-gray-300 transition-colors z-20">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <!-- Image Container -->
+            <div id="lightboxContent" class="relative max-w-6xl max-h-[90vh] w-full transform transition-all duration-300 scale-95 opacity-0">
+                <img id="lightboxImage" src="" alt="" class="w-full h-full object-contain rounded-lg">
+                
+                <!-- Image Info -->
+                <div id="lightboxInfo" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6 rounded-b-lg">
+                    <h4 id="lightboxTitle" class="text-white text-xl font-bold mb-2"></h4>
+                    <p id="lightboxDescription" class="text-gray-300 text-sm"></p>
+                    <p id="lightboxCounter" class="text-gray-400 text-xs mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
     <script>
-        // Global function - accessible from onclick
+        // Portfolio data
+        const featuredImages = [
+            @foreach($caterer->portfolioImages->where('is_featured', true) as $image)
+            {
+                src: "{{ asset('storage/' . $image->image_path) }}",
+                title: "{{ $image->title ?? '' }}",
+                description: "{{ $image->description ?? '' }}"
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        ];
+
+        const allImages = [
+            @foreach($caterer->portfolioImages as $image)
+            {
+                src: "{{ asset('storage/' . $image->image_path) }}",
+                title: "{{ $image->title ?? '' }}",
+                description: "{{ $image->description ?? '' }}"
+            }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        ];
+
+        let currentImageIndex = 0;
+        let currentGalleryType = 'featured';
+
+        // Toggle full gallery modal
+        function toggleFullGallery() {
+            const modal = document.getElementById('fullGalleryModal');
+            const backdrop = document.getElementById('galleryBackdrop');
+            const panel = document.getElementById('galleryPanel');
+            
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    backdrop.classList.add('opacity-100');
+                    panel.classList.remove('scale-95', 'opacity-0');
+                    panel.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                backdrop.classList.remove('opacity-100');
+                panel.classList.remove('scale-100', 'opacity-100');
+                panel.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }, 300);
+            }
+        }
+
+        // Open lightbox
+        function openLightbox(index, galleryType) {
+            currentImageIndex = index;
+            currentGalleryType = galleryType;
+            
+            const modal = document.getElementById('lightboxModal');
+            const backdrop = document.getElementById('lightboxBackdrop');
+            const content = document.getElementById('lightboxContent');
+            
+            updateLightboxImage();
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                backdrop.classList.add('opacity-100');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Close lightbox
+        function closeLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            const backdrop = document.getElementById('lightboxBackdrop');
+            const content = document.getElementById('lightboxContent');
+            
+            backdrop.classList.remove('opacity-100');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        // Navigate images
+        function previousImage() {
+            const images = currentGalleryType === 'featured' ? featuredImages : allImages;
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            updateLightboxImage();
+        }
+
+        function nextImage() {
+            const images = currentGalleryType === 'featured' ? featuredImages : allImages;
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            updateLightboxImage();
+        }
+
+        // Update lightbox image
+        function updateLightboxImage() {
+            const images = currentGalleryType === 'featured' ? featuredImages : allImages;
+            const image = images[currentImageIndex];
+            
+            document.getElementById('lightboxImage').src = image.src;
+            document.getElementById('lightboxTitle').textContent = image.title || '';
+            document.getElementById('lightboxDescription').textContent = image.description || '';
+            document.getElementById('lightboxCounter').textContent = `${currentImageIndex + 1} / ${images.length}`;
+            
+            // Hide info if no title or description
+            const info = document.getElementById('lightboxInfo');
+            if (!image.title && !image.description) {
+                info.style.display = 'none';
+            } else {
+                info.style.display = 'block';
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const lightbox = document.getElementById('lightboxModal');
+            if (!lightbox.classList.contains('hidden')) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') previousImage();
+                if (e.key === 'ArrowRight') nextImage();
+            }
+            
+            const gallery = document.getElementById('fullGalleryModal');
+            if (!gallery.classList.contains('hidden') && e.key === 'Escape') {
+                toggleFullGallery();
+            }
+        });
+
+        // Click outside to close
+        document.getElementById('lightboxModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeLightbox();
+        });
+
+        document.getElementById('fullGalleryModal')?.addEventListener('click', function(e) {
+            if (e.target === this) toggleFullGallery();
+        });
+
+        // Category filter function
         function filterCategory(category, clickedButton) {
             console.log('Filtering category:', category);
             
