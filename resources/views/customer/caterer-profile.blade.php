@@ -215,14 +215,20 @@
                 </div>
             @endif
 
-            <!-- Rest of the packages section remains the same -->
-            <!-- Package Categories Navigation -->
+            <!-- Package Categories Navigation with INLINE JAVASCRIPT -->
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8">
                 <div class="p-6">
-                    <div class="flex flex-wrap gap-4" id="categoryTabs">
-                        <button class="category-tab active px-6 py-3 rounded-lg font-medium transition-colors bg-green-100 text-green-700" data-category="all">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Browse by Category</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <!-- All Packages Button -->
+                        <button 
+                            type="button"
+                            onclick="filterCategory('all', this)"
+                            class="category-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 bg-green-600 text-white hover:bg-green-700 shadow-md"
+                            data-category="all">
                             All Packages ({{ $caterer->packages->count() }})
                         </button>
+
                         @php
                             $categories = [];
                             foreach($caterer->packages as $package) {
@@ -236,8 +242,13 @@
                                 $categories[$category]++;
                             }
                         @endphp
+
                         @foreach($categories as $category => $count)
-                            <button class="category-tab px-6 py-3 rounded-lg font-medium transition-colors text-gray-600 hover:bg-gray-100" data-category="{{ strtolower($category) }}">
+                            <button 
+                                type="button"
+                                onclick="filterCategory('{{ strtolower($category) }}', this)"
+                                class="category-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                                data-category="{{ strtolower($category) }}">
                                 {{ $category }} ({{ $count }})
                             </button>
                         @endforeach
@@ -255,7 +266,8 @@
                         elseif(str_contains(strtolower($package->name), 'party')) $packageCategory = 'party';
                         elseif(str_contains(strtolower($package->name), 'birthday')) $packageCategory = 'birthday';
                     @endphp
-                    <div class="package-card group bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300" data-category="{{ $packageCategory }}">
+                    <div class="package-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300" 
+                         data-category="{{ $packageCategory }}">
                         <!-- Package Image -->
                         <div class="relative h-64 bg-gradient-to-r from-gray-300 to-gray-400">
                             @if($package->image_path)
@@ -324,14 +336,12 @@
                                         <span class="text-gray-500 text-sm">/ {{ $package->pax }} pax</span>
                                     @endif
                                 </div>
-                                <div class="flex space-x-2">
-                                    <a 
-                                        href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}" 
-                                        class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                                    >
-                                        View Details
-                                    </a>
-                                </div>
+                                <a 
+                                    href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}" 
+                                    class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                >
+                                    View Details
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -339,7 +349,7 @@
             </div>
 
             <!-- Empty State -->
-            <div id="emptyState" class="hidden text-center py-12">
+            <div id="emptyState" style="display: none;" class="text-center py-12">
                 <svg class="w-20 h-20 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
@@ -349,38 +359,48 @@
         </div>
     </div>
 
-    @push('scripts')
+    <!-- INLINE JAVASCRIPT - GUARANTEED TO WORK -->
     <script>
-        // Category filtering
-        document.querySelectorAll('.category-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const category = this.dataset.category;
-                
-                // Update active tab
-                document.querySelectorAll('.category-tab').forEach(t => {
-                    t.classList.remove('active', 'bg-green-100', 'text-green-700');
-                    t.classList.add('text-gray-600');
-                });
-                this.classList.add('active', 'bg-green-100', 'text-green-700');
-                this.classList.remove('text-gray-600');
-                
-                // Filter packages
-                const packages = document.querySelectorAll('.package-card');
-                let visibleCount = 0;
-                
-                packages.forEach(pkg => {
-                    if (category === 'all' || pkg.dataset.category === category) {
-                        pkg.style.display = 'block';
-                        visibleCount++;
-                    } else {
-                        pkg.style.display = 'none';
-                    }
-                });
-                
-                // Show/hide empty state
-                document.getElementById('emptyState').style.display = visibleCount === 0 ? 'block' : 'none';
+        // Global function - accessible from onclick
+        function filterCategory(category, clickedButton) {
+            console.log('Filtering category:', category);
+            
+            // Remove active state from all buttons
+            var allButtons = document.querySelectorAll('.category-btn');
+            allButtons.forEach(function(btn) {
+                btn.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-md');
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                btn.classList.add('dark:bg-gray-700', 'dark:text-gray-300');
             });
-        });
+            
+            // Add active state to clicked button
+            clickedButton.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+            clickedButton.classList.remove('dark:bg-gray-700', 'dark:text-gray-300');
+            clickedButton.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-md');
+            
+            // Filter packages
+            var packages = document.querySelectorAll('.package-card');
+            var visibleCount = 0;
+            
+            packages.forEach(function(pkg) {
+                var pkgCategory = pkg.getAttribute('data-category');
+                if (category === 'all' || pkgCategory === category) {
+                    pkg.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    pkg.style.display = 'none';
+                }
+            });
+            
+            // Show/hide empty state
+            var emptyState = document.getElementById('emptyState');
+            if (visibleCount === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+            
+            console.log('Visible packages:', visibleCount);
+        }
     </script>
-    @endpush
 </x-app-layout>
