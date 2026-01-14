@@ -16,21 +16,34 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Caterer Info Header -->
+            <!-- Caterer Info Header with Profile Photo -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8">
                 <div class="bg-gradient-to-r from-green-600 to-green-800 p-8 text-white">
                     <div class="flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
-                        <div class="w-24 h-24 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center text-4xl font-bold backdrop-blur-sm">
-                            {{ substr($caterer->business_name ?? $caterer->name, 0, 1) }}
+                        <!-- Profile Photo -->
+                        <div class="shrink-0">
+                            @if($caterer->profile_photo)
+                                <img src="{{ asset('storage/' . $caterer->profile_photo) }}" 
+                                     alt="{{ $caterer->business_name ?? $caterer->name }}" 
+                                     class="w-32 h-32 object-cover rounded-2xl border-4 border-white shadow-xl">
+                            @else
+                                <div class="w-32 h-32 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center text-5xl font-bold backdrop-blur-sm border-4 border-white shadow-xl">
+                                    {{ substr($caterer->business_name ?? $caterer->name, 0, 1) }}
+                                </div>
+                            @endif
                         </div>
+
+                        <!-- Business Info -->
                         <div class="flex-1">
                             <h1 class="text-4xl font-bold mb-3">{{ $caterer->business_name ?? $caterer->name }}</h1>
-                            <div class="flex flex-wrap items-center gap-6 text-lg opacity-90">
+                            
+                            <!-- Rating and Location -->
+                            <div class="flex flex-wrap items-center gap-6 text-lg opacity-90 mb-4">
                                 <div class="flex items-center">
                                     <svg class="w-6 h-6 text-yellow-400 fill-current mr-2" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                     </svg>
-                                    {{ $caterer->average_rating }} ({{ $caterer->review_count }} reviews)
+                                    {{ $caterer->averageRating() }} ({{ $caterer->totalReviews() }} reviews)
                                 </div>
                                 @if($caterer->business_address)
                                     <div class="flex items-center">
@@ -41,31 +54,168 @@
                                         {{ $caterer->business_address }}
                                     </div>
                                 @endif
+                                @if($caterer->years_of_experience)
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        {{ $caterer->years_of_experience }} years experience
+                                    </div>
+                                @endif
                             </div>
-                            @if($caterer->bio || $caterer->description)
-                                <p class="mt-4 text-lg opacity-90 leading-relaxed">
-                                    {{ $caterer->bio ?? $caterer->description }}
+
+                            <!-- Bio/Description -->
+                            @if($caterer->bio || $caterer->services_offered)
+                                <p class="text-lg opacity-90 leading-relaxed">
+                                    {{ $caterer->bio ?? $caterer->services_offered }}
                                 </p>
                             @endif
+
+                            <!-- Cuisine Types -->
+                            @if($caterer->cuisine_types && count($caterer->cuisine_types) > 0)
+                                <div class="mt-4 flex flex-wrap gap-2">
+                                    @foreach($caterer->cuisine_types as $cuisine)
+                                        <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-medium">
+                                            {{ $cuisine }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <!-- Features Badges -->
+                            <div class="mt-4 flex flex-wrap gap-3">
+                                @if($caterer->offers_delivery)
+                                    <span class="inline-flex items-center px-3 py-1 bg-white bg-opacity-20 rounded-lg text-sm font-medium">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                        </svg>
+                                        Delivery Available
+                                    </span>
+                                @endif
+                                @if($caterer->offers_setup)
+                                    <span class="inline-flex items-center px-3 py-1 bg-white bg-opacity-20 rounded-lg text-sm font-medium">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                        </svg>
+                                        Setup Service
+                                    </span>
+                                @endif
+                                @if($caterer->maximum_capacity)
+                                    <span class="inline-flex items-center px-3 py-1 bg-white bg-opacity-20 rounded-lg text-sm font-medium">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                        Up to {{ number_format($caterer->maximum_capacity) }} guests
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                        <div class="flex flex-col space-y-3">
-                            <button class="bg-white text-green-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                Contact
-                            </button>
-                            <button class="bg-green-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-800 transition-colors flex items-center justify-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                </svg>
-                                Save
-                            </button>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col space-y-3 lg:self-start">
+                            @if($caterer->contact_number || $caterer->phone)
+                                <a href="tel:{{ $caterer->contact_number ?? $caterer->phone }}" 
+                                   class="bg-white text-green-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                    </svg>
+                                    Call Now
+                                </a>
+                            @endif
+                            @if($caterer->facebook_link || $caterer->instagram_link || $caterer->website_link)
+                                <div class="flex space-x-2">
+                                    @if($caterer->facebook_link)
+                                        <a href="{{ $caterer->facebook_link }}" target="_blank" 
+                                           class="bg-white bg-opacity-20 p-3 rounded-lg hover:bg-opacity-30 transition-colors">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                            </svg>
+                                        </a>
+                                    @endif
+                                    @if($caterer->instagram_link)
+                                        <a href="{{ $caterer->instagram_link }}" target="_blank" 
+                                           class="bg-white bg-opacity-20 p-3 rounded-lg hover:bg-opacity-30 transition-colors">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                            </svg>
+                                        </a>
+                                    @endif
+                                    @if($caterer->website_link)
+                                        <a href="{{ $caterer->website_link }}" target="_blank" 
+                                           class="bg-white bg-opacity-20 p-3 rounded-lg hover:bg-opacity-30 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                                            </svg>
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Service Areas and Additional Info -->
+            @if($caterer->service_areas || $caterer->special_features || $caterer->business_hours_start)
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Service Areas -->
+                        @if($caterer->service_areas && count($caterer->service_areas) > 0)
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                    </svg>
+                                    Service Areas
+                                </h3>
+                                <div class="space-y-1">
+                                    @foreach($caterer->service_areas as $area)
+                                        <div class="text-sm text-gray-600 dark:text-gray-400">• {{ $area }}</div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Business Hours -->
+                        @if($caterer->business_hours_start && $caterer->business_hours_end)
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Business Hours
+                                </h3>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ date('g:i A', strtotime($caterer->business_hours_start)) }} - 
+                                    {{ date('g:i A', strtotime($caterer->business_hours_end)) }}
+                                </div>
+                                @if($caterer->business_days && count($caterer->business_days) > 0)
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ implode(', ', array_map('ucfirst', $caterer->business_days)) }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                        <!-- Special Features -->
+                        @if($caterer->special_features)
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                    </svg>
+                                    Special Features
+                                </h3>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $caterer->special_features }}
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- Rest of the packages section remains the same -->
             <!-- Package Categories Navigation -->
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8">
                 <div class="p-6">
@@ -175,11 +325,6 @@
                                     @endif
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Add to favorites">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
-                                    </button>
                                     <a 
                                         href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}" 
                                         class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -198,184 +343,44 @@
                 <svg class="w-20 h-20 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No packages in this category</h3>
-                <p class="text-gray-600 dark:text-gray-400">Try selecting a different category to see more packages.</p>
+                <p class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No packages in this category</p>
+                <p class="text-gray-500 dark:text-gray-400">Try browsing all packages or select a different category</p>
             </div>
-
-            {{-- Reviews & Ratings Section --}}
-<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 mb-6">
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Reviews</h3>
-        @php
-            $averageRating = $caterer->averageRating();
-            $totalReviews = $caterer->totalReviews();
-        @endphp
-        <div class="flex items-center">
-            <div class="flex text-yellow-400 mr-2">
-                @for($i = 1; $i <= 5; $i++)
-                    <span class="{{ $i <= round($averageRating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }} text-xl">★</span>
-                @endfor
-            </div>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ number_format($averageRating, 1) }} ({{ $totalReviews }} {{ Str::plural('review', $totalReviews) }})
-            </span>
         </div>
     </div>
 
-    @if($totalReviews > 0)
-        {{-- Rating Distribution --}}
-        <div class="mb-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Rating Distribution</h4>
-            @php $distribution = $caterer->ratingDistribution(); @endphp
-            <div class="space-y-2">
-                @foreach([5, 4, 3, 2, 1] as $rating)
-                    @php
-                        $count = $distribution[$rating];
-                        $percentage = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
-                    @endphp
-                    <div class="flex items-center text-sm">
-                        <span class="w-8 text-gray-600 dark:text-gray-400">{{ $rating }}★</span>
-                        <div class="flex-1 mx-3">
-                            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                                <div class="bg-yellow-400 h-full transition-all" style="width: {{ $percentage }}%"></div>
-                            </div>
-                        </div>
-                        <span class="w-12 text-right text-gray-600 dark:text-gray-400">{{ $count }}</span>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- Recent Reviews --}}
-        @php
-            $recentReviews = $caterer->approvedReviews()
-                ->with(['customer', 'booking'])
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
-        @endphp
-
-        <div class="space-y-4">
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Recent Reviews</h4>
-            @foreach($recentReviews as $review)
-                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0">
-                            <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                                <span class="text-indigo-600 dark:text-indigo-400 font-medium text-sm">
-                                    {{ substr($review->customer->name, 0, 1) }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $review->customer->name }}
-                                    </p>
-                                    <div class="flex items-center mt-1">
-                                        <div class="flex text-yellow-400">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <span class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}">★</span>
-                                            @endfor
-                                        </div>
-                                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $review->created_at->diffForHumans() }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                                {{ $review->comment }}
-                            </p>
-                            
-                            @if($review->hasResponse())
-                                <div class="mt-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-800">
-                                    <p class="text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                                        Response from {{ $caterer->business_name ?? $caterer->name }}
-                                    </p>
-                                    <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                                        {{ $review->caterer_response }}
-                                    </p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        @if($totalReviews > 5)
-            <div class="mt-6 text-center">
-                <a href="{{ route('customer.caterer.reviews', $caterer->id) }}" 
-                   class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
-                    View all {{ $totalReviews }} reviews →
-                </a>
-            </div>
-        @endif
-    @else
-        <div class="text-center py-8">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-            </svg>
-            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                No reviews yet. Be the first to review this caterer!
-            </p>
-        </div>
-    @endif
-</div>
-        </div>
-    </div>
-    
-
-    <!-- JavaScript for category filtering -->
+    @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryTabs = document.querySelectorAll('.category-tab');
-            const packageCards = document.querySelectorAll('.package-card');
-            const emptyState = document.getElementById('emptyState');
-
-            categoryTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    
-                    // Update active tab
-                    categoryTabs.forEach(t => {
-                        t.classList.remove('active', 'bg-green-100', 'text-green-700');
-                        t.classList.add('text-gray-600', 'hover:bg-gray-100');
-                    });
-                    this.classList.remove('text-gray-600', 'hover:bg-gray-100');
-                    this.classList.add('active', 'bg-green-100', 'text-green-700');
-                    
-                    // Filter packages
-                    let visibleCount = 0;
-                    packageCards.forEach(card => {
-                        const cardCategory = card.getAttribute('data-category');
-                        if (category === 'all' || cardCategory === category) {
-                            card.style.display = 'block';
-                            visibleCount++;
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                    
-                    // Show/hide empty state
-                    if (visibleCount === 0) {
-                        emptyState.classList.remove('hidden');
+        // Category filtering
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const category = this.dataset.category;
+                
+                // Update active tab
+                document.querySelectorAll('.category-tab').forEach(t => {
+                    t.classList.remove('active', 'bg-green-100', 'text-green-700');
+                    t.classList.add('text-gray-600');
+                });
+                this.classList.add('active', 'bg-green-100', 'text-green-700');
+                this.classList.remove('text-gray-600');
+                
+                // Filter packages
+                const packages = document.querySelectorAll('.package-card');
+                let visibleCount = 0;
+                
+                packages.forEach(pkg => {
+                    if (category === 'all' || pkg.dataset.category === category) {
+                        pkg.style.display = 'block';
+                        visibleCount++;
                     } else {
-                        emptyState.classList.add('hidden');
+                        pkg.style.display = 'none';
                     }
                 });
+                
+                // Show/hide empty state
+                document.getElementById('emptyState').style.display = visibleCount === 0 ? 'block' : 'none';
             });
         });
     </script>
-
-    <style>
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-    </style>
+    @endpush
 </x-app-layout>
