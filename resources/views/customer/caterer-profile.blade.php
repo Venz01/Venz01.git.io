@@ -329,19 +329,30 @@
                                 </div>
                             @endif
 
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <div>
                                     <span class="text-3xl font-bold text-gray-900 dark:text-white">₱{{ number_format($package->price, 0) }}</span>
                                     @if($package->pax)
                                         <span class="text-gray-500 text-sm">/ {{ $package->pax }} pax</span>
                                     @endif
                                 </div>
-                                <a 
-                                    href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}" 
-                                    class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                                >
-                                    View Details
-                                </a>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <button 
+                                        onclick="openAddToCartModal({{ $package->id }}, '{{ $package->name }}', {{ $package->price }}, {{ $caterer->id }})"
+                                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-center whitespace-nowrap flex items-center justify-center"
+                                    >
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                        Add to Cart
+                                    </button>
+                                    <a 
+                                        href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}" 
+                                        class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-center whitespace-nowrap"
+                                    >
+                                        View Details
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -468,6 +479,83 @@
         </div>
     </div>
 
+    <!-- Add to Cart Modal -->
+    <div id="addToCartModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
+            <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="closeAddToCartModal()"></div>
+            
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full p-6 shadow-xl transform transition-all">
+                <div class="absolute top-4 right-4">
+                    <button onclick="closeAddToCartModal()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Add to Cart</h3>
+                    <p id="modalPackageName" class="text-sm text-gray-600 dark:text-gray-400 mt-1"></p>
+                    <p id="modalPackagePrice" class="text-xl font-bold text-green-600 mt-2"></p>
+                </div>
+                
+                <form action="{{ route('customer.cart.store') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <input type="hidden" name="package_id" id="modal_package_id">
+                    <input type="hidden" name="caterer_id" id="modal_caterer_id">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Event Date <span class="text-gray-500">(Optional)</span>
+                        </label>
+                        <input type="date" 
+                               name="event_date" 
+                               min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-green-500 focus:ring-green-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Number of Guests <span class="text-gray-500">(Optional)</span>
+                        </label>
+                        <input type="number" 
+                               name="guest_count" 
+                               min="1"
+                               placeholder="Enter expected number of guests"
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-green-500 focus:ring-green-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Special Requests <span class="text-gray-500">(Optional)</span>
+                        </label>
+                        <textarea name="special_requests" 
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Any special dietary requirements, preferences, or requests..."
+                                  class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-green-500 focus:ring-green-500"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
+                    </div>
+
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" 
+                                onclick="closeAddToCartModal()"
+                                class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Add to Cart
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     
 
     <script>
@@ -494,6 +582,21 @@
 
         let currentImageIndex = 0;
         let currentGalleryType = 'featured';
+
+        // Add to Cart Modal Functions
+        function openAddToCartModal(packageId, packageName, packagePrice, catererId) {
+            document.getElementById('modal_package_id').value = packageId;
+            document.getElementById('modal_caterer_id').value = catererId;
+            document.getElementById('modalPackageName').textContent = packageName;
+            document.getElementById('modalPackagePrice').textContent = '₱' + packagePrice.toLocaleString('en-PH');
+            document.getElementById('addToCartModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddToCartModal() {
+            document.getElementById('addToCartModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
 
         // Toggle full gallery modal
         function toggleFullGallery() {
@@ -601,6 +704,11 @@
             const gallery = document.getElementById('fullGalleryModal');
             if (!gallery.classList.contains('hidden') && e.key === 'Escape') {
                 toggleFullGallery();
+            }
+
+            const addToCartModal = document.getElementById('addToCartModal');
+            if (!addToCartModal.classList.contains('hidden') && e.key === 'Escape') {
+                closeAddToCartModal();
             }
         });
 

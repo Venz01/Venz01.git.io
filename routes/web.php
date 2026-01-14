@@ -10,6 +10,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\CartController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================
@@ -105,6 +106,16 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 
     Route::post('/check-availability', [\App\Http\Controllers\BookingController::class, 'checkAvailability'])
         ->name('booking.check-availability');
+
+     
+    // Cart routes
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+    Route::put('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+    
 });
 
 // Caterer routes - Apply caterer.suspended middleware
