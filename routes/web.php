@@ -93,7 +93,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     // Pay balance
     Route::get('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'payBalance'])->name('booking.pay-balance');
     Route::post('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'processBalancePayment'])->name('booking.process-balance');
-    Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart');
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+    Route::patch('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('payments');
     Route::get('/summary', [CustomerController::class, 'summary'])->name('summary');
 
@@ -108,13 +113,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         ->name('booking.check-availability');
 
      
-    // Cart routes
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
-    Route::put('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
-    Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
-    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+    
     
 });
 
@@ -165,6 +164,8 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
     Route::post('/reviews/{review}/update-response', [ReviewController::class, 'updateResponse'])->name('reviews.update-response');
     Route::delete('/reviews/{review}/delete-response', [ReviewController::class, 'deleteResponse'])->name('reviews.delete-response');
+
+    Route::post('/bulk-action', [CatererController::class, 'bulkAction'])->name('bulk-action');
 });
 
 // Admin routes

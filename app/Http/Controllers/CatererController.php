@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Services\NotificationService;
+use App\Models\MenuItem;
 
 class CatererController extends Controller
 {
@@ -470,4 +471,174 @@ class CatererController extends Controller
     {
         return view('caterer.reviews');
     }
+
+    /**
+ * Handle bulk actions for categories and menu items
+ */
+public function bulkAction(Request $request)
+{
+    try {
+        $request->validate([
+            'category_ids' => 'nullable|json',
+            'item_ids' => 'nullable|json',
+            'action' => 'required|in:delete,change_status',
+            'value' => 'nullable|string',
+        ]);
+
+        $categoryIds = json_decode($request->category_ids ?? '[]', true);
+        $itemIds = json_decode($request->item_ids ?? '[]', true);
+        $action = $request->action;
+        $value = $request->value;
+
+        // Verify ownership
+        $userId = auth()->id();
+        
+        if (!empty($categoryIds)) {
+            $categoryIds = Category::where('user_id', $userId)
+                ->whereIn('id', $categoryIds)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        if (!empty($itemIds)) {
+            $itemIds = MenuItem::where('user_id', $userId)
+                ->whereIn('id', $itemIds)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        DB::beginTransaction();
+        
+        try {
+            $result = match($action) {
+                'delete' => $this->bulkDelete($categoryIds, $itemIds, $userId),
+                'change_status' => $this->bulkChangeStatus($itemIds, $value, $userId),
+                default => ['success' => false, 'message' => 'Invalid action']
+            };
+
+            DB::commit();
+            return response()->json($result);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request',
+        ], 500);
+    }
+}
+
+/**
+ * Bulk delete categories and items
+ */
+protected function bulkDelete(array $categoryIds, array $itemIds, int $userId): array
+{
+    $deletedCategories = 0;
+    $deletedItems = 0;
+    $errors = [];
+
+    // Delete menu items first
+    if (!empty($itemIds)) {
+        try {
+            // Detach from packages
+            DB::table('menu_item_package')
+                ->whereIn('menu_item_id', $itemIds)
+                ->delete();
+
+            $deletedItems = MenuItem::where('user_id', $userId)
+                ->whereIn('id', $itemIds)
+                ->delete();
+                
+        } catch (\Exception $e) {
+            $errors[] = 'Failed to delete some menu items';
+        }
+    }
+
+    // Delete categories (only empty ones)
+    if (!empty($categoryIds)) {
+        foreach ($categoryIds as $categoryId) {
+            try {
+                $category = Category::where('user_id', $userId)
+                    ->where('id', $categoryId)
+                    ->first();
+
+                if ($category) {
+                    $itemCount = $category->items()->count();
+                    
+                    if ($itemCount > 0) {
+                        $errors[] = "Category '{$category->name}' has {$itemCount} item(s) and cannot be deleted";
+                    } else {
+                        $category->delete();
+                        $deletedCategories++;
+                    }
+                }
+            } catch (\Exception $e) {
+                $errors[] = 'Failed to delete some categories';
+            }
+        }
+    }
+
+    // Build success message
+    $messages = [];
+    if ($deletedItems > 0) {
+        $messages[] = "{$deletedItems} item(s) deleted";
+    }
+    if ($deletedCategories > 0) {
+        $messages[] = "{$deletedCategories} category(ies) deleted";
+    }
+
+    $success = ($deletedItems > 0 || $deletedCategories > 0);
+    
+    return [
+        'success' => $success,
+        'message' => $success 
+            ? implode(', ', $messages)
+            : 'No items were deleted. ' . implode('. ', $errors),
+        'deleted_categories' => $deletedCategories,
+        'deleted_items' => $deletedItems,
+        'errors' => $errors,
+    ];
+}
+
+/**
+ * Bulk change status for menu items
+ */
+protected function bulkChangeStatus(array $itemIds, ?string $status, int $userId): array
+{
+    if (empty($itemIds)) {
+        return [
+            'success' => false,
+            'message' => 'No items selected'
+        ];
+    }
+
+    if (!in_array($status, ['available', 'unavailable'])) {
+        return [
+            'success' => false,
+            'message' => 'Invalid status value'
+        ];
+    }
+
+    try {
+        $updated = MenuItem::where('user_id', $userId)
+            ->whereIn('id', $itemIds)
+            ->update(['status' => $status]);
+
+        return [
+            'success' => true,
+            'message' => "{$updated} item(s) set as {$status}",
+            'updated_count' => $updated,
+        ];
+        
+    } catch (\Exception $e) {
+        return [
+            'success' => false,
+            'message' => 'Failed to update items'
+        ];
+    }
+}
 }

@@ -82,6 +82,7 @@
                             :class="{
                                 'bg-red-600 hover:bg-red-700 text-white': confirmModal.type === 'danger' && confirmModal.action,
                                 'bg-yellow-600 hover:bg-yellow-700 text-white': confirmModal.type === 'warning',
+                                'bg-blue-600 hover:bg-blue-700 text-white': confirmModal.type === 'info' && confirmModal.action,
                                 'bg-gray-400 cursor-not-allowed text-white': !confirmModal.action
                             }"
                             :disabled="!confirmModal.action"
@@ -108,6 +109,16 @@
                     </svg>
                     <span>Create Package</span>
                 </button>
+                
+                <!-- 🆕 BULK SELECT TOGGLE BUTTON -->
+                <button @click="toggleBulkMode()" 
+                    :class="bulkMode ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'"
+                    class="text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <span x-text="bulkMode ? 'Exit Bulk Select' : 'Bulk Select'"></span>
+                </button>
             </div>
 
             <!-- Filter -->
@@ -122,6 +133,77 @@
             </div>
         </div>
 
+        <!-- 🆕 BULK ACTION BAR (shows when items are selected) -->
+        <div x-show="bulkMode && (selectedCategories.length > 0 || selectedItems.length > 0)"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform -translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg p-4 sticky top-4 z-40">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <!-- Selection Info -->
+                <div class="flex items-center gap-4 text-white">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="font-semibold">
+                            <span x-text="selectedCategories.length + selectedItems.length"></span> selected
+                        </span>
+                    </div>
+                    <span class="text-purple-200 text-sm">
+                        (<span x-text="selectedCategories.length"></span> categories, 
+                        <span x-text="selectedItems.length"></span> items)
+                    </span>
+                </div>
+
+                <!-- Bulk Actions -->
+                <div class="flex gap-2 flex-wrap">
+                    <!-- Deselect All -->
+                    <button @click="clearAllSelections()"
+                        class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors text-sm font-medium">
+                        Clear All
+                    </button>
+
+                    <!-- Change Status Dropdown -->
+                    <div class="relative" x-data="{ showStatusMenu: false }">
+                        <button @click="showStatusMenu = !showStatusMenu"
+                            :disabled="selectedItems.length === 0"
+                            :class="selectedItems.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/30'"
+                            class="px-4 py-1.5 bg-white/20 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            Change Status
+                        </button>
+                        <div x-show="showStatusMenu"
+                             @click.away="showStatusMenu = false"
+                             x-transition
+                             class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+                            <button @click="bulkChangeStatus('available'); showStatusMenu = false"
+                                class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Set as Available
+                            </button>
+                            <button @click="bulkChangeStatus('unavailable'); showStatusMenu = false"
+                                class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                Set as Unavailable
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Delete -->
+                    <button @click="bulkDelete()"
+                        class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Delete Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Categories -->
         @foreach($categories as $category)
         <div x-show="selectedCategory === 'all' || selectedCategory == '{{ $category->id }}'" 
@@ -132,14 +214,24 @@
 
             <!-- Category Header -->
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                        {{ $category->name }}
-                        <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ $category->items->count() }} items)</span>
-                    </h3>
-                    @if($category->description)
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $category->description }}</p>
-                    @endif
+                <div class="flex items-center gap-3">
+                    <!-- 🆕 CATEGORY CHECKBOX (bulk mode) -->
+                    <div x-show="bulkMode" x-transition class="flex items-center">
+                        <input type="checkbox" 
+                               :checked="selectedCategories.includes({{ $category->id }})"
+                               @change="toggleCategorySelection({{ $category->id }})"
+                               class="w-5 h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                            {{ $category->name }}
+                            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ $category->items->count() }} items)</span>
+                        </h3>
+                        @if($category->description)
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $category->description }}</p>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="flex gap-2">
@@ -174,7 +266,17 @@
             <!-- Items List -->
             <div class="space-y-4">
                 @forelse($category->items as $item)
-                <div class="flex items-start gap-4 border-b border-gray-100 dark:border-gray-700 pb-4 last:border-b-0">
+                <div class="flex items-start gap-4 border-b border-gray-100 dark:border-gray-700 pb-4 last:border-b-0 rounded-lg transition-all"
+                     :class="selectedItems.includes({{ $item->id }}) ? 'bg-purple-50 dark:bg-purple-900/10 border-l-4 border-l-purple-500 pl-2' : ''">
+                    
+                    <!-- 🆕 ITEM CHECKBOX (bulk mode) -->
+                    <div x-show="bulkMode" x-transition class="flex-shrink-0 pt-1">
+                        <input type="checkbox" 
+                               :checked="selectedItems.includes({{ $item->id }})"
+                               @change="toggleItemSelection({{ $item->id }})"
+                               class="w-5 h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
+                    </div>
+
                     <!-- Image -->
                     @if($item->image_path)
                     <img src="{{ asset('storage/' . $item->image_path) }}"
@@ -205,7 +307,7 @@
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex gap-2 flex-shrink-0">
+                    <div x-show="!bulkMode" class="flex gap-2 flex-shrink-0">
                         <button type="button"
                             @click="openEditItemModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->description ?? '') }}', {{ $item->price }}, '{{ $item->status }}')"
                             class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
@@ -894,6 +996,12 @@
             return {
                 selectedCategory: 'all',
                 loading: false,
+                
+                // 🆕 BULK ACTION PROPERTIES
+                bulkMode: false,
+                selectedCategories: [],
+                selectedItems: [],
+                
                 confirmModal: {
                     show: false,
                     title: '',
@@ -943,8 +1051,118 @@
                     this.confirmModal.confirmText = confirmText;
                 },
 
+                // 🆕 BULK ACTION METHODS
+                toggleBulkMode() {
+                    this.bulkMode = !this.bulkMode;
+                    if (!this.bulkMode) {
+                        this.clearAllSelections();
+                    }
+                },
+
+                toggleCategorySelection(categoryId) {
+                    const index = this.selectedCategories.indexOf(categoryId);
+                    if (index > -1) {
+                        this.selectedCategories.splice(index, 1);
+                    } else {
+                        this.selectedCategories.push(categoryId);
+                    }
+                },
+
+                toggleItemSelection(itemId) {
+                    const index = this.selectedItems.indexOf(itemId);
+                    if (index > -1) {
+                        this.selectedItems.splice(index, 1);
+                    } else {
+                        this.selectedItems.push(itemId);
+                    }
+                },
+
+                clearAllSelections() {
+                    this.selectedCategories = [];
+                    this.selectedItems = [];
+                },
+
+                bulkChangeStatus(status) {
+                    if (this.selectedItems.length === 0) {
+                        alert('Please select at least one item to change status');
+                        return;
+                    }
+
+                    this.confirmModal.show = true;
+                    this.confirmModal.type = 'info';
+                    this.confirmModal.title = 'Change Status';
+                    this.confirmModal.message = `Set ${this.selectedItems.length} item(s) as ${status}?`;
+                    this.confirmModal.confirmText = 'Change Status';
+                    this.confirmModal.action = () => {
+                        this.performBulkAction('change_status', status);
+                    };
+                },
+
+                bulkDelete() {
+                    const totalSelected = this.selectedCategories.length + this.selectedItems.length;
+                    if (totalSelected === 0) {
+                        alert('Please select items or categories to delete');
+                        return;
+                    }
+
+                    let message = `Are you sure you want to delete ${totalSelected} item(s)?`;
+                    if (this.selectedCategories.length > 0 && this.selectedItems.length > 0) {
+                        message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies) and ${this.selectedItems.length} item(s)?`;
+                    } else if (this.selectedCategories.length > 0) {
+                        message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies)?`;
+                    } else {
+                        message = `Are you sure you want to delete ${this.selectedItems.length} item(s)?`;
+                    }
+
+                    this.confirmModal.show = true;
+                    this.confirmModal.type = 'danger';
+                    this.confirmModal.title = 'Delete Selected Items';
+                    this.confirmModal.message = message + ' This action cannot be undone.';
+                    this.confirmModal.confirmText = 'Delete All';
+                    this.confirmModal.action = () => {
+                        this.performBulkAction('delete', null);
+                    };
+                },
+
+                async performBulkAction(action, value = null) {
+                    this.loading = true;
+                    
+                    const formData = new FormData();
+                    formData.append('category_ids', JSON.stringify(this.selectedCategories));
+                    formData.append('item_ids', JSON.stringify(this.selectedItems));
+                    formData.append('action', action);
+                    if (value) formData.append('value', value);
+
+                    try {
+                        const response = await fetch('/caterer/bulk-action', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'An error occurred');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while processing your request');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
                 confirmAction() {
-                    if (this.confirmModal.action) {
+                    if (typeof this.confirmModal.action === 'function') {
+                        this.confirmModal.action();
+                        this.confirmModal.show = false;
+                    } else if (this.confirmModal.action) {
                         const form = document.getElementById('deleteForm');
                         form.action = this.confirmModal.action;
                         form.submit();
