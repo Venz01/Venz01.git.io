@@ -1,16 +1,16 @@
-# Stage 1 - Build Frontend (Vite)
+# Stage 1 — Build Frontend (Vite)
 FROM node:18 AS frontend
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Install frontend dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy full frontend code and build
+# Copy all frontend files and build
 COPY . .
 RUN npm run build
 
-# Stage 2 - Backend (Laravel + PHP)
+# Stage 2 — Backend (Laravel + PHP)
 FROM php:8.3-fpm
 
 # Install system dependencies
@@ -21,30 +21,29 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www
 
-# Copy Laravel app files
+# Copy Laravel backend files
 COPY . .
 
-# Copy frontend build from Stage 1
+# Copy frontend build
 COPY --from=frontend /app/public/build ./public/build
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Ensure storage and bootstrap/cache are writable
+# Ensure storage & cache directories are writable
 RUN mkdir -p storage/framework/{cache,data,sessions,views} \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Clear caches for safety
+# Clear caches
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
-# Expose port for Render
+# Expose HTTP port
 EXPOSE 8080
 
-# Serve Laravel app on 0.0.0.0:8080
+# Serve Laravel via PHP built-in server
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
