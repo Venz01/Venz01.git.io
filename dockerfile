@@ -1,50 +1,60 @@
-# ----------------------------
-# Stage 1: Build frontend
-# ----------------------------
-FROM node:20 AS frontend
-
-WORKDIR /app
-
-# Copy package files and install
-COPY package*.json ./
-RUN npm install
-
-# Copy all frontend files and build
-COPY . .
-RUN npm run build
-
-# ----------------------------
-# Stage 2: Setup PHP + Apache
-# ----------------------------
-FROM php:8.3-apache
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# -----------------------------
+# Stage 1: Build
+# -----------------------------
+FROM php:8.3-fpm AS build
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /var/www
 
-# Copy Laravel backend
-COPY . .
-
-# Copy built frontend assets
-COPY --from=frontend /app/public/build /var/www/html/public/build
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    unzip \
+    zip \
+    libpq-dev \
+    libonig-dev \
+    libzip-dev \
+    npm \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN apt-get update && apt-get install -y \
-        libpq-dev \
-        zip \
-        unzip \
-    && docker-php-ext-install pdo pdo_pgsql mbstring opcache
+RUN docker-php-ext-install pdo pdo_pgsql mbstring zip opcache
 
-# Set permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy environment file (ensure you have .env in repo or handle in Render secrets)
-# COPY .env /var/www/html/.env
+# Copy application files
+COPY . .
 
-# Expose port 8080 (Render default)
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Install Node dependencies and build assets
+RUN npm install
+RUN npm run build
+
+# -----------------------------
+# Stage 2: Production
+# -----------------------------
+FROM php:8.3-fpm
+
+WORKDIR /var/www
+
+# Copy built files from build stage
+COPY --from=build /var/www /var/www
+
+# Ensure permissions
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/storage /var/www/bootstrap/cache
+
+# Expose port 8080 for Render
 EXPOSE 8080
 
-# Start Apache in foreground
-CMD ["apache2-foreground"]
+# Set Laravel environment
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV APP_URL=https://your-render-app.onrender.com
+
+# Run PHP built-in server (Render automatically sets port)
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
