@@ -33,9 +33,6 @@ COPY --from=frontend /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Create .env from example if not exists and generate APP_KEY
-RUN  php artisan key:generate
-
 # Ensure storage and bootstrap/cache are writable
 RUN mkdir -p storage/framework/{cache,data,sessions,views} \
     && chmod -R 775 storage bootstrap/cache \
