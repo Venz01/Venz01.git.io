@@ -2,28 +2,25 @@
 FROM node:18 AS frontend
 WORKDIR /app
 
-# Install frontend dependencies
 COPY package*.json ./
 RUN npm install
-
-# Copy all frontend files and build
 COPY . .
 RUN npm run build
 
-# Stage 2 — Backend (Laravel + PHP)
+# Stage 2 — Laravel Backend
 FROM php:8.3-fpm
 
-# Install system dependencies
+# System dependencies
 RUN apt-get update && apt-get install -y \
     git curl unzip libpq-dev libonig-dev libzip-dev zip \
     && docker-php-ext-install pdo pdo_mysql mbstring zip
 
-# Install Composer
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copy Laravel backend files
+# Copy Laravel app
 COPY . .
 
 # Copy frontend build
@@ -32,7 +29,7 @@ COPY --from=frontend /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Ensure storage & cache directories are writable
+# Storage & cache permissions
 RUN mkdir -p storage/framework/{cache,data,sessions,views} \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
@@ -42,8 +39,8 @@ RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
-# Expose HTTP port
+# Expose port for Render
 EXPOSE 8080
 
-# Serve Laravel via PHP built-in server
+# Start PHP built-in server
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
