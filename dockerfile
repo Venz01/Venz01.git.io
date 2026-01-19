@@ -1,51 +1,50 @@
-# Stage 1 — Build Frontend (Vite)
-FROM node:22 AS frontend
+# ----------------------------
+# Stage 1: Build frontend
+# ----------------------------
+FROM node:20 AS frontend
+
 WORKDIR /app
 
+# Copy package files and install
 COPY package*.json ./
 RUN npm install
+
+# Copy all frontend files and build
 COPY . .
 RUN npm run build
 
-# Stage 2 — Laravel Backend
-FROM php:8.3-fpm
+# ----------------------------
+# Stage 2: Setup PHP + Apache
+# ----------------------------
+FROM php:8.3-apache
 
-# System dependencies
-RUN apt-get update && apt-get install -y \
-    git curl unzip libpq-dev libonig-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
+# Set working directory
+WORKDIR /var/www/html
 
-# Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www
-
-# Copy Laravel app
+# Copy Laravel backend
 COPY . .
 
-# Copy frontend build
-COPY --from=frontend /app/public/build ./public/build
+# Copy built frontend assets
+COPY --from=frontend /app/public/build /var/www/html/public/build
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install PHP extensions
+RUN apt-get update && apt-get install -y \
+        libpq-dev \
+        zip \
+        unzip \
+    && docker-php-ext-install pdo pdo_pgsql mbstring opcache
 
-# Storage & cache permissions
-RUN mkdir -p storage/framework/{cache,data,sessions,views} \
-    && chmod -R 775 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+# Set permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Clear caches
-RUN php artisan config:clear \
-    && php artisan route:clear \
-    && php artisan view:clear
+# Copy environment file (ensure you have .env in repo or handle in Render secrets)
+# COPY .env /var/www/html/.env
 
-# Expose port for Render
+# Expose port 8080 (Render default)
 EXPOSE 8080
 
-# Start PHP built-in server
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
-
-
-
-
+# Start Apache in foreground
+CMD ["apache2-foreground"]
