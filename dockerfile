@@ -2,11 +2,11 @@
 FROM node:18 AS frontend
 WORKDIR /app
 
-# Install frontend dependencies
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy frontend files and build
+# Copy full frontend code and build
 COPY . .
 RUN npm run build
 
@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Set working directory
 WORKDIR /var/www
 
 # Copy Laravel app files
@@ -32,19 +33,21 @@ COPY --from=frontend /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Storage & cache permissions
+# Create .env from example if not exists and generate APP_KEY
+RUN  php artisan key:generate
+
+# Ensure storage and bootstrap/cache are writable
 RUN mkdir -p storage/framework/{cache,data,sessions,views} \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Clear caches
+# Clear caches for safety
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
-# Expose HTTP port for Render
+# Expose port for Render
 EXPOSE 8080
 
-# Serve Laravel using PHP built-in server
-# Laravel will use environment variables from Render
+# Serve Laravel app on 0.0.0.0:8080
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
