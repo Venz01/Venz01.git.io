@@ -1,5 +1,5 @@
 # Stage 1 — Build Frontend (Vite)
-FROM node:18 AS frontend
+FROM node:22 AS frontend
 WORKDIR /app
 
 COPY package*.json ./
@@ -44,3 +44,7 @@ EXPOSE 8080
 
 # Start PHP built-in server
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+
+
+
+
