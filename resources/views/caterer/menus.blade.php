@@ -279,7 +279,7 @@
 
                     <!-- Image -->
                     @if($item->image_path)
-                    <img src="{{ asset('storage/' . $item->image_path) }}"
+                    <img src="{{ $item->image_path }}" /> 
                         class="w-20 h-20 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600 shadow-sm" 
                         alt="{{ $item->name }}">
                     @else
@@ -355,7 +355,7 @@
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
                     <!-- Package Image -->
                     @if($package->image_path)
-                    <img src="{{ asset('storage/' . $package->image_path) }}" 
+                    <img src="{{ $item->image_path }}" /> 
                          class="h-48 w-full object-cover"
                          alt="{{ $package->name }}">
                     @else

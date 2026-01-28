@@ -23,7 +23,7 @@
                         <!-- Profile Photo -->
                         <div class="shrink-0">
                             @if($caterer->profile_photo)
-                                <img src="{{ asset('storage/' . $caterer->profile_photo) }}" 
+                                <img src="{{ $caterer->profile_photo }}" /> 
                                      alt="{{ $caterer->business_name ?? $caterer->name }}" 
                                      class="w-32 h-32 object-cover rounded-2xl border-4 border-white shadow-xl">
                             @else
@@ -271,7 +271,7 @@
                         <!-- Package Image -->
                         <div class="relative h-64 bg-gradient-to-r from-gray-300 to-gray-400">
                             @if($package->image_path)
-                                <img src="{{ asset('storage/' . $package->image_path) }}" 
+                                <img src="{{ $package->image_path }}" /> 
                                      alt="{{ $package->name }}" 
                                      class="w-full h-full object-cover">
                             @else
@@ -403,7 +403,7 @@
                         @foreach($caterer->portfolioImages->where('is_featured', true) as $image)
                             <div class="relative group cursor-pointer w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)] max-w-sm" onclick="openLightbox({{ $loop->index }}, 'featured')">
                                 <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-                                    <img src="{{ asset('storage/' . $image->image_path) }}" 
+                                    <img src="{{ $image->image_path }}" /> 
                                          alt="{{ $image->title ?? 'Portfolio image' }}"
                                          class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
                                 </div>
