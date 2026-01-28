@@ -1,3 +1,24 @@
+FROM node:20-alpine AS node-builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install npm dependencies
+RUN npm ci
+
+# Copy source files needed for build
+COPY resources ./resources
+COPY vite.config.js ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY public ./public
+
+# Build assets
+RUN npm run build
+
+# PHP stage
 FROM php:8.4-fpm
 
 WORKDIR /var/www/html
@@ -25,7 +46,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application
 COPY . /var/www/html
 
-# Install dependencies
+# Copy built assets from node-builder stage
+COPY --from=node-builder /app/public/build /var/www/html/public/build
+
+# Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
 # Create directories and set permissions
