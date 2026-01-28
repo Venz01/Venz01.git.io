@@ -3,6 +3,9 @@ set -e
 
 echo "Starting Laravel application..."
 
+# Force HTTPS scheme
+export FORCE_HTTPS=true
+
 # Check if APP_KEY is set
 if [ -z "$APP_KEY" ]; then
     echo "ERROR: APP_KEY is not set!"
