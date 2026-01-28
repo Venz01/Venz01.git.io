@@ -22,7 +22,9 @@ class MenuItemController extends Controller
         // Handle image upload to Cloudinary
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $uploadedFile = $request->file('image')->storeOnCloudinary('menu_items');
+            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                'folder' => 'menu_items'
+            ]);
             $imagePath = $uploadedFile->getSecurePath();
         }
 
@@ -71,7 +73,9 @@ class MenuItemController extends Controller
             }
             
             // Upload new image
-            $uploadedFile = $request->file('image')->storeOnCloudinary('menu_items');
+            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                'folder' => 'menu_items'
+            ]);
             $imagePath = $uploadedFile->getSecurePath();
         }
 

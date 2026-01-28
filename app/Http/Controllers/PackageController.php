@@ -67,7 +67,9 @@ class PackageController extends Controller
             // Handle image upload to Cloudinary
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $uploadedFile = $request->file('image')->storeOnCloudinary('packages');
+                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                    'folder' => 'packages'
+                ]);
                 $imagePath = $uploadedFile->getSecurePath();
             }
 
@@ -139,7 +141,9 @@ class PackageController extends Controller
                 }
                 
                 // Upload new image
-                $uploadedFile = $request->file('image')->storeOnCloudinary('packages');
+                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                    'folder' => 'packages'
+                ]);
                 $imagePath = $uploadedFile->getSecurePath();
             }
 

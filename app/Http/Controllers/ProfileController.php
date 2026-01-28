@@ -180,7 +180,9 @@ class ProfileController extends Controller
             }
 
             // Upload to Cloudinary
-            $uploadedFile = $request->file('profile_photo')->storeOnCloudinary('profile-photos');
+            $uploadedFile = Cloudinary::upload($request->file('profile_photo')->getRealPath(), [
+                'folder' => 'profile-photos'
+            ]);
             $user->profile_photo = $uploadedFile->getSecurePath();
             $user->save();
 
@@ -204,7 +206,9 @@ class ProfileController extends Controller
         ]);
 
         // Upload to Cloudinary
-        $uploadedFile = $request->file('image')->storeOnCloudinary('portfolio');
+        $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+            'folder' => 'portfolio'
+        ]);
         $imagePath = $uploadedFile->getSecurePath();
 
         $maxOrder = PortfolioImage::where('user_id', auth()->id())->max('order') ?? 0;
