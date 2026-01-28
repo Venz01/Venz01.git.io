@@ -60,7 +60,7 @@
             @foreach($user->portfolioImages as $image)
                 <div class="relative group">
                     <div class="aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-                        <img src="{{ asset('storage/' . $image->image_path) }}" 
+                        <img src="{{ $image->image_path }}" 
                              alt="{{ $image->title }}"
                              class="w-full h-full object-cover">
                     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MenuItem;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class MenuItemController extends Controller
 {
@@ -18,10 +19,11 @@ class MenuItemController extends Controller
             'status'      => 'required|in:available,unavailable',
         ]);
 
-        // Handle image upload
+        // Handle image upload to Cloudinary
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('menu_items', 'public');
+            $uploadedFile = $request->file('image')->storeOnCloudinary('menu_items');
+            $imagePath = $uploadedFile->getSecurePath();
         }
 
         MenuItem::create([
@@ -55,7 +57,22 @@ class MenuItemController extends Controller
         // Handle image replacement
         $imagePath = $item->image_path;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('menu_items', 'public');
+            // Delete old image from Cloudinary if it exists
+            if ($item->image_path) {
+                try {
+                    // Extract public_id from URL and delete
+                    $publicId = $this->getPublicIdFromUrl($item->image_path);
+                    if ($publicId) {
+                        Cloudinary::destroy($publicId);
+                    }
+                } catch (\Exception $e) {
+                    // Continue even if deletion fails
+                }
+            }
+            
+            // Upload new image
+            $uploadedFile = $request->file('image')->storeOnCloudinary('menu_items');
+            $imagePath = $uploadedFile->getSecurePath();
         }
 
         $item->update([
@@ -73,8 +90,48 @@ class MenuItemController extends Controller
     public function destroy($id)
     {
         $item = MenuItem::findOrFail($id);
+        
+        // Delete image from Cloudinary if it exists
+        if ($item->image_path) {
+            try {
+                $publicId = $this->getPublicIdFromUrl($item->image_path);
+                if ($publicId) {
+                    Cloudinary::destroy($publicId);
+                }
+            } catch (\Exception $e) {
+                // Continue even if deletion fails
+            }
+        }
+        
         $item->delete();
 
         return back()->with('success', 'Menu item deleted!');
+    }
+    
+    /**
+     * Extract Cloudinary public_id from URL
+     * Example: https://res.cloudinary.com/cloud/image/upload/v123/menu_items/abc.jpg
+     * Returns: menu_items/abc
+     */
+    private function getPublicIdFromUrl($url)
+    {
+        if (strpos($url, 'cloudinary.com') === false) {
+            return null;
+        }
+        
+        $parts = explode('/upload/', $url);
+        if (count($parts) < 2) {
+            return null;
+        }
+        
+        $pathParts = explode('/', $parts[1]);
+        // Remove version (v1234567890) and get folder/filename
+        array_shift($pathParts); // Remove version
+        $publicId = implode('/', $pathParts);
+        
+        // Remove file extension
+        $publicId = preg_replace('/\.[^.]+$/', '', $publicId);
+        
+        return $publicId;
     }
 }

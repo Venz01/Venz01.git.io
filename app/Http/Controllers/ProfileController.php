@@ -6,9 +6,9 @@ use App\Models\PortfolioImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProfileController extends Controller
 {
@@ -142,7 +142,16 @@ class ProfileController extends Controller
         // Remove photo
         if ($request->has('remove_photo') && $request->remove_photo) {
             if ($user->profile_photo) {
-                Storage::disk('public')->delete($user->profile_photo);
+                // Delete from Cloudinary
+                try {
+                    $publicId = $this->getPublicIdFromUrl($user->profile_photo);
+                    if ($publicId) {
+                        Cloudinary::destroy($publicId);
+                    }
+                } catch (\Exception $e) {
+                    // Continue even if deletion fails
+                }
+                
                 $user->profile_photo = null;
                 $user->save();
             }
@@ -158,12 +167,21 @@ class ProfileController extends Controller
 
         // Upload new photo
         if ($request->hasFile('profile_photo')) {
+            // Delete old photo from Cloudinary
             if ($user->profile_photo) {
-                Storage::disk('public')->delete($user->profile_photo);
+                try {
+                    $publicId = $this->getPublicIdFromUrl($user->profile_photo);
+                    if ($publicId) {
+                        Cloudinary::destroy($publicId);
+                    }
+                } catch (\Exception $e) {
+                    // Continue even if deletion fails
+                }
             }
 
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
-            $user->profile_photo = $path;
+            // Upload to Cloudinary
+            $uploadedFile = $request->file('profile_photo')->storeOnCloudinary('profile-photos');
+            $user->profile_photo = $uploadedFile->getSecurePath();
             $user->save();
 
             return Redirect::route('profile.edit')
@@ -185,7 +203,9 @@ class ProfileController extends Controller
             'is_featured' => 'nullable|boolean',
         ]);
 
-        $imagePath = $request->file('image')->store('portfolio', 'public');
+        // Upload to Cloudinary
+        $uploadedFile = $request->file('image')->storeOnCloudinary('portfolio');
+        $imagePath = $uploadedFile->getSecurePath();
 
         $maxOrder = PortfolioImage::where('user_id', auth()->id())->max('order') ?? 0;
 
@@ -227,7 +247,16 @@ class ProfileController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        Storage::disk('public')->delete($image->image_path);
+        // Delete from Cloudinary
+        try {
+            $publicId = $this->getPublicIdFromUrl($image->image_path);
+            if ($publicId) {
+                Cloudinary::destroy($publicId);
+            }
+        } catch (\Exception $e) {
+            // Continue even if deletion fails
+        }
+
         $image->delete();
 
         return Redirect::route('profile.edit')
@@ -271,5 +300,27 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+    
+    /**
+     * Extract Cloudinary public_id from URL
+     */
+    private function getPublicIdFromUrl($url)
+    {
+        if (strpos($url, 'cloudinary.com') === false) {
+            return null;
+        }
+        
+        $parts = explode('/upload/', $url);
+        if (count($parts) < 2) {
+            return null;
+        }
+        
+        $pathParts = explode('/', $parts[1]);
+        array_shift($pathParts); // Remove version
+        $publicId = implode('/', $pathParts);
+        $publicId = preg_replace('/\.[^.]+$/', '', $publicId);
+        
+        return $publicId;
     }
 }

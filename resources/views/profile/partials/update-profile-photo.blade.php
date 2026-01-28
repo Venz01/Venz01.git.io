@@ -16,7 +16,7 @@
         <div class="flex items-center gap-6">
             <div class="shrink-0">
                 @if($user->profile_photo)
-                    <img src="{{ asset('storage/' . $user->profile_photo) }}" 
+                    <img src="{{ $user->profile_photo }}"
                          alt="Profile photo" 
                          class="h-24 w-24 object-cover rounded-full border-2 border-gray-300 dark:border-gray-600">
                 @else

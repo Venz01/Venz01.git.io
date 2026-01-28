@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Package;
 use App\Models\MenuItem;
-use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class PackageController extends Controller
 {
@@ -64,10 +64,11 @@ class PackageController extends Controller
             // Calculate package price automatically
             $calculatedPrice = $this->calculatePackagePrice($request->menu_items);
 
-            // Handle image upload
+            // Handle image upload to Cloudinary
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('packages', 'public');
+                $uploadedFile = $request->file('image')->storeOnCloudinary('packages');
+                $imagePath = $uploadedFile->getSecurePath();
             }
 
             $package = Package::create([
@@ -125,11 +126,21 @@ class PackageController extends Controller
             // Handle image replacement
             $imagePath = $package->image_path;
             if ($request->hasFile('image')) {
-                // Delete old image if it exists
+                // Delete old image from Cloudinary if it exists
                 if ($package->image_path) {
-                    Storage::disk('public')->delete($package->image_path);
+                    try {
+                        $publicId = $this->getPublicIdFromUrl($package->image_path);
+                        if ($publicId) {
+                            Cloudinary::destroy($publicId);
+                        }
+                    } catch (\Exception $e) {
+                        // Continue even if deletion fails
+                    }
                 }
-                $imagePath = $request->file('image')->store('packages', 'public');
+                
+                // Upload new image
+                $uploadedFile = $request->file('image')->storeOnCloudinary('packages');
+                $imagePath = $uploadedFile->getSecurePath();
             }
 
             $package->update([
@@ -160,9 +171,16 @@ class PackageController extends Controller
         }
 
         try {
-            // Delete associated image
+            // Delete associated image from Cloudinary
             if ($package->image_path) {
-                Storage::disk('public')->delete($package->image_path);
+                try {
+                    $publicId = $this->getPublicIdFromUrl($package->image_path);
+                    if ($publicId) {
+                        Cloudinary::destroy($publicId);
+                    }
+                } catch (\Exception $e) {
+                    // Continue even if deletion fails
+                }
             }
 
             // Detach all menu items
@@ -242,5 +260,27 @@ class PackageController extends Controller
                 ];
             })
         ]);
+    }
+    
+    /**
+     * Extract Cloudinary public_id from URL
+     */
+    private function getPublicIdFromUrl($url)
+    {
+        if (strpos($url, 'cloudinary.com') === false) {
+            return null;
+        }
+        
+        $parts = explode('/upload/', $url);
+        if (count($parts) < 2) {
+            return null;
+        }
+        
+        $pathParts = explode('/', $parts[1]);
+        array_shift($pathParts); // Remove version
+        $publicId = implode('/', $pathParts);
+        $publicId = preg_replace('/\.[^.]+$/', '', $publicId);
+        
+        return $publicId;
     }
 }
