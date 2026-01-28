@@ -23,7 +23,7 @@
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
                         <div class="relative h-96 bg-gradient-to-r from-gray-300 to-gray-400">
                             @if($package->image_path)
-                                <img src="{{ asset('storage/' . $package->image_path) }}" 
+                                <img src="{{ $package->image_path }}" 
                                      alt="{{ $package->name }}" 
                                      class="w-full h-full object-cover">
                             @else
@@ -130,7 +130,7 @@
                                                             <div class="flex items-start justify-between">
                                                                 <h4 class="font-medium text-gray-900 dark:text-white">{{ $item->name }}</h4>
                                                                 @if($item->image_path)
-                                                                    <img src="{{ asset('storage/' . $item->image_path) }}" 
+                                                                    <img src="{{ $item->image_path }}"  
                                                                          alt="{{ $item->name }}"
                                                                          class="w-16 h-16 object-cover rounded-lg ml-2">
                                                                 @endif

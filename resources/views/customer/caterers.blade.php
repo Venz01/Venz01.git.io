@@ -104,7 +104,7 @@
                                         <!-- Profile Photo -->
                                         <div class="shrink-0">
                                             @if($caterer->profile_photo)
-                                                <img src="{{ asset('storage/' . $caterer->profile_photo) }}" 
+                                                <img src="{{ $caterer->profile_photo }}"
                                                      alt="{{ $caterer->business_name ?? $caterer->name }}" 
                                                      class="w-20 h-20 object-cover rounded-xl ring-2 ring-green-500">
                                             @else
@@ -208,7 +208,7 @@
                                                 <!-- Package Image -->
                                                 <div class="aspect-w-16 aspect-h-9 bg-gradient-to-r from-gray-300 to-gray-400">
                                                     @if($package->image_path)
-                                                        <img src="{{ asset('storage/' . $package->image_path) }}" 
+                                                        <img src="{{ $package->image_path }}"
                                                              alt="{{ $package->name }}" 
                                                              class="w-full h-48 object-cover">
                                                     @else

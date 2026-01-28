@@ -63,7 +63,7 @@
                                 <!-- Package Image -->
                                 <div class="flex-shrink-0">
                                     @if($cartItem->package->image_path)
-                                    <img src="{{ asset('storage/' . $cartItem->package->image_path) }}" 
+                                    <img src="{{ $cartItem->package->image_path }}"
                                          alt="{{ $cartItem->package->name }}"
                                          class="w-full md:w-32 h-32 object-cover rounded-lg">
                                     @else
