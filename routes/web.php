@@ -36,6 +36,10 @@ Route::get('/dashboard', function () {
     }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Terms and Conditions Page
+Route::get('/terms-and-conditions', function () {
+    return view('terms-and-conditions');
+})->name('terms');
 
 // Profile routes
 Route::middleware(['auth'])->group(function () {
