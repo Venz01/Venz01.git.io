@@ -10,6 +10,8 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        User::where('email', 'admin@gmail.com')->delete();
+
         // Check if admin already exists
         if (!User::where('email', 'admin@gmail.com')->exists()) {
             User::create([
@@ -17,6 +19,7 @@ class AdminUserSeeder extends Seeder
                 'email' => 'admin@gmail.com',
                 'password' => Hash::make('12345678'), 
                 'role' => 'admin', 
+                'status' => 'approved'
             ]);
             
             echo "Admin user created successfully!\n";
@@ -25,3 +28,4 @@ class AdminUserSeeder extends Seeder
         }
     }
 }
+
