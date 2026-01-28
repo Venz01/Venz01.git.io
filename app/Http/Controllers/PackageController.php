@@ -5,41 +5,24 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Package;
 use App\Models\MenuItem;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class PackageController extends Controller
 {
     /**
      * Calculate package price based on menu items
-     * Formula:
-     * - Food Cost = Sum of all menu item prices
-     * - Labor & Utilities = 20% of Food Cost
-     * - Equipment & Transport = 10% of Food Cost
-     * - Profit Margin = 25% of Food Cost
-     * - Total = Food Cost + All Markups (rounded to nearest 5)
      */
     private function calculatePackagePrice(array $menuItemIds)
     {
-        // Get total food cost from selected menu items
         $foodCost = MenuItem::whereIn('id', $menuItemIds)->sum('price');
-        
-        // Calculate markups
-        $laborAndUtilities = $foodCost * 0.20;      // 20%
-        $equipmentTransport = $foodCost * 0.10;     // 10%
-        $profitMargin = $foodCost * 0.25;           // 25%
-        
-        // Calculate total price per head
+        $laborAndUtilities = $foodCost * 0.20;
+        $equipmentTransport = $foodCost * 0.10;
+        $profitMargin = $foodCost * 0.25;
         $totalPrice = $foodCost + $laborAndUtilities + $equipmentTransport + $profitMargin;
-        
-        // Round to nearest 5 pesos
         $roundedPrice = round($totalPrice / 5) * 5;
         
         return $roundedPrice;
     }
 
-    /**
-     * Store a newly created package
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -50,7 +33,6 @@ class PackageController extends Controller
             'menu_items.*' => [
                 'exists:menu_items,id',
                 function ($attribute, $value, $fail) {
-                    // Ensure menu item belongs to authenticated user
                     $menuItem = MenuItem::find($value);
                     if (!$menuItem || $menuItem->user_id !== auth()->id()) {
                         $fail('One or more selected menu items are invalid.');
@@ -61,43 +43,34 @@ class PackageController extends Controller
         ]);
 
         try {
-            // Calculate package price automatically
             $calculatedPrice = $this->calculatePackagePrice($request->menu_items);
 
             // Handle image upload to Cloudinary
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'packages'
-                ]);
-                $imagePath = $uploadedFile->getSecurePath();
+                $imagePath = $this->uploadToCloudinary($request->file('image'), 'packages');
             }
 
             $package = Package::create([
                 'user_id' => auth()->id(),
                 'name' => $request->name,
                 'description' => $request->description ?? '',
-                'price' => $calculatedPrice,  // Auto-calculated price
+                'price' => $calculatedPrice,
                 'pax' => $request->pax,
                 'status' => 'active',
                 'image_path' => $imagePath,
             ]);
 
-            // Attach menu items to package
             $package->items()->attach($request->menu_items);
 
             return back()->with('success', 'Package created successfully! Price per head: ₱' . number_format($calculatedPrice, 2));
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to create package. Please try again.');
+            return back()->with('error', 'Failed to create package: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Update the specified package
-     */
     public function update(Request $request, Package $package)
     {
-        // Ensure user owns this package
         if ($package->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -110,7 +83,6 @@ class PackageController extends Controller
             'menu_items.*' => [
                 'exists:menu_items,id',
                 function ($attribute, $value, $fail) {
-                    // Ensure menu item belongs to authenticated user
                     $menuItem = MenuItem::find($value);
                     if (!$menuItem || $menuItem->user_id !== auth()->id()) {
                         $fail('One or more selected menu items are invalid.');
@@ -121,90 +93,68 @@ class PackageController extends Controller
         ]);
 
         try {
-            // Recalculate package price based on updated menu items
             $menuItems = $request->input('menu_items', []);
             $calculatedPrice = count($menuItems) > 0 ? $this->calculatePackagePrice($menuItems) : 0;
 
             // Handle image replacement
             $imagePath = $package->image_path;
             if ($request->hasFile('image')) {
-                // Delete old image from Cloudinary if it exists
+                // Delete old image from Cloudinary
                 if ($package->image_path) {
                     try {
-                        $publicId = $this->getPublicIdFromUrl($package->image_path);
-                        if ($publicId) {
-                            Cloudinary::destroy($publicId);
-                        }
+                        $this->deleteFromCloudinary($package->image_path);
                     } catch (\Exception $e) {
-                        // Continue even if deletion fails
+                        // Continue
                     }
                 }
                 
                 // Upload new image
-                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'packages'
-                ]);
-                $imagePath = $uploadedFile->getSecurePath();
+                $imagePath = $this->uploadToCloudinary($request->file('image'), 'packages');
             }
 
             $package->update([
                 'name' => $request->name,
                 'description' => $request->description ?? '',
-                'price' => $calculatedPrice,  // Auto-recalculated price
+                'price' => $calculatedPrice,
                 'pax' => $request->pax,
                 'image_path' => $imagePath,
             ]);
 
-            // Sync menu items (this will replace existing relationships)
             $package->items()->sync($menuItems);
 
             return back()->with('success', 'Package updated successfully! New price per head: ₱' . number_format($calculatedPrice, 2));
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to update package. Please try again.');
+            return back()->with('error', 'Failed to update package: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified package
-     */
     public function destroy(Package $package)
     {
-        // Ensure user owns this package
         if ($package->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            // Delete associated image from Cloudinary
+            // Delete image from Cloudinary
             if ($package->image_path) {
                 try {
-                    $publicId = $this->getPublicIdFromUrl($package->image_path);
-                    if ($publicId) {
-                        Cloudinary::destroy($publicId);
-                    }
+                    $this->deleteFromCloudinary($package->image_path);
                 } catch (\Exception $e) {
-                    // Continue even if deletion fails
+                    // Continue
                 }
             }
 
-            // Detach all menu items
             $package->items()->detach();
-
-            // Delete the package
             $package->delete();
 
             return back()->with('success', 'Package deleted successfully!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete package. Please try again.');
+            return back()->with('error', 'Failed to delete package: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Toggle package status between active and inactive
-     */
     public function toggle(Package $package)
     {
-        // Ensure user owns this package
         if ($package->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -216,16 +166,12 @@ class PackageController extends Controller
             $statusText = $package->status === 'active' ? 'activated' : 'deactivated';
             return back()->with('success', "Package {$statusText} successfully!");
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to update package status. Please try again.');
+            return back()->with('error', 'Failed to update package status.');
         }
     }
 
-    /**
-     * Get items for a package
-     */
     public function getItems(Package $package)
     {
-        // Ensure user owns this package
         if ($package->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -235,12 +181,8 @@ class PackageController extends Controller
         ]);
     }
 
-    /**
-     * Get package price breakdown (for display purposes)
-     */
     public function getPriceBreakdown(Package $package)
     {
-        // Ensure user owns this package
         if ($package->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -267,6 +209,91 @@ class PackageController extends Controller
     }
     
     /**
+     * Upload image to Cloudinary using direct API call
+     */
+    private function uploadToCloudinary($file, $folder)
+    {
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        
+        if (!$cloudName || !$apiKey || !$apiSecret) {
+            throw new \Exception('Cloudinary credentials not configured.');
+        }
+        
+        $timestamp = time();
+        $publicId = $folder . '/' . uniqid();
+        
+        $signatureString = "folder={$folder}&public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
+        $signature = sha1($signatureString);
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'file' => new \CURLFile($file->getRealPath()),
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+            'folder' => $folder,
+            'public_id' => $publicId,
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode !== 200) {
+            throw new \Exception('Cloudinary upload failed: ' . $response);
+        }
+        
+        $result = json_decode($response, true);
+        return $result['secure_url'];
+    }
+    
+    /**
+     * Delete image from Cloudinary
+     */
+    private function deleteFromCloudinary($url)
+    {
+        if (strpos($url, 'cloudinary.com') === false) {
+            return;
+        }
+        
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        
+        if (!$cloudName || !$apiKey || !$apiSecret) {
+            return;
+        }
+        
+        $publicId = $this->getPublicIdFromUrl($url);
+        if (!$publicId) {
+            return;
+        }
+        
+        $timestamp = time();
+        $signatureString = "public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
+        $signature = sha1($signatureString);
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'public_id' => $publicId,
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        curl_exec($ch);
+        curl_close($ch);
+    }
+    
+    /**
      * Extract Cloudinary public_id from URL
      */
     private function getPublicIdFromUrl($url)
@@ -281,7 +308,7 @@ class PackageController extends Controller
         }
         
         $pathParts = explode('/', $parts[1]);
-        array_shift($pathParts); // Remove version
+        array_shift($pathParts);
         $publicId = implode('/', $pathParts);
         $publicId = preg_replace('/\.[^.]+$/', '', $publicId);
         

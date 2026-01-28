@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MenuItem;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class MenuItemController extends Controller
 {
@@ -23,10 +22,7 @@ class MenuItemController extends Controller
         $imagePath = null;
         if ($request->hasFile('image')) {
             try {
-                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'menu_items'
-                ]);
-                $imagePath = $uploadedFile->getSecurePath();
+                $imagePath = $this->uploadToCloudinary($request->file('image'), 'menu_items');
             } catch (\Exception $e) {
                 return back()->with('error', 'Failed to upload image: ' . $e->getMessage());
             }
@@ -45,11 +41,10 @@ class MenuItemController extends Controller
         return back()->with('success', 'Menu item added successfully!');
     }
 
-
     public function update(Request $request, $id)
     {
         $item = MenuItem::where('id', $id)
-            ->where('user_id', auth()->id()) // ensure only owner can edit
+            ->where('user_id', auth()->id())
             ->firstOrFail();
 
         $request->validate([
@@ -66,11 +61,7 @@ class MenuItemController extends Controller
             // Delete old image from Cloudinary if it exists
             if ($item->image_path) {
                 try {
-                    // Extract public_id from URL and delete
-                    $publicId = $this->getPublicIdFromUrl($item->image_path);
-                    if ($publicId) {
-                        Cloudinary::destroy($publicId);
-                    }
+                    $this->deleteFromCloudinary($item->image_path);
                 } catch (\Exception $e) {
                     // Continue even if deletion fails
                 }
@@ -78,10 +69,7 @@ class MenuItemController extends Controller
             
             // Upload new image
             try {
-                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'menu_items'
-                ]);
-                $imagePath = $uploadedFile->getSecurePath();
+                $imagePath = $this->uploadToCloudinary($request->file('image'), 'menu_items');
             } catch (\Exception $e) {
                 return back()->with('error', 'Failed to upload image: ' . $e->getMessage());
             }
@@ -98,7 +86,6 @@ class MenuItemController extends Controller
         return back()->with('success', 'Menu item updated!');
     }
 
-
     public function destroy($id)
     {
         $item = MenuItem::findOrFail($id);
@@ -106,10 +93,7 @@ class MenuItemController extends Controller
         // Delete image from Cloudinary if it exists
         if ($item->image_path) {
             try {
-                $publicId = $this->getPublicIdFromUrl($item->image_path);
-                if ($publicId) {
-                    Cloudinary::destroy($publicId);
-                }
+                $this->deleteFromCloudinary($item->image_path);
             } catch (\Exception $e) {
                 // Continue even if deletion fails
             }
@@ -121,9 +105,95 @@ class MenuItemController extends Controller
     }
     
     /**
+     * Upload image to Cloudinary using direct API call
+     */
+    private function uploadToCloudinary($file, $folder)
+    {
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        
+        if (!$cloudName || !$apiKey || !$apiSecret) {
+            throw new \Exception('Cloudinary credentials not configured.');
+        }
+        
+        $timestamp = time();
+        $publicId = $folder . '/' . uniqid();
+        
+        // Generate signature
+        $signatureString = "folder={$folder}&public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
+        $signature = sha1($signatureString);
+        
+        // Prepare the upload
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'file' => new \CURLFile($file->getRealPath()),
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+            'folder' => $folder,
+            'public_id' => $publicId,
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode !== 200) {
+            throw new \Exception('Cloudinary upload failed: ' . $response);
+        }
+        
+        $result = json_decode($response, true);
+        return $result['secure_url'];
+    }
+    
+    /**
+     * Delete image from Cloudinary
+     */
+    private function deleteFromCloudinary($url)
+    {
+        if (strpos($url, 'cloudinary.com') === false) {
+            return;
+        }
+        
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        
+        if (!$cloudName || !$apiKey || !$apiSecret) {
+            return;
+        }
+        
+        // Extract public_id from URL
+        $publicId = $this->getPublicIdFromUrl($url);
+        if (!$publicId) {
+            return;
+        }
+        
+        $timestamp = time();
+        $signatureString = "public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
+        $signature = sha1($signatureString);
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'public_id' => $publicId,
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        curl_exec($ch);
+        curl_close($ch);
+    }
+    
+    /**
      * Extract Cloudinary public_id from URL
-     * Example: https://res.cloudinary.com/cloud/image/upload/v123/menu_items/abc.jpg
-     * Returns: menu_items/abc
      */
     private function getPublicIdFromUrl($url)
     {
@@ -137,11 +207,8 @@ class MenuItemController extends Controller
         }
         
         $pathParts = explode('/', $parts[1]);
-        // Remove version (v1234567890) and get folder/filename
         array_shift($pathParts); // Remove version
         $publicId = implode('/', $pathParts);
-        
-        // Remove file extension
         $publicId = preg_replace('/\.[^.]+$/', '', $publicId);
         
         return $publicId;
