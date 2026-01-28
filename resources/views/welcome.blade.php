@@ -115,11 +115,11 @@
                     <!-- Image -->
                     <div class="h-48 bg-gradient-to-br from-indigo-100 to-purple-100 relative overflow-hidden">
                         @if($caterer->profile_photo)
-                            <img src="{{ Storage::url($caterer->profile_photo) }}" 
+                            <img src="{{ $caterer->profile_photo }}"
                                 alt="{{ $caterer->business_name ?? $caterer->name }}"
                                 class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
                         @elseif($caterer->featuredImages->count() > 0)
-                            <img src="{{ Storage::url($caterer->featuredImages->first()->image_path) }}" 
+                            <img src="{{ $caterer->featuredImages->first()->image_path }}"
                                 alt="{{ $caterer->business_name ?? $caterer->name }}"
                                 class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
                         @else
@@ -244,7 +244,7 @@
                     <!-- Package Image -->
                     <div class="h-48 bg-gradient-to-br from-purple-100 to-pink-100 relative overflow-hidden">
                         @if($package->image_path)
-                            <img src="{{ Storage::url($package->image_path) }}" 
+                            <img src="{{ $package->image_path }}"
                                 alt="{{ $package->name }}"
                                 class="w-full h-full object-cover">
                         @else
