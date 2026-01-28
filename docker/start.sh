@@ -3,9 +3,6 @@ set -e
 
 echo "Starting Laravel application..."
 
-# Force HTTPS scheme
-export FORCE_HTTPS=true
-
 # Check if APP_KEY is set
 if [ -z "$APP_KEY" ]; then
     echo "ERROR: APP_KEY is not set!"
@@ -27,6 +24,10 @@ chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # Run migrations
 echo "Running migrations..."
 php artisan migrate --force || echo "Migration failed or no migrations to run"
+
+# Seed admin user
+echo "Seeding admin user..."
+php artisan db:seed --class=AdminUserSeeder --force || echo "Seeder failed or admin already exists"
 
 # Cache configuration
 echo "Caching configuration..."
