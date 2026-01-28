@@ -243,7 +243,7 @@
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Receipt</h3>
                             <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                <img src="{{ $booking->receipt_path }}" />
+                                <img src="{{ $booking->receipt_path }}"
                                      alt="Payment Receipt" 
                                      class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                                      onclick="openImageModal(this.src)">
