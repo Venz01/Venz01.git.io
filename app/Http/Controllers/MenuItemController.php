@@ -22,10 +22,14 @@ class MenuItemController extends Controller
         // Handle image upload to Cloudinary
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                'folder' => 'menu_items'
-            ]);
-            $imagePath = $uploadedFile->getSecurePath();
+            try {
+                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                    'folder' => 'menu_items'
+                ]);
+                $imagePath = $uploadedFile->getSecurePath();
+            } catch (\Exception $e) {
+                return back()->with('error', 'Failed to upload image: ' . $e->getMessage());
+            }
         }
 
         MenuItem::create([
@@ -73,10 +77,14 @@ class MenuItemController extends Controller
             }
             
             // Upload new image
-            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                'folder' => 'menu_items'
-            ]);
-            $imagePath = $uploadedFile->getSecurePath();
+            try {
+                $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                    'folder' => 'menu_items'
+                ]);
+                $imagePath = $uploadedFile->getSecurePath();
+            } catch (\Exception $e) {
+                return back()->with('error', 'Failed to upload image: ' . $e->getMessage());
+            }
         }
 
         $item->update([

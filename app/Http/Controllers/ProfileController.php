@@ -179,15 +179,20 @@ class ProfileController extends Controller
                 }
             }
 
-            // Upload to Cloudinary
-            $uploadedFile = Cloudinary::upload($request->file('profile_photo')->getRealPath(), [
-                'folder' => 'profile-photos'
-            ]);
-            $user->profile_photo = $uploadedFile->getSecurePath();
-            $user->save();
+            try {
+                // Upload to Cloudinary
+                $uploadedFile = Cloudinary::upload($request->file('profile_photo')->getRealPath(), [
+                    'folder' => 'profile-photos'
+                ]);
+                $user->profile_photo = $uploadedFile->getSecurePath();
+                $user->save();
 
-            return Redirect::route('profile.edit')
-                ->with('photo_success', 'Profile photo updated successfully!');
+                return Redirect::route('profile.edit')
+                    ->with('photo_success', 'Profile photo updated successfully!');
+            } catch (\Exception $e) {
+                return Redirect::route('profile.edit')
+                    ->with('error', 'Failed to upload photo. Please check Cloudinary configuration: ' . $e->getMessage());
+            }
         }
 
         return Redirect::route('profile.edit');
@@ -205,25 +210,30 @@ class ProfileController extends Controller
             'is_featured' => 'nullable|boolean',
         ]);
 
-        // Upload to Cloudinary
-        $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-            'folder' => 'portfolio'
-        ]);
-        $imagePath = $uploadedFile->getSecurePath();
+        try {
+            // Upload to Cloudinary
+            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                'folder' => 'portfolio'
+            ]);
+            $imagePath = $uploadedFile->getSecurePath();
 
-        $maxOrder = PortfolioImage::where('user_id', auth()->id())->max('order') ?? 0;
+            $maxOrder = PortfolioImage::where('user_id', auth()->id())->max('order') ?? 0;
 
-        PortfolioImage::create([
-            'user_id' => auth()->id(),
-            'image_path' => $imagePath,
-            'title' => $request->title,
-            'description' => $request->description,
-            'is_featured' => $request->has('is_featured') ? 1 : 0,
-            'order' => $maxOrder + 1,
-        ]);
+            PortfolioImage::create([
+                'user_id' => auth()->id(),
+                'image_path' => $imagePath,
+                'title' => $request->title,
+                'description' => $request->description,
+                'is_featured' => $request->has('is_featured') ? 1 : 0,
+                'order' => $maxOrder + 1,
+            ]);
 
-        return Redirect::route('profile.edit')
-            ->with('success', 'Portfolio image uploaded successfully!');
+            return Redirect::route('profile.edit')
+                ->with('success', 'Portfolio image uploaded successfully!');
+        } catch (\Exception $e) {
+            return Redirect::route('profile.edit')
+                ->with('error', 'Failed to upload image: ' . $e->getMessage());
+        }
     }
 
     /**
