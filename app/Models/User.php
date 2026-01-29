@@ -99,6 +99,22 @@ class User extends Authenticatable
         return $this->hasMany(PortfolioImage::class)->featured()->ordered();
     }
 
+    /**
+     * Get the bookings for this caterer
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'caterer_id');
+    }
+
+    /**
+     * Get the bookings made by this customer
+     */
+    public function customerBookings()
+    {
+        return $this->hasMany(Booking::class, 'customer_id');
+    }
+
     public function isApproved()
     {
         return $this->status === 'approved';

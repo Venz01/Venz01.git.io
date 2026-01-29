@@ -92,6 +92,9 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
                         {{ __('Payments') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('caterer.reports')" :active="request()->routeIs('caterer.reports*')">
+                        {{ __('Reports') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
                         {{ __('Reviews') }}
                     </x-nav-link>
@@ -329,6 +332,9 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
                     {{ __('Payments & Revenue') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('caterer.reports')" :active="request()->routeIs('caterer.reports*')">
+                    {{ __('Reports') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
                     {{ __('Reviews') }}

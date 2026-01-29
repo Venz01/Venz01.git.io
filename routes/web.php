@@ -193,6 +193,18 @@ Route::post('/caterers/{caterer}/reject', [AdminController::class, 'rejectCatere
     ->middleware(['auth', 'admin']);
 });
 
+Route::middleware(['auth'])->prefix('caterer')->name('caterer.')->group(function () {
+    
+    // Main reports page
+    Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports');
+    
+    // Export routes
+    Route::get('/reports/export/pdf', [App\Http\Controllers\ReportsController::class, 'exportPdf'])->name('reports.pdf');
+    Route::get('/reports/export/excel', [App\Http\Controllers\ReportsController::class, 'exportExcel'])->name('reports.excel');
+    
+});
+
+
 
 
 // Registration pending page
