@@ -390,12 +390,16 @@
             }
         });
 
-        // Handle window resize
+        // Handle window resize - resize charts instead of reloading page
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                location.reload();
+                // Update chart responsive settings
+                revenueTrendsChart.resize();
+                paymentStatusChart.resize();
+                bookingStatusChart.resize();
+                eventTypesChart.resize();
             }, 250);
         });
     </script>
