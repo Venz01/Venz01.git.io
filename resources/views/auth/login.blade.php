@@ -1,13 +1,24 @@
 <x-guest-layout>
     <!-- Logo Section at the Top -->
-    <div class="flex justify-center mb-6">
-        <img src="{{ asset('images/logo.jpg') }}" alt="Restaurant Logo" class="h-28 w-auto">
+    <div class="flex justify-center mb-0">
+    <img src="{{ asset('images/foodlogo.png') }}" 
+         alt="Restaurant Logo" 
+         style="height: 200px; width: auto;"
+         class="logo-dark-mode">
     </div>
     
+    <style>
+        @media (prefers-color-scheme: dark) {
+            .logo-dark-mode {
+                filter: invert(1) brightness(2) !important;
+            }
+        }
+    </style>
+    
     <!-- Optional: Add site name/tagline below logo -->
-    <div class="text-center mb-6">
+    <div class="text-center mb-0">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">CaterEase</h2>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Catering Management System</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0">Catering Management System</p>
     </div>
 
     <!-- Display ALL errors at the top prominently -->
