@@ -89,33 +89,42 @@
         .section-title {
             font-size: 16px;
             font-weight: 700;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
+            color: #1f2937;
+            margin-bottom: 18px;
+            padding: 6px 0 8px 12px;
             border-bottom: 1px solid #e5e7eb;
+            border-left: 4px solid #3b82f6;
         }
 
         /* ===== Tables ===== */
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
 
         thead th {
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             padding: 10px;
-            border-bottom: 2px solid #e5e7eb;
-            color: #374151;
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
         }
 
         tbody td {
             padding: 10px;
             border-bottom: 1px solid #f3f4f6;
+            font-size: 12px;
         }
 
         .text-right {
             text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
         }
 
         .no-data {
@@ -123,6 +132,46 @@
             padding: 20px;
             color: #9ca3af;
             font-style: italic;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-confirmed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .payment-paid {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .payment-deposit {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .payment-pending {
+            background-color: #fef3c7;
+            color: #92400e;
         }
 
         /* ===== Summary ===== */
@@ -161,34 +210,6 @@
             font-size: 12px;
             color: #6b7280;
         }
-
-        /* ===== Colored Section Headers ===== */
-        .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 18px;
-            padding: 6px 0 8px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            border-left: 4px solid #3b82f6;
-        }
-
-        /* Table headers subtle color */
-        thead th {
-            color: #3b82f6;
-            border-bottom: 2px solid #3b82f6;
-        }
-
-        /* Header title accent */
-        .header h1 {
-            color: #1f2937;
-        }
-
-        .report-title {
-            color: #3b82f6;
-            font-weight: 600;
-        }
-
 
         /* ===== Print ===== */
         @media print {
@@ -235,6 +256,81 @@
             <div class="metric-value">{{ number_format($metrics['total_guests']) }}</div>
             <div class="metric-subtitle">Across all events</div>
         </div>
+    </div>
+
+    <!-- Detailed Bookings Table -->
+    <div class="section">
+        <div class="section-title">Detailed Bookings</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Customer Name</th>
+                    <th>Event Type</th>
+                    <th>Event Date</th>
+                    <th class="text-center">Guests</th>
+                    <th class="text-right">Total Price</th>
+                    <th class="text-right">Deposit</th>
+                    <th class="text-right">Balance</th>
+                    <th>Payment Status</th>
+                    <th>Booking Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($bookings as $booking)
+                <tr>
+                    <td>{{ $booking->id }}</td>
+                    <td>{{ $booking->customer_name }}</td>
+                    <td>{{ $booking->event_type }}</td>
+                    <td>{{ \Carbon\Carbon::parse($booking->event_date)->format('Y-m-d') }}</td>
+                    <td class="text-center">
+                        @php
+                            // Handle both possible column names
+                            $guestCount = $booking->number_of_guests ?? $booking->guests ?? null;
+                        @endphp
+                        {{ $guestCount ?? 'N/A' }}
+                    </td>
+                    <td class="text-right">₱{{ number_format($booking->total_price, 2) }}</td>
+                    <td class="text-right">₱{{ number_format($booking->deposit_amount, 2) }}</td>
+                    <td class="text-right">
+                        @php
+                            // Handle both possible column names for balance
+                            $balance = $booking->balance ?? $booking->balance_amount ?? 0;
+                        @endphp
+                        ₱{{ number_format($balance, 2) }}
+                    </td>
+                    <td>
+                        @php
+                            $statusClass = 'payment-pending';
+                            if ($booking->payment_status === 'Paid' || $booking->payment_status === 'paid') {
+                                $statusClass = 'payment-paid';
+                            } elseif ($booking->payment_status === 'Deposit_paid' || $booking->payment_status === 'deposit_paid') {
+                                $statusClass = 'payment-deposit';
+                            }
+                        @endphp
+                        <span class="status-badge {{ $statusClass }}">{{ ucfirst($booking->payment_status) }}</span>
+                    </td>
+                    <td>
+                        @php
+                            $bookingClass = 'status-pending';
+                            if ($booking->booking_status === 'Confirmed' || $booking->booking_status === 'confirmed') {
+                                $bookingClass = 'status-confirmed';
+                            } elseif ($booking->booking_status === 'Cancelled' || $booking->booking_status === 'cancelled') {
+                                $bookingClass = 'status-cancelled';
+                            }
+                        @endphp
+                        <span class="status-badge {{ $bookingClass }}">{{ ucfirst($booking->booking_status) }}</span>
+                    </td>
+                    <td>{{ \Carbon\Carbon::parse($booking->created_at)->format('Y-m-d H:i:s') }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="11" class="no-data">No bookings found for this period</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <!-- Payment Status -->
@@ -287,12 +383,11 @@
 
     <!-- Footer -->
     <div class="footer">
-    <div class="footer-brand">Powered by CaterEase</div>
-    <div class="footer-info">
-        {{ $caterer->business_name ?? $caterer->name }} | {{ $caterer->email }}
+        <div class="footer-brand">Powered by CaterEase</div>
+        <div class="footer-info">
+            {{ $caterer->business_name ?? $caterer->name }} | {{ $caterer->email }}
+        </div>
     </div>
-    </div>
-
 
 </body>
 </html>

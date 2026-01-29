@@ -80,13 +80,27 @@ class ReportsController extends Controller
     
     private function calculateMetrics($bookings)
     {
+        // Handle both possible column names for guests and balance
+        $totalGuests = 0;
+        $totalBalance = 0;
+        
+        foreach ($bookings as $booking) {
+            // Try both possible column names for guests
+            $guests = $booking->number_of_guests ?? $booking->guests ?? 0;
+            $totalGuests += $guests;
+            
+            // Try both possible column names for balance
+            $balance = $booking->balance ?? $booking->balance_amount ?? 0;
+            $totalBalance += $balance;
+        }
+        
         return [
             'total_bookings' => $bookings->count(),
             'total_revenue' => $bookings->sum('total_price'),
             'total_deposits' => $bookings->sum('deposit_amount'),
-            'total_balance' => $bookings->sum('balance'),
+            'total_balance' => $totalBalance,
             'average_booking_value' => $bookings->avg('total_price') ?? 0,
-            'total_guests' => $bookings->sum('guests'),
+            'total_guests' => $totalGuests,
             'paid_bookings' => $bookings->where('payment_status', 'paid')->count(),
             'pending_bookings' => $bookings->where('payment_status', 'pending')->count(),
             'confirmed_bookings' => $bookings->where('booking_status', 'confirmed')->count(),
@@ -174,8 +188,11 @@ class ReportsController extends Controller
         $period = $request->get('period', 'monthly');
         
         $dates = $this->getDateRange($period);
+        
+        // Get all bookings for the period
         $bookings = Booking::where('caterer_id', $caterer_id)
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->orderBy('created_at', 'desc')
             ->get();
         
         $metrics = $this->calculateMetrics($bookings);
@@ -194,8 +211,9 @@ class ReportsController extends Controller
             'eventTypes',
             'period',
             'dates',
-            'caterer'
-        ));
+            'caterer',
+            'bookings'  // Pass bookings to the PDF view
+        ))->setPaper('a4', 'landscape');  // Set landscape orientation
         
         $filename = 'report_' . $period . '_' . date('Y-m-d') . '.pdf';
         return $pdf->download($filename);
