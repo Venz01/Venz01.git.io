@@ -113,14 +113,24 @@ class ReportsController extends Controller
     
     private function getRevenueTrends($caterer_id, $dates, $period)
     {
-        // MySQL uses DATE_FORMAT instead of TO_CHAR
-        // Format: %Y-%m-%d for daily, %Y-%m for monthly
-        $format = $period === 'yearly' ? '%Y-%m' : '%Y-%m-%d';
+        // Check database driver
+        $driver = config('database.default');
+        $connection = config("database.connections.{$driver}.driver");
+        
+        if ($connection === 'pgsql') {
+            // PostgreSQL uses TO_CHAR
+            $format = $period === 'yearly' ? 'YYYY-MM' : 'YYYY-MM-DD';
+            $dateColumn = DB::raw("TO_CHAR(created_at, '$format') as date");
+        } else {
+            // MySQL uses DATE_FORMAT
+            $format = $period === 'yearly' ? '%Y-%m' : '%Y-%m-%d';
+            $dateColumn = DB::raw("DATE_FORMAT(created_at, '$format') as date");
+        }
         
         return Booking::where('caterer_id', $caterer_id)
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '$format') as date"),
+                $dateColumn,
                 DB::raw('sum(total_price) as revenue'),
                 DB::raw('count(*) as bookings')
             )
