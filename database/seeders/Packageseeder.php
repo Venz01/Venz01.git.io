@@ -22,6 +22,7 @@ class PackageSeeder extends Seeder
                 'price' => 350.00,
                 'pax' => 50,
                 'status' => 'active',
+                'is_available' => true, // Add this if the column exists
             ],
             [
                 'name' => 'Premium Fiesta Package',
@@ -29,6 +30,7 @@ class PackageSeeder extends Seeder
                 'price' => 450.00,
                 'pax' => 50,
                 'status' => 'active',
+                'is_available' => true,
             ],
             [
                 'name' => 'Budget-Friendly Package',
@@ -36,6 +38,7 @@ class PackageSeeder extends Seeder
                 'price' => 250.00,
                 'pax' => 30,
                 'status' => 'active',
+                'is_available' => true,
             ],
             [
                 'name' => 'Deluxe Celebration Package',
@@ -43,19 +46,16 @@ class PackageSeeder extends Seeder
                 'price' => 550.00,
                 'pax' => 100,
                 'status' => 'active',
+                'is_available' => true,
             ],
         ];
 
         foreach ($caterers as $caterer) {
-            foreach ($packages as $package) {
-                Package::create([
-                    'user_id' => $caterer->id,
-                    'name' => $package['name'],
-                    'description' => $package['description'],
-                    'price' => $package['price'],
-                    'pax' => $package['pax'],
-                    'status' => $package['status'],
-                ]);
+            foreach ($packages as $packageData) {
+                Package::create(array_merge(
+                    ['user_id' => $caterer->id],
+                    $packageData
+                ));
             }
         }
 
