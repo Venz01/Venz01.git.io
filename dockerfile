@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    libzip-dev \
     zip \
     unzip \
     nginx \
@@ -48,6 +49,9 @@ COPY . /var/www/html
 
 # Copy built assets from node-builder stage
 COPY --from=node-builder /app/public/build /var/www/html/public/build
+
+# Install PHP zip extension
+RUN docker-php-ext-install zip
 
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction

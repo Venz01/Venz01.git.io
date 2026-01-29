@@ -222,12 +222,13 @@ class CatererController extends Controller
     
     private function getRevenueTrends($caterer_id, $dates, $period)
     {
-        $format = $period === 'yearly' ? '%Y-%m' : '%Y-%m-%d';
+        // PostgreSQL uses TO_CHAR instead of DATE_FORMAT
+        $format = $period === 'yearly' ? 'YYYY-MM' : 'YYYY-MM-DD';
         
         return Booking::where('caterer_id', $caterer_id)
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '$format') as date"),
+                DB::raw("TO_CHAR(created_at, '$format') as date"),
                 DB::raw('sum(total_price) as revenue'),
                 DB::raw('count(*) as bookings')
             )
