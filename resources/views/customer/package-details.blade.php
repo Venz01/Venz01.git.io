@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('customer.caterer.profile', $package->user->id) }}" class="text-gray-600 hover:text-gray-900">
+                <a href="{{ route('customer.caterer.profile', $package->user->id) }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -69,14 +69,16 @@
                                         <span id="selectedCount">{{ $package->items->count() }}</span> items selected
                                     </span>
                                     <button 
+                                        type="button"
                                         onclick="selectAll()" 
-                                        class="text-green-600 hover:text-green-700 text-sm font-medium"
+                                        class="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium"
                                     >
                                         Select All
                                     </button>
                                     <button 
+                                        type="button"
                                         onclick="deselectAll()" 
-                                        class="text-red-600 hover:text-red-700 text-sm font-medium"
+                                        class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
                                     >
                                         Deselect All
                                     </button>
@@ -105,8 +107,9 @@
                                                 {{ $categoryName ?? 'Uncategorized' }}
                                             </h3>
                                             <button 
-                                                onclick="toggleCategory('{{ $categoryName }}')" 
-                                                class="text-sm text-green-600 hover:text-green-700 font-medium"
+                                                type="button"
+                                                onclick="toggleCategory('{{ addslashes($categoryName) }}')" 
+                                                class="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium"
                                             >
                                                 Toggle All
                                             </button>
@@ -138,7 +141,7 @@
                                                             @if($item->description)
                                                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $item->description }}</p>
                                                             @endif
-                                                            <p class="text-sm font-medium text-green-600 mt-2">₱{{ number_format($item->price, 2) }}</p>
+                                                            <p class="text-sm font-medium text-green-600 dark:text-green-400 mt-2">₱{{ number_format($item->price, 2) }}</p>
                                                         </div>
                                                     </label>
                                                 </div>
@@ -214,19 +217,17 @@
                                     value="{{ $package->pax }}"
                                     min="1"
                                     max="1000"
-                                    class="w-full px-4 py-3 text-lg font-semibold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    onchange="updateTotalPrice()"
-                                    oninput="updateTotalPrice()"
+                                    class="w-full px-4 py-3 text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     required
                                 >
-                                <p class="text-xs text-gray-500 mt-1">Minimum package serves {{ $package->pax }} guests</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum package serves {{ $package->pax }} guests</p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Type *</label>
                                 <select 
                                     name="event_type"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     required
                                 >
                                     <option value="">Select event type</option>
@@ -245,7 +246,7 @@
                                     type="date" 
                                     name="event_date"
                                     min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     required
                                 >
                             </div>
@@ -254,7 +255,7 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Slot *</label>
                                 <select 
                                     name="time_slot"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     required
                                 >
                                     <option value="">Select time slot</option>
@@ -271,7 +272,7 @@
                                     type="text" 
                                     name="venue_name"
                                     placeholder="e.g., Grand Ballroom, Home Address, etc."
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     required
                                 >
                             </div>
@@ -282,7 +283,7 @@
                                     name="venue_address"
                                     rows="2"
                                     placeholder="Full address of the venue"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     required
                                 ></textarea>
                             </div>
@@ -292,7 +293,7 @@
                                 <textarea 
                                     name="special_instructions"
                                     rows="3"
-                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     placeholder="Any dietary restrictions or special requirements..."
                                 ></textarea>
                             </div>
@@ -300,6 +301,7 @@
 
                         <div class="space-y-3">
                             <button 
+                                type="button"
                                 onclick="submitBooking()"
                                 class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-lg"
                             >
@@ -310,7 +312,7 @@
                             </button>
                             <a 
                                 href="{{ route('customer.caterer.profile', $package->user->id) }}"
-                                class="block w-full text-center border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                                class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >
                                 Cancel
                             </a>
@@ -320,7 +322,7 @@
                             <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
                                 <div class="flex justify-between">
                                     <span>Deposit Required (25%):</span>
-                                    <span class="font-medium text-green-600">₱<span id="depositAmount">{{ number_format(($package->price * $package->pax) * 0.25, 0) }}</span></span>
+                                    <span class="font-medium text-green-600 dark:text-green-400">₱<span id="depositAmount">{{ number_format(($package->price * $package->pax) * 0.25, 0) }}</span></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Service Fee:</span>
@@ -328,7 +330,7 @@
                                 </div>
                                 <div class="flex justify-between font-semibold text-base text-gray-900 dark:text-white">
                                     <span>Due Now:</span>
-                                    <span class="text-green-600">₱<span id="dueNow">{{ number_format((($package->price * $package->pax) * 0.25) + 500, 0) }}</span></span>
+                                    <span class="text-green-600 dark:text-green-400">₱<span id="dueNow">{{ number_format((($package->price * $package->pax) * 0.25) + 500, 0) }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -338,9 +340,15 @@
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">About the Caterer</h3>
                         <div class="flex items-center space-x-4 mb-4">
-                            <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-xl flex items-center justify-center text-white text-xl font-bold">
-                                {{ substr($package->user->business_name ?? $package->user->name, 0, 1) }}
-                            </div>
+                            @if($package->user->profile_photo)
+                                <img src="{{ $package->user->profile_photo }}" 
+                                     alt="{{ $package->user->business_name ?? $package->user->name }}"
+                                     class="w-16 h-16 rounded-xl object-cover">
+                            @else
+                                <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-xl flex items-center justify-center text-white text-xl font-bold">
+                                    {{ substr($package->user->business_name ?? $package->user->name, 0, 1) }}
+                                </div>
+                            @endif
                             <div>
                                 <h4 class="font-medium text-gray-900 dark:text-white">
                                     {{ $package->user->business_name ?? $package->user->name }}
@@ -349,7 +357,9 @@
                                     <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                     </svg>
-                                    <span class="ml-1 text-sm text-gray-600 dark:text-gray-400">4.8 • 156 reviews</span>
+                                    <span class="ml-1 text-sm text-gray-600 dark:text-gray-400">
+                                        {{ $package->user->averageRating() }} • {{ $package->user->totalReviews() }} reviews
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -367,14 +377,14 @@
                         <div class="space-y-3">
                             <a 
                                 href="{{ route('customer.caterer.profile', $package->user->id) }}" 
-                                class="block w-full text-center border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                class="block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                             >
                                 View Profile
                             </a>
-                            @if($package->user->contact_number)
+                            @if($package->user->contact_number || $package->user->phone)
                                 <a 
-                                    href="tel:{{ $package->user->contact_number }}"
-                                    class="block w-full text-center bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                    href="tel:{{ $package->user->contact_number ?? $package->user->phone }}"
+                                    class="block w-full text-center bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                                 >
                                     Contact Caterer
                                 </a>
@@ -386,8 +396,27 @@
         </div>
     </div>
 
-    <!-- JavaScript for customization and price calculation -->
     <script>
+        // Cache DOM elements
+        const elements = {
+            selectedCount: document.getElementById('selectedCount'),
+            foodCost: document.getElementById('foodCost'),
+            laborCost: document.getElementById('laborCost'),
+            equipmentCost: document.getElementById('equipmentCost'),
+            profitMargin: document.getElementById('profitMargin'),
+            pricePerHead: document.getElementById('pricePerHead'),
+            perHeadPriceDisplay: document.getElementById('perHeadPriceDisplay'),
+            totalPriceMain: document.getElementById('totalPriceMain'),
+            guestCountDisplay: document.getElementById('guestCountDisplay'),
+            depositAmount: document.getElementById('depositAmount'),
+            dueNow: document.getElementById('dueNow'),
+            hiddenPricePerHead: document.getElementById('hiddenPricePerHead'),
+            hiddenTotalPrice: document.getElementById('hiddenTotalPrice'),
+            selectedItemsJson: document.getElementById('selectedItemsJson'),
+            guestCount: document.getElementById('guestCount'),
+            bookingForm: document.getElementById('bookingForm')
+        };
+
         // Store original package data
         const originalPrice = {{ $package->price }};
         const originalPax = {{ $package->pax }};
@@ -396,12 +425,15 @@
         function updatePrice() {
             const checkboxes = document.querySelectorAll('.menu-item-checkbox:checked');
             let foodCost = 0;
-            
             const selectedItems = [];
+            
             checkboxes.forEach(checkbox => {
-                const price = parseFloat(checkbox.closest('.menu-item').dataset.itemPrice);
-                foodCost += price;
-                selectedItems.push(checkbox.value);
+                const menuItem = checkbox.closest('.menu-item');
+                if (menuItem) {
+                    const price = parseFloat(menuItem.dataset.itemPrice);
+                    foodCost += price;
+                    selectedItems.push(checkbox.value);
+                }
             });
             
             // Calculate markups
@@ -414,19 +446,19 @@
             pricePerHead = Math.round(pricePerHead / 5) * 5; // Round to nearest 5
             
             // Update breakdown displays
-            document.getElementById('foodCost').textContent = foodCost.toFixed(2);
-            document.getElementById('laborCost').textContent = laborAndUtilities.toFixed(2);
-            document.getElementById('equipmentCost').textContent = equipmentTransport.toFixed(2);
-            document.getElementById('profitMargin').textContent = profitMargin.toFixed(2);
-            document.getElementById('pricePerHead').textContent = pricePerHead.toLocaleString();
-            document.getElementById('perHeadPriceDisplay').textContent = '₱' + pricePerHead.toLocaleString();
+            if (elements.foodCost) elements.foodCost.textContent = foodCost.toFixed(2);
+            if (elements.laborCost) elements.laborCost.textContent = laborAndUtilities.toFixed(2);
+            if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
+            if (elements.profitMargin) elements.profitMargin.textContent = profitMargin.toFixed(2);
+            if (elements.pricePerHead) elements.pricePerHead.textContent = pricePerHead.toLocaleString();
+            if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
             
             // Update hidden form fields
-            document.getElementById('hiddenPricePerHead').value = pricePerHead;
-            document.getElementById('selectedItemsJson').value = JSON.stringify(selectedItems);
+            if (elements.hiddenPricePerHead) elements.hiddenPricePerHead.value = pricePerHead;
+            if (elements.selectedItemsJson) elements.selectedItemsJson.value = JSON.stringify(selectedItems);
             
             // Update selected count
-            document.getElementById('selectedCount').textContent = checkboxes.length;
+            if (elements.selectedCount) elements.selectedCount.textContent = checkboxes.length;
             
             // Update total price
             updateTotalPrice();
@@ -434,7 +466,7 @@
             // Visual feedback for selected items
             document.querySelectorAll('.menu-item').forEach(item => {
                 const checkbox = item.querySelector('.menu-item-checkbox');
-                if (checkbox.checked) {
+                if (checkbox && checkbox.checked) {
                     item.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900');
                 } else {
                     item.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-900');
@@ -444,20 +476,20 @@
         
         // Update total price based on guest count
         function updateTotalPrice() {
-            const guests = parseInt(document.getElementById('guestCount').value) || originalPax;
-            const pricePerHead = parseFloat(document.getElementById('hiddenPricePerHead').value || originalPrice);
+            const guests = parseInt(elements.guestCount?.value) || originalPax;
+            const pricePerHead = parseFloat(elements.hiddenPricePerHead?.value || originalPrice);
             const totalPrice = pricePerHead * guests;
             
             // Update all total price displays
-            document.getElementById('totalPriceMain').textContent = totalPrice.toLocaleString();
-            document.getElementById('guestCountDisplay').textContent = guests;
-            document.getElementById('hiddenTotalPrice').value = totalPrice;
+            if (elements.totalPriceMain) elements.totalPriceMain.textContent = totalPrice.toLocaleString();
+            if (elements.guestCountDisplay) elements.guestCountDisplay.textContent = guests;
+            if (elements.hiddenTotalPrice) elements.hiddenTotalPrice.value = totalPrice;
             
             // Update deposit and due now
             const deposit = totalPrice * 0.25;
             const dueNow = deposit + 500;
-            document.getElementById('depositAmount').textContent = deposit.toLocaleString();
-            document.getElementById('dueNow').textContent = dueNow.toLocaleString();
+            if (elements.depositAmount) elements.depositAmount.textContent = deposit.toLocaleString();
+            if (elements.dueNow) elements.dueNow.textContent = dueNow.toLocaleString();
         }
         
         // Select all items
@@ -489,11 +521,11 @@
         
         // Submit booking
         function submitBooking() {
-            const form = document.getElementById('bookingForm');
+            if (!elements.bookingForm) return;
             
             // Validate form
-            if (!form.checkValidity()) {
-                form.reportValidity();
+            if (!elements.bookingForm.checkValidity()) {
+                elements.bookingForm.reportValidity();
                 return;
             }
             
@@ -507,20 +539,21 @@
             }
             
             // Update hidden field with selected items
-            document.getElementById('selectedItemsJson').value = JSON.stringify(selectedItems);
+            if (elements.selectedItemsJson) {
+                elements.selectedItemsJson.value = JSON.stringify(selectedItems);
+            }
             
             // Add selected items as hidden inputs
-            const form_element = document.getElementById('bookingForm');
             selectedItems.forEach(itemId => {
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'selected_items[]';
                 input.value = itemId;
-                form_element.appendChild(input);
+                elements.bookingForm.appendChild(input);
             });
             
             // Submit the form
-            form.submit();
+            elements.bookingForm.submit();
         }
         
         // Initialize price calculation on page load
@@ -528,9 +561,9 @@
             updatePrice();
             
             // Add input event listener for real-time guest count updates
-            document.getElementById('guestCount').addEventListener('input', function() {
-                updateTotalPrice();
-            });
+            if (elements.guestCount) {
+                elements.guestCount.addEventListener('input', updateTotalPrice);
+            }
         });
     </script>
 
@@ -558,4 +591,4 @@
             transition: all 0.3s ease;
         }
     </style>
-</x-app-layout>
+</x-app-layout>     

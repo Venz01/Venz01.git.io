@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\DisplayMenu; // ✅ ADD THIS IMPORT
 
 class User extends Authenticatable
 {
@@ -97,6 +98,23 @@ class User extends Authenticatable
     public function featuredImages()
     {
         return $this->hasMany(PortfolioImage::class)->featured()->ordered();
+    }
+
+    // ✅ ADD THESE NEW RELATIONSHIPS
+    /**
+     * Get the display menus for the caterer
+     */
+    public function displayMenus()
+    {
+        return $this->hasMany(DisplayMenu::class, 'user_id');
+    }
+
+    /**
+     * Get only active display menus
+     */
+    public function activeDisplayMenus()
+    {
+        return $this->hasMany(DisplayMenu::class, 'user_id')->where('status', 'active');
     }
 
     /**

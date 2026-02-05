@@ -600,7 +600,21 @@ class CatererController extends Controller
             ->where('user_id', $userId)
             ->get();
 
-        return view('caterer.menus', compact('categories', 'packages'));
+        // Get display menus grouped by category
+        $displayMenus = \App\Models\DisplayMenu::where('user_id', $userId)
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('category');
+
+        // Get unique categories from display menus
+        $displayCategories = \App\Models\DisplayMenu::where('user_id', $userId)
+            ->distinct()
+            ->pluck('category')
+            ->sort()
+            ->values();
+
+        return view('caterer.menus', compact('categories', 'packages', 'displayMenus', 'displayCategories'));
     }
 
     public function packages()
@@ -795,5 +809,113 @@ class CatererController extends Controller
                 'message' => 'Failed to update items'
             ];
         }
+    }
+
+    /**
+     * Display orders for the caterer
+     */
+    public function orders(Request $request)
+    {
+        $catererId = auth()->id();
+        
+        $query = \App\Models\Order::where('caterer_id', $catererId)
+            ->with(['customer', 'items.displayMenu'])
+            ->orderBy('created_at', 'desc');
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('order_status', $request->status);
+        }
+
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        if ($request->filled('fulfillment_type')) {
+            $query->where('fulfillment_type', $request->fulfillment_type);
+        }
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('order_number', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('customer_name', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('customer_phone', 'LIKE', '%' . $searchTerm . '%');
+            });
+        }
+
+        $orders = $query->paginate(15);
+
+        // Get statistics
+        $stats = [
+            'pending' => \App\Models\Order::where('caterer_id', $catererId)->where('order_status', 'pending')->count(),
+            'confirmed' => \App\Models\Order::where('caterer_id', $catererId)->where('order_status', 'confirmed')->count(),
+            'preparing' => \App\Models\Order::where('caterer_id', $catererId)->where('order_status', 'preparing')->count(),
+            'ready' => \App\Models\Order::where('caterer_id', $catererId)->where('order_status', 'ready')->count(),
+            'completed' => \App\Models\Order::where('caterer_id', $catererId)->where('order_status', 'completed')->count(),
+            'cancelled' => \App\Models\Order::where('caterer_id', $catererId)->where('order_status', 'cancelled')->count(),
+        ];
+
+        // Today's orders
+        $todaysOrders = \App\Models\Order::where('caterer_id', $catererId)
+            ->whereDate('fulfillment_date', today())
+            ->count();
+
+        // Total revenue
+        $totalRevenue = \App\Models\Order::where('caterer_id', $catererId)
+            ->whereIn('order_status', ['completed', 'confirmed', 'preparing', 'ready'])
+            ->where('payment_status', 'paid')
+            ->sum('total_amount');
+
+        return view('caterer.orders.index', compact('orders', 'stats', 'todaysOrders', 'totalRevenue'));
+    }
+
+    /**
+     * Show order details for caterer
+     */
+    public function showOrder($orderId)
+    {
+        $order = \App\Models\Order::where('caterer_id', auth()->id())
+            ->with(['customer', 'items.displayMenu'])
+            ->findOrFail($orderId);
+
+        return view('caterer.orders.show', compact('order'));
+    }
+
+    /**
+     * Update order status
+     */
+    public function updateOrderStatus(Request $request, $orderId)
+    {
+        $request->validate([
+            'status' => 'required|in:confirmed,preparing,ready,completed,cancelled'
+        ]);
+
+        $order = \App\Models\Order::where('caterer_id', auth()->id())
+            ->findOrFail($orderId);
+
+        $order->update([
+            'order_status' => $request->status
+        ]);
+
+        // Send notification to customer (if you have notification service)
+        // $this->notificationService->notifyOrderStatusUpdate($order);
+
+        return back()->with('success', 'Order status updated successfully!');
+    }
+
+    /**
+     * Confirm payment received
+     */
+    public function confirmPayment($orderId)
+    {
+        $order = \App\Models\Order::where('caterer_id', auth()->id())
+            ->findOrFail($orderId);
+
+        $order->update([
+            'payment_status' => 'paid'
+        ]);
+
+        return back()->with('success', 'Payment confirmed!');
     }
 }

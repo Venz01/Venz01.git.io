@@ -4,9 +4,7 @@
     notifications: [],
     unreadCount: 0,
     loading: false
-}" 
-@click.away="notificationsOpen = false"
-x-init="
+}" @click.away="notificationsOpen = false" x-init="
     // Fetch notifications on load
     fetch('/notifications/unread')
         .then(res => res.json())
@@ -26,8 +24,7 @@ x-init="
             })
             .catch(error => console.error('Error fetching notifications:', error));
     }, 30000);
-"
-class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -36,11 +33,10 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="flex items-center space-x-0.5">
-                        <img src="{{ asset('images/foodlogo.png') }}" 
-                            alt="Restaurant Logo" 
-                            style="height: 100px; width: auto;"
-                            class="logo-dark-mode">
-                        <span class="text-xl font-bold text-gray-800 dark:text-gray-200 hidden lg:block">CaterEase</span>
+                        <img src="{{ asset('images/foodlogo.png') }}" alt="Restaurant Logo"
+                            style="height: 100px; width: auto;" class="logo-dark-mode">
+                        <span
+                            class="text-xl font-bold text-gray-800 dark:text-gray-200 hidden lg:block">CaterEase</span>
                     </a>
                 </div>
 
@@ -50,10 +46,12 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                             filter: invert(1) brightness(2) !important;
                         }
                     }
+
                 </style>
-                
+
                 <!-- Desktop Navigation Links -->
-                <div class="hidden space-x-2 md:space-x-4 lg:space-x-6 sm:-my-px sm:ms-4 lg:ms-8 sm:flex sm:overflow-x-auto">
+                <div
+                    class="hidden space-x-2 md:space-x-4 lg:space-x-6 sm:-my-px sm:ms-4 lg:ms-8 sm:flex sm:overflow-x-auto">
                     @php $role = auth()->user()->role; @endphp
 
                     @if ($role === 'customer')
@@ -69,9 +67,25 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')">
                         {{ __('Payments') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('customer.cart')" :active="request()->routeIs('customer.cart')">
-                        {{ __('Cart') }}
+                    <x-nav-link :href="route('customer.orders.index')" :active="request()->routeIs('customer.orders*')">
+                        {{ __('Orders') }}
                     </x-nav-link>
+                    <a href="{{ route('customer.orders.cart') }}"
+                        class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors relative">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                        <span>Cart</span>
+
+                        <!-- Cart Count Badge -->
+                        <span id="cart-count-badge"
+                            class="hidden absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                            0
+                        </span>
+                    </a>
+
 
                     @elseif ($role === 'caterer')
                     <x-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
@@ -86,7 +100,8 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('caterer.menus')" :active="request()->routeIs('caterer.menus')">
                         {{ __('Menus') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('caterer.verifyReceipt')" :active="request()->routeIs('caterer.verifyReceipt')">
+                    <x-nav-link :href="route('caterer.verifyReceipt')"
+                        :active="request()->routeIs('caterer.verifyReceipt')">
                         {{ __('Receipts') }}
                     </x-nav-link>
                     <x-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
@@ -98,6 +113,9 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
                         {{ __('Reviews') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('caterer.orders')" :active="request()->routeIs('caterer.orders*')">
+                        {{ __('Orders') }}
+                    </x-nav-link>
 
                     @elseif ($role === 'admin')
                     <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
@@ -106,23 +124,27 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                         {{ __('User Management') }}
                     </x-nav-link>
-                    
+
                     {{-- NEW: Feedback & Ratings Management --}}
-                    <x-nav-link :href="route('admin.feedback-ratings')" :active="request()->routeIs('admin.feedback-ratings*')">
+                    <x-nav-link :href="route('admin.feedback-ratings')"
+                        :active="request()->routeIs('admin.feedback-ratings*')">
                         <span class="flex items-center">
                             {{ __('Feedback & Ratings') }}
                             @php
-                                $needsAttention = \App\Models\Review::whereIn('admin_status', ['flagged', 'under_review'])->count();
+                            $needsAttention = \App\Models\Review::whereIn('admin_status', ['flagged',
+                            'under_review'])->count();
                             @endphp
                             @if($needsAttention > 0)
-                                <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                                    {{ $needsAttention }}
-                                </span>
+                            <span
+                                class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                {{ $needsAttention }}
+                            </span>
                             @endif
                         </span>
                     </x-nav-link>
-                    
-                    <x-nav-link :href="route('admin.activity-logs')" :active="request()->routeIs('admin.activity-logs')">
+
+                    <x-nav-link :href="route('admin.activity-logs')"
+                        :active="request()->routeIs('admin.activity-logs')">
                         {{ __('Activity Logs') }}
                     </x-nav-link>
 
@@ -136,34 +158,32 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
 
             <!-- Right Side: Notifications + User Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
-                
+
                 <!-- Notifications Bell -->
                 <div class="relative">
-                    <button @click="notificationsOpen = !notificationsOpen" 
-                            class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none transition">
+                    <button @click="notificationsOpen = !notificationsOpen"
+                        class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none transition">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                         <!-- Unread Badge -->
-                        <span x-show="unreadCount > 0" 
-                              x-text="unreadCount > 99 ? '99+' : unreadCount"
-                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                        <span x-show="unreadCount > 0" x-text="unreadCount > 99 ? '99+' : unreadCount"
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
                         </span>
                     </button>
 
                     <!-- Notifications Dropdown -->
-                    <div x-show="notificationsOpen"
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-150"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
-                         style="display: none;">
-                        
+                    <div x-show="notificationsOpen" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                        style="display: none;">
+
                         <!-- Header -->
-                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <div
+                            class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                             <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
                             <button @click.prevent="
                                 if (confirm('Mark all notifications as read?')) {
@@ -185,7 +205,7 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                                     .catch(error => console.error('Error:', error));
                                 }
                             "
-                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                                class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
                                 Mark all as read
                             </button>
                         </div>
@@ -194,8 +214,10 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                         <div class="max-h-96 overflow-y-auto">
                             <template x-if="notifications.length === 0">
                                 <div class="px-4 py-8 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No new notifications</p>
                                 </div>
@@ -203,30 +225,35 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
 
                             <template x-for="notification in notifications" :key="notification.id">
                                 <a :href="'/notifications/' + notification.id + '/read'"
-                                   class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                                   :class="{ 'bg-indigo-50 dark:bg-indigo-900/20': !notification.read_at }">
+                                    class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                                    :class="{ 'bg-indigo-50 dark:bg-indigo-900/20': !notification.read_at }">
                                     <div class="flex items-start space-x-3">
                                         <!-- Icon based on type -->
                                         <div class="flex-shrink-0 mt-0.5">
-                                            <div class="h-8 w-8 rounded-full flex items-center justify-center"
-                                                 :class="{
+                                            <div class="h-8 w-8 rounded-full flex items-center justify-center" :class="{
                                                      'bg-green-100 text-green-600': notification.type.includes('confirmed') || notification.type.includes('completed'),
                                                      'bg-yellow-100 text-yellow-600': notification.type.includes('pending') || notification.type.includes('balance'),
                                                      'bg-red-100 text-red-600': notification.type.includes('rejected') || notification.type.includes('cancelled'),
                                                      'bg-blue-100 text-blue-600': notification.type.includes('review'),
                                                      'bg-gray-100 text-gray-600': !notification.type.includes('confirmed') && !notification.type.includes('pending') && !notification.type.includes('rejected') && !notification.type.includes('review')
                                                  }">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                                 </svg>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Content -->
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100" x-text="notification.title"></p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2" x-text="notification.message"></p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1" x-text="new Date(notification.created_at).toLocaleString()"></p>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                                                x-text="notification.title"></p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2"
+                                                x-text="notification.message"></p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1"
+                                                x-text="new Date(notification.created_at).toLocaleString()"></p>
                                         </div>
 
                                         <!-- Unread indicator -->
@@ -240,8 +267,8 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
 
                         <!-- Footer -->
                         <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                            <a href="/notifications" 
-                               class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
+                            <a href="/notifications"
+                                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                                 View all notifications
                             </a>
                         </div>
@@ -256,12 +283,16 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                             <div class="hidden md:block">{{ Auth::user()->name }}</div>
                             <div class="md:hidden">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
                             <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>
@@ -275,7 +306,8 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                            <x-dropdown-link :href="route('logout')"
+                                onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
@@ -305,110 +337,119 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
 
         <div class="pt-2 pb-3 space-y-1">
             @if ($role === 'customer')
-                <x-responsive-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.dashboard')">
-                    {{ __('Home') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
-                    {{ __('Caterers') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
-                    {{ __('My Bookings') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')">
-                    {{ __('Payments') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.index')">
-                    <div class="flex items-center justify-between">
-                        <span>{{ __('Notifications') }}</span>
-                        <span x-show="unreadCount > 0" 
-                              x-text="unreadCount"
-                              class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
-                        </span>
-                    </div>
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('customer.cart')" :active="request()->routeIs('customer.cart')">
-                    {{ __('Cart') }}
-                </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customer.dashboard')"
+                :active="request()->routeIs('customer.dashboard')">
+                {{ __('Home') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
+                {{ __('Caterers') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
+                {{ __('My Bookings') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customer.payments')" :active="request()->routeIs('customer.payments')">
+                {{ __('Payments') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifications.index')"
+                :active="request()->routeIs('notifications.index')">
+                <div class="flex items-center justify-between">
+                    <span>{{ __('Notifications') }}</span>
+                    <span x-show="unreadCount > 0" x-text="unreadCount"
+                        class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
+                    </span>
+                </div>
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customer.orders.index')"
+                :active="request()->routeIs('customer.orders*')">
+                {{ __('Orders') }}
+            </x-responsive-nav-link>
 
             @elseif ($role === 'caterer')
-                <x-responsive-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')">
-                    {{ __('Calendar') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.bookings')" :active="request()->routeIs('caterer.bookings')">
-                    {{ __('Bookings') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.menus')" :active="request()->routeIs('caterer.menus')">
-                    {{ __('Menus & Packages') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.verifyReceipt')" :active="request()->routeIs('caterer.verifyReceipt')">
-                    {{ __('Verify Receipts') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
-                    {{ __('Payments & Revenue') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.reports')" :active="request()->routeIs('caterer.reports*')">
-                    {{ __('Reports') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
-                    {{ __('Reviews') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.index')">
-                    <div class="flex items-center justify-between">
-                        <span>{{ __('Notifications') }}</span>
-                        <span x-show="unreadCount > 0" 
-                              x-text="unreadCount"
-                              class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
-                        </span>
-                    </div>
-                </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.dashboard')" :active="request()->routeIs('caterer.dashboard')">
+                {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.calendar')" :active="request()->routeIs('caterer.calendar')">
+                {{ __('Calendar') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.bookings')" :active="request()->routeIs('caterer.bookings')">
+                {{ __('Bookings') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.menus')" :active="request()->routeIs('caterer.menus')">
+                {{ __('Menus & Packages') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.verifyReceipt')"
+                :active="request()->routeIs('caterer.verifyReceipt')">
+                {{ __('Verify Receipts') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.payments')" :active="request()->routeIs('caterer.payments')">
+                {{ __('Payments & Revenue') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.reports')" :active="request()->routeIs('caterer.reports*')">
+                {{ __('Reports') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.reviews')" :active="request()->routeIs('caterer.reviews')">
+                {{ __('Reviews') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('caterer.orders')" :active="request()->routeIs('caterer.orders*')">
+                {{ __('Orders') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifications.index')"
+                :active="request()->routeIs('notifications.index')">
+                <div class="flex items-center justify-between">
+                    <span>{{ __('Notifications') }}</span>
+                    <span x-show="unreadCount > 0" x-text="unreadCount"
+                        class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
+                    </span>
+                </div>
+            </x-responsive-nav-link>
 
             @elseif ($role === 'admin')
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
-                    {{ __('User Management') }}
-                </x-responsive-nav-link>
-                
-                {{-- NEW: Feedback & Ratings Management (Mobile) --}}
-                <x-responsive-nav-link :href="route('admin.feedback-ratings')" :active="request()->routeIs('admin.feedback-ratings*')">
-                    <div class="flex items-center justify-between">
-                        <span>{{ __('Feedback & Ratings') }}</span>
-                        @php
-                            try {
-                                $needsAttention = \App\Models\Review::whereIn('admin_status', ['flagged', 'under_review'])->count();
-                            } catch (\Exception $e) {
-                                $needsAttention = 0;
-                            }
-                        @endphp
-                        @if($needsAttention > 0)
-                            <span class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
-                                {{ $needsAttention }}
-                            </span>
-                        @endif
-                    </div>
-                </x-responsive-nav-link>
-                
-                <x-responsive-nav-link :href="route('admin.activity-logs')" :active="request()->routeIs('admin.activity-logs')">
-                    {{ __('Activity Logs') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.index')">
-                    <div class="flex items-center justify-between">
-                        <span>{{ __('Notifications') }}</span>
-                        <span x-show="unreadCount > 0" 
-                              x-text="unreadCount"
-                              class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
-                        </span>
-                    </div>
-                </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
+                {{ __('User Management') }}
+            </x-responsive-nav-link>
+
+            {{-- NEW: Feedback & Ratings Management (Mobile) --}}
+            <x-responsive-nav-link :href="route('admin.feedback-ratings')"
+                :active="request()->routeIs('admin.feedback-ratings*')">
+                <div class="flex items-center justify-between">
+                    <span>{{ __('Feedback & Ratings') }}</span>
+                    @php
+                    try {
+                    $needsAttention = \App\Models\Review::whereIn('admin_status', ['flagged', 'under_review'])->count();
+                    } catch (\Exception $e) {
+                    $needsAttention = 0;
+                    }
+                    @endphp
+                    @if($needsAttention > 0)
+                    <span
+                        class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
+                        {{ $needsAttention }}
+                    </span>
+                    @endif
+                </div>
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('admin.activity-logs')"
+                :active="request()->routeIs('admin.activity-logs')">
+                {{ __('Activity Logs') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifications.index')"
+                :active="request()->routeIs('notifications.index')">
+                <div class="flex items-center justify-between">
+                    <span>{{ __('Notifications') }}</span>
+                    <span x-show="unreadCount > 0" x-text="unreadCount"
+                        class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
+                    </span>
+                </div>
+            </x-responsive-nav-link>
 
             @else
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                {{ __('Dashboard') }}
+            </x-responsive-nav-link>
             @endif
         </div>
 

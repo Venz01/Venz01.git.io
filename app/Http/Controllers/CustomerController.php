@@ -59,14 +59,22 @@ class CustomerController extends Controller
         return view('customer.caterers', compact('caterers'));
     }
 
+    // ✅ UPDATED METHOD - Now eager loads displayMenus
     public function showCaterer($id)
     {
         $caterer = User::where('role', 'caterer')
             ->where('status', 'approved')
             ->where('id', $id)
-            ->with(['packages' => function($q) {
-                $q->where('status', 'active')->with('items.category');
-            }])
+            ->with([
+                'packages' => function($q) {
+                    $q->where('status', 'active')->with('items.category');
+                },
+                'displayMenus' => function($q) {
+                    $q->where('status', 'active')
+                      ->orderBy('category')
+                      ->orderBy('name');
+                }
+            ])
             ->firstOrFail();
 
         // Add review statistics

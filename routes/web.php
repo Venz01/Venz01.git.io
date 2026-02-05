@@ -11,6 +11,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================
@@ -116,9 +117,20 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/check-availability', [\App\Http\Controllers\BookingController::class, 'checkAvailability'])
         ->name('booking.check-availability');
 
-     
+    // Orders Management
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/cart', [OrderController::class, 'cart'])->name('orders.cart');
+    Route::get('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
+    Route::post('/orders/process', [OrderController::class, 'processOrder'])->name('orders.process');
+    Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmation'])->name('orders.confirmation');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     
-    
+    // Cart Operations
+    Route::post('/orders/cart/add/{menuItem}', [OrderController::class, 'addToCart'])->name('orders.add-to-cart');
+    Route::patch('/orders/cart/update/{menuItem}', [OrderController::class, 'updateCart'])->name('orders.update-cart');
+    Route::delete('/orders/cart/remove/{menuItem}', [OrderController::class, 'removeFromCart'])->name('orders.remove-from-cart');
+    Route::delete('/orders/cart/clear', [OrderController::class, 'clearCart'])->name('orders.clear-cart');
 });
 
 // Caterer routes - Apply caterer.suspended middleware
@@ -153,6 +165,12 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
     Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
 
+    // Display menu management (for customer viewing)
+    Route::post('/display-menus', [\App\Http\Controllers\DisplayMenuController::class, 'store'])->name('display-menus.store');
+    Route::put('/display-menus/{displayMenu}', [\App\Http\Controllers\DisplayMenuController::class, 'update'])->name('display-menus.update');
+    Route::delete('/display-menus/{displayMenu}', [\App\Http\Controllers\DisplayMenuController::class, 'destroy'])->name('display-menus.destroy');
+    Route::patch('/display-menus/{displayMenu}/toggle-status', [\App\Http\Controllers\DisplayMenuController::class, 'toggleStatus'])->name('display-menus.toggle-status');
+
     // Package management
     Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
     Route::put('/packages/{package}', [PackageController::class, 'update'])->name('packages.update');
@@ -170,6 +188,12 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::delete('/reviews/{review}/delete-response', [ReviewController::class, 'deleteResponse'])->name('reviews.delete-response');
 
     Route::post('/bulk-action', [CatererController::class, 'bulkAction'])->name('bulk-action');
+
+    Route::get('/orders', [CatererController::class, 'orders'])->name('orders');
+    Route::get('/orders/{order}', [CatererController::class, 'showOrder'])->name('orders.show');
+    Route::patch('/orders/{order}/status', [CatererController::class, 'updateOrderStatus'])->name('orders.update-status');
+    Route::patch('/orders/{order}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('orders.confirm-payment');
+
 });
 
 // Admin routes
