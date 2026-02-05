@@ -97,7 +97,16 @@ return [
             'retry_after' => 60,
         ],
 
-    ],
+        // MAILGUN CONFIG - MUST BE INSIDE THE 'mailers' ARRAY
+        'mailgun' => [
+            'transport' => 'mailgun',
+            'domain' => env('MAILGUN_DOMAIN'),
+            'secret' => env('MAILGUN_SECRET'),
+            'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
+            'scheme' => 'https',
+        ],
+
+    ], // <-- This closes the 'mailers' array
 
     /*
     |--------------------------------------------------------------------------
@@ -114,12 +123,5 @@ return [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
-
-    'mailgun' => [
-    'domain' => env('MAILGUN_DOMAIN'),
-    'secret' => env('MAILGUN_SECRET'),
-    'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
-    'scheme' => 'https',
-],
 
 ];
