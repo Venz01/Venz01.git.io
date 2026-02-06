@@ -106,6 +106,22 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                     <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                         {{ __('User Management') }}
                     </x-nav-link>
+                    
+                    {{-- NEW: Feedback & Ratings Management --}}
+                    <x-nav-link :href="route('admin.feedback-ratings')" :active="request()->routeIs('admin.feedback-ratings*')">
+                        <span class="flex items-center">
+                            {{ __('Feedback & Ratings') }}
+                            @php
+                                $needsAttention = \App\Models\Review::whereIn('admin_status', ['flagged', 'under_review'])->count();
+                            @endphp
+                            @if($needsAttention > 0)
+                                <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                    {{ $needsAttention }}
+                                </span>
+                            @endif
+                        </span>
+                    </x-nav-link>
+                    
                     <x-nav-link :href="route('admin.activity-logs')" :active="request()->routeIs('admin.activity-logs')">
                         {{ __('Activity Logs') }}
                     </x-nav-link>
@@ -356,6 +372,26 @@ class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                 <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                     {{ __('User Management') }}
                 </x-responsive-nav-link>
+                
+                {{-- NEW: Feedback & Ratings Management (Mobile) --}}
+                <x-responsive-nav-link :href="route('admin.feedback-ratings')" :active="request()->routeIs('admin.feedback-ratings*')">
+                    <div class="flex items-center justify-between">
+                        <span>{{ __('Feedback & Ratings') }}</span>
+                        @php
+                            try {
+                                $needsAttention = \App\Models\Review::whereIn('admin_status', ['flagged', 'under_review'])->count();
+                            } catch (\Exception $e) {
+                                $needsAttention = 0;
+                            }
+                        @endphp
+                        @if($needsAttention > 0)
+                            <span class="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
+                                {{ $needsAttention }}
+                            </span>
+                        @endif
+                    </div>
+                </x-responsive-nav-link>
+                
                 <x-responsive-nav-link :href="route('admin.activity-logs')" :active="request()->routeIs('admin.activity-logs')">
                     {{ __('Activity Logs') }}
                 </x-responsive-nav-link>

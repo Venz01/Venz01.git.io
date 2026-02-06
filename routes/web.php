@@ -203,6 +203,34 @@ Route::middleware(['auth'])->prefix('caterer')->name('caterer.')->group(function
     Route::get('/reports/export/excel', [App\Http\Controllers\ReportsController::class, 'exportExcel'])->name('reports.excel');
     
 });
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'userManagement'])->name('users');
+    
+    // 🆕 ADD THESE NEW ROUTES HERE
+    Route::get('/feedback-ratings', [AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
+    Route::get('/feedback-ratings/{review}', [AdminController::class, 'showReview'])->name('feedback-ratings.show');
+    Route::patch('/feedback-ratings/{review}/approve', [AdminController::class, 'approveReview'])->name('feedback-ratings.approve');
+    Route::patch('/feedback-ratings/{review}/flag', [AdminController::class, 'flagReview'])->name('feedback-ratings.flag');
+    Route::patch('/feedback-ratings/{review}/remove', [AdminController::class, 'removeReview'])->name('feedback-ratings.remove');
+    Route::patch('/feedback-ratings/{review}/restore', [AdminController::class, 'restoreReview'])->name('feedback-ratings.restore');
+    Route::post('/feedback-ratings/bulk-action', [AdminController::class, 'bulkReviewAction'])->name('feedback-ratings.bulk-action');
+    
+    Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // ... existing routes ...
+    
+    // Feedback & Ratings Routes
+    Route::get('/feedback-ratings', [App\Http\Controllers\AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
+    Route::get('/feedback-ratings/{review}', [App\Http\Controllers\AdminController::class, 'showReview'])->name('feedback-ratings.show');
+    Route::patch('/feedback-ratings/{review}/approve', [App\Http\Controllers\AdminController::class, 'approveReview'])->name('feedback-ratings.approve');
+    Route::patch('/feedback-ratings/{review}/flag', [App\Http\Controllers\AdminController::class, 'flagReview'])->name('feedback-ratings.flag');
+    Route::patch('/feedback-ratings/{review}/remove', [App\Http\Controllers\AdminController::class, 'removeReview'])->name('feedback-ratings.remove');
+    Route::patch('/feedback-ratings/{review}/restore', [App\Http\Controllers\AdminController::class, 'restoreReview'])->name('feedback-ratings.restore');
+    Route::post('/feedback-ratings/bulk-action', [App\Http\Controllers\AdminController::class, 'bulkReviewAction'])->name('feedback-ratings.bulk-action');
+});
 
 
 

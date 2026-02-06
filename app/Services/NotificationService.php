@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Booking;
+use App\Models\Review;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
@@ -179,6 +182,82 @@ class NotificationService
                 'url' => route('customer.booking.details', $review->booking_id),
             ]
         );
+    }
+
+    /**
+     * Send warning notification to caterer about flagged/removed review
+     * 
+     * This creates both an in-app notification AND sends an email
+     *
+     * @param Review $review
+     * @param string $reason
+     * @return void
+     */
+    public function notifyCatererWarning(Review $review, string $reason)
+    {
+        try {
+            $caterer = $review->caterer;
+            
+            if (!$caterer) {
+                Log::warning('Cannot send caterer warning - caterer not found', [
+                    'review_id' => $review->id
+                ]);
+                return;
+            }
+
+            // Create in-app notification
+            $this->create(
+                $caterer->id,
+                'review_warning',
+                '⚠️ Review Warning - Action Required',
+                "A review has been flagged/removed by admin. Reason: {$reason}",
+                [
+                    'review_id' => $review->id,
+                    'booking_id' => $review->booking_id,
+                    'reason' => $reason,
+                    'url' => route('caterer.reviews'),
+                ]
+            );
+
+            // Send email notification if caterer has email
+            if ($caterer->email) {
+                try {
+                    Mail::send('emails.caterer-review-warning', [
+                        'caterer' => $caterer,
+                        'review' => $review,
+                        'reason' => $reason,
+                        'customer_name' => $review->customer->name ?? 'A customer',
+                        'review_date' => $review->created_at->format('F d, Y'),
+                    ], function ($message) use ($caterer) {
+                        $message->to($caterer->email, $caterer->name)
+                                ->subject('⚠️ Warning: Review Flagged/Removed - Action Required');
+                    });
+
+                    Log::info('Caterer warning email sent', [
+                        'review_id' => $review->id,
+                        'caterer_id' => $caterer->id,
+                        'caterer_email' => $caterer->email,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send caterer warning email', [
+                        'review_id' => $review->id,
+                        'caterer_id' => $caterer->id,
+                        'error' => $e->getMessage()
+                    ]);
+                    // Don't throw - notification was created, email is secondary
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send caterer warning notification', [
+                'review_id' => $review->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Re-throw to be caught by controller
+            throw $e;
+        }
     }
 
     /**

@@ -110,7 +110,7 @@ class CatererController extends Controller
         ];
         
         // Popular packages - existing
-        $popularPackages = Package::where('id', $catererId)
+        $popularPackages = Package::where('user_id', $catererId)
             ->withCount('bookings')
             ->orderBy('bookings_count', 'desc')
             ->limit(5)
@@ -222,13 +222,13 @@ class CatererController extends Controller
     
     private function getRevenueTrends($caterer_id, $dates, $period)
     {
-        // PostgreSQL uses TO_CHAR instead of DATE_FORMAT
-        $format = $period === 'yearly' ? 'YYYY-MM' : 'YYYY-MM-DD';
+        // FIXED: Use MySQL DATE_FORMAT instead of PostgreSQL TO_CHAR
+        $format = $period === 'yearly' ? '%Y-%m' : '%Y-%m-%d';
         
         return Booking::where('caterer_id', $caterer_id)
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->select(
-                DB::raw("TO_CHAR(created_at, '$format') as date"),
+                DB::raw("DATE_FORMAT(created_at, '{$format}') as date"),
                 DB::raw('sum(total_price) as revenue'),
                 DB::raw('count(*) as bookings')
             )

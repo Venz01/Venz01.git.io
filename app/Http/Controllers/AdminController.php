@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Helpers\ActivityLogger;
+use App\Services\NotificationService;
 
 class AdminController extends Controller
 {
@@ -358,26 +360,378 @@ class AdminController extends Controller
     }
 
     /**
- * Get activity log details (AJAX endpoint)
- */
-public function getActivityLogDetails($id)
-{
-    $log = ActivityLog::with('user')->findOrFail($id);
-    
-    return response()->json([
-        'id' => $log->id,
-        'user' => $log->user ? [
-            'name' => $log->user->name,
-            'email' => $log->user->email,
-            'role' => $log->user->role,
-        ] : null,
-        'type' => $log->type,
-        'action' => $log->action,
-        'description' => $log->description,
-        'properties' => $log->properties,
-        'ip_address' => $log->ip_address,
-        'user_agent' => $log->user_agent,
-        'created_at' => $log->created_at->toISOString(),
-    ]);
-}
+     * Get activity log details (AJAX endpoint)
+     */
+    public function getActivityLogDetails($id)
+    {
+        $log = ActivityLog::with('user')->findOrFail($id);
+        
+        return response()->json([
+            'id' => $log->id,
+            'user' => $log->user ? [
+                'name' => $log->user->name,
+                'email' => $log->user->email,
+                'role' => $log->user->role,
+            ] : null,
+            'type' => $log->type,
+            'action' => $log->action,
+            'description' => $log->description,
+            'properties' => $log->properties,
+            'ip_address' => $log->ip_address,
+            'user_agent' => $log->user_agent,
+            'created_at' => $log->created_at->toISOString(),
+        ]);
+    }
+
+    /**
+     * Display feedback and ratings management page
+     */
+    public function feedbackRatings(Request $request)
+    {
+        $query = Review::with(['customer', 'caterer', 'booking', 'reviewer'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== 'all') {
+            switch ($request->status) {
+                case 'approved':
+                    $query->where('admin_status', 'approved');
+                    break;
+                case 'flagged':
+                    $query->where('admin_status', 'flagged');
+                    break;
+                case 'under_review':
+                    $query->where('admin_status', 'under_review');
+                    break;
+                case 'removed':
+                    $query->where('admin_status', 'removed');
+                    break;
+                case 'needs_attention':
+                    $query->whereIn('admin_status', ['flagged', 'under_review']);
+                    break;
+            }
+        }
+
+        // Filter by rating
+        if ($request->has('rating') && $request->rating !== 'all') {
+            $query->where('rating', $request->rating);
+        }
+
+        // Filter by caterer
+        if ($request->has('caterer') && $request->caterer) {
+            $query->where('caterer_id', $request->caterer);
+        }
+
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('comment', 'like', "%{$search}%")
+                  ->orWhere('caterer_response', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('caterer', function($q) use ($search) {
+                      $q->where('business_name', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Date range filter
+        if ($request->has('date_from') && $request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->has('date_to') && $request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $reviews = $query->paginate(15)->withQueryString();
+
+        // Calculate statistics
+        $stats = [
+            'total' => Review::count(),
+            'approved' => Review::where('admin_status', 'approved')->count(),
+            'flagged' => Review::where('admin_status', 'flagged')->count(),
+            'under_review' => Review::where('admin_status', 'under_review')->count(),
+            'removed' => Review::where('admin_status', 'removed')->count(),
+            'needs_attention' => Review::whereIn('admin_status', ['flagged', 'under_review'])->count(),
+            'average_rating' => round(Review::where('admin_status', 'approved')->avg('rating') ?? 0, 1),
+            'low_rated' => Review::whereIn('rating', [1, 2])->where('admin_status', 'approved')->count(),
+            'caterers_warned' => Review::where('caterer_warned', true)->distinct('caterer_id')->count('caterer_id'),
+        ];
+
+        // Get all caterers for filter dropdown
+        $caterers = User::where('role', 'caterer')
+            ->where('status', 'approved')
+            ->orderBy('business_name')
+            ->get();
+
+        return view('admin.feedback-ratings', compact('reviews', 'stats', 'caterers'));
+    }
+
+    /**
+     * Show detailed review information
+     */
+    public function showReview(Review $review)
+    {
+        $review->load(['customer', 'caterer', 'booking', 'reviewer']);
+        
+        // Get caterer's review history
+        $catererReviews = Review::where('caterer_id', $review->caterer_id)
+            ->where('id', '!=', $review->id)
+            ->with(['customer', 'booking'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $catererStats = [
+            'total_reviews' => Review::where('caterer_id', $review->caterer_id)->count(),
+            'average_rating' => round(Review::where('caterer_id', $review->caterer_id)
+                ->where('admin_status', 'approved')->avg('rating') ?? 0, 1),
+            'flagged_count' => Review::where('caterer_id', $review->caterer_id)
+                ->where('admin_status', 'flagged')->count(),
+            'warnings_count' => Review::where('caterer_id', $review->caterer_id)
+                ->where('caterer_warned', true)->count(),
+        ];
+
+        return view('admin.review-details', compact('review', 'catererReviews', 'catererStats'));
+    }
+
+    /**
+     * Approve a review
+     */
+    public function approveReview(Request $request, Review $review)
+    {
+        $request->validate([
+            'admin_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $review->update([
+            'admin_status' => 'approved',
+            'is_approved' => true,
+            'admin_notes' => $request->admin_notes,
+            'reviewed_by' => auth()->id(),
+            'admin_reviewed_at' => now(),
+        ]);
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'admin',
+            'action' => 'review_approved',
+            'description' => "Approved review #{$review->id} from {$review->customer->name} for {$review->caterer->business_name}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('success', 'Review has been approved successfully.');
+    }
+
+    /**
+     * Flag a review as inappropriate
+     */
+    public function flagReview(Request $request, Review $review)
+    {
+        $request->validate([
+            'flagged_reason' => 'required|string|max:1000',
+            'admin_notes' => 'nullable|string|max:1000',
+            'warn_caterer' => 'boolean',
+        ]);
+
+        $review->update([
+            'admin_status' => 'flagged',
+            'is_approved' => false,
+            'flagged_reason' => $request->flagged_reason,
+            'admin_notes' => $request->admin_notes,
+            'reviewed_by' => auth()->id(),
+            'admin_reviewed_at' => now(),
+        ]);
+
+        // Warn caterer if requested
+        if ($request->warn_caterer) {
+            $review->update([
+                'caterer_warned' => true,
+                'caterer_warned_at' => now(),
+            ]);
+
+            // Send warning notification to caterer
+            try {
+                $notificationService = app(NotificationService::class);
+                $notificationService->notifyCatererWarning($review, $request->flagged_reason);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send caterer warning notification', [
+                    'review_id' => $review->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'admin',
+            'action' => 'review_flagged',
+            'description' => "Flagged review #{$review->id} - Reason: {$request->flagged_reason}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('success', 'Review has been flagged successfully.' . ($request->warn_caterer ? ' Caterer has been warned.' : ''));
+    }
+
+    /**
+     * Remove a review
+     */
+    public function removeReview(Request $request, Review $review)
+    {
+        $request->validate([
+            'removal_reason' => 'required|string|max:1000',
+            'admin_notes' => 'nullable|string|max:1000',
+            'warn_caterer' => 'boolean',
+        ]);
+
+        $review->update([
+            'admin_status' => 'removed',
+            'is_approved' => false,
+            'flagged_reason' => $request->removal_reason,
+            'admin_notes' => $request->admin_notes,
+            'reviewed_by' => auth()->id(),
+            'admin_reviewed_at' => now(),
+        ]);
+
+        // Warn caterer if requested
+        if ($request->warn_caterer) {
+            $review->update([
+                'caterer_warned' => true,
+                'caterer_warned_at' => now(),
+            ]);
+
+            // Send warning notification to caterer
+            try {
+                $notificationService = app(NotificationService::class);
+                $notificationService->notifyCatererWarning($review, $request->removal_reason);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send caterer warning notification', [
+                    'review_id' => $review->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'admin',
+            'action' => 'review_removed',
+            'description' => "Removed review #{$review->id} - Reason: {$request->removal_reason}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('success', 'Review has been removed successfully.' . ($request->warn_caterer ? ' Caterer has been warned.' : ''));
+    }
+
+    /**
+     * Restore a removed review
+     */
+    public function restoreReview(Request $request, Review $review)
+    {
+        $request->validate([
+            'admin_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $review->update([
+            'admin_status' => 'approved',
+            'is_approved' => true,
+            'admin_notes' => $request->admin_notes,
+            'reviewed_by' => auth()->id(),
+            'admin_reviewed_at' => now(),
+        ]);
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'admin',
+            'action' => 'review_restored',
+            'description' => "Restored review #{$review->id}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('success', 'Review has been restored successfully.');
+    }
+
+    /**
+     * Bulk action on multiple reviews
+     */
+    public function bulkReviewAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:approve,flag,remove,delete',
+            'review_ids' => 'required|array',
+            'review_ids.*' => 'exists:reviews,id',
+            'reason' => 'required_if:action,flag,remove|string|max:1000',
+        ]);
+
+        $reviewIds = $request->review_ids;
+        $action = $request->action;
+        $successCount = 0;
+
+        foreach ($reviewIds as $reviewId) {
+            $review = Review::find($reviewId);
+            if (!$review) continue;
+
+            switch ($action) {
+                case 'approve':
+                    $review->update([
+                        'admin_status' => 'approved',
+                        'is_approved' => true,
+                        'reviewed_by' => auth()->id(),
+                        'admin_reviewed_at' => now(),
+                    ]);
+                    $successCount++;
+                    break;
+
+                case 'flag':
+                    $review->update([
+                        'admin_status' => 'flagged',
+                        'is_approved' => false,
+                        'flagged_reason' => $request->reason,
+                        'reviewed_by' => auth()->id(),
+                        'admin_reviewed_at' => now(),
+                    ]);
+                    $successCount++;
+                    break;
+
+                case 'remove':
+                    $review->update([
+                        'admin_status' => 'removed',
+                        'is_approved' => false,
+                        'flagged_reason' => $request->reason,
+                        'reviewed_by' => auth()->id(),
+                        'admin_reviewed_at' => now(),
+                    ]);
+                    $successCount++;
+                    break;
+
+                case 'delete':
+                    $review->delete();
+                    $successCount++;
+                    break;
+            }
+        }
+
+        // Log activity
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'admin',
+            'action' => 'bulk_review_action',
+            'description' => "Performed bulk action '{$action}' on {$successCount} reviews",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('success', "Bulk action completed successfully on {$successCount} reviews.");
+    }
 }
