@@ -222,19 +222,38 @@ class CatererController extends Controller
     
     private function getRevenueTrends($caterer_id, $dates, $period)
     {
-        // FIXED: Use MySQL DATE_FORMAT instead of PostgreSQL TO_CHAR
-        $format = $period === 'yearly' ? '%Y-%m' : '%Y-%m-%d';
+        // FIXED: PostgreSQL-compatible date formatting
+        $driver = DB::connection()->getDriverName();
         
-        return Booking::where('caterer_id', $caterer_id)
-            ->whereBetween('created_at', [$dates['start'], $dates['end']])
-            ->select(
-                DB::raw("DATE_FORMAT(created_at, '{$format}') as date"),
-                DB::raw('sum(total_price) as revenue'),
-                DB::raw('count(*) as bookings')
-            )
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+        if ($driver === 'pgsql') {
+            // PostgreSQL syntax
+            $format = $period === 'yearly' ? 'YYYY-MM' : 'YYYY-MM-DD';
+            
+            return Booking::where('caterer_id', $caterer_id)
+                ->whereBetween('created_at', [$dates['start'], $dates['end']])
+                ->select(
+                    DB::raw("TO_CHAR(created_at, '{$format}') as date"),
+                    DB::raw('sum(total_price) as revenue'),
+                    DB::raw('count(*) as bookings')
+                )
+                ->groupBy(DB::raw("TO_CHAR(created_at, '{$format}')"))
+                ->orderBy('date')
+                ->get();
+        } else {
+            // MySQL syntax
+            $format = $period === 'yearly' ? '%Y-%m' : '%Y-%m-%d';
+            
+            return Booking::where('caterer_id', $caterer_id)
+                ->whereBetween('created_at', [$dates['start'], $dates['end']])
+                ->select(
+                    DB::raw("DATE_FORMAT(created_at, '{$format}') as date"),
+                    DB::raw('sum(total_price) as revenue'),
+                    DB::raw('count(*) as bookings')
+                )
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+        }
     }
     
     private function getPopularMenuItems($caterer_id, $dates)
