@@ -13,15 +13,16 @@ class DisplayMenuController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
-            'unit_type' => 'nullable|string|max:50',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'status' => 'required|in:active,inactive',
-        ]);
+           $request->validate([
+                'name' => 'required|string|max:255',
+                'category' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'price' => 'required|numeric|min:0', // Changed from nullable to required
+                'unit_type' => 'nullable|string|max:50',
+                'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'status' => 'required|in:active,inactive',
+            ]);
+
 
         try {
             // Handle image upload to Cloudinary
@@ -51,6 +52,29 @@ class DisplayMenuController extends Controller
         }
     }
 
+
+    public function index()
+{
+    $categories = Category::where('user_id', auth()->id())->get();
+    
+    $displayMenus = DisplayMenu::where('user_id', auth()->id())
+        ->orderBy('category')
+        ->get()
+        ->groupBy('category');
+    
+    // Get unique display menu categories for the dropdown
+    $displayCategories = DisplayMenu::where('user_id', auth()->id())
+        ->select('category')
+        ->distinct()
+        ->orderBy('category')
+        ->pluck('category')
+        ->toArray();
+    
+    $packages = Package::where('user_id', auth()->id())->with('items')->get();
+    
+    return view('caterer.menu-items', compact('categories', 'displayMenus', 'packages', 'displayCategories'));
+}
+
     /**
      * Update the specified display menu
      */
@@ -61,11 +85,12 @@ class DisplayMenuController extends Controller
             abort(403);
         }
 
+            
         $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
+            'price' => 'required|numeric|min:0', // Changed from nullable to required
             'unit_type' => 'nullable|string|max:50',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status' => 'required|in:active,inactive',

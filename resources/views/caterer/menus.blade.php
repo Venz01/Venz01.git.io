@@ -1019,26 +1019,30 @@
                     </div>
 
                     {{-- Category --}}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Category <span class="text-red-500">*</span>
-                        </label>
-                        <select name="category" id="display_menu_category" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <option value="">Select Category</option>
-                            <option value="Appetizers">Appetizers</option>
-                            <option value="Main Course">Main Course</option>
-                            <option value="Desserts">Desserts</option>
-                            <option value="Beverages">Beverages</option>
-                            <option value="Sides">Sides</option>
-                            <option value="Soups">Soups</option>
-                            <option value="Salads">Salads</option>
-                            <option value="Seafood">Seafood</option>
-                            <option value="Pasta">Pasta</option>
-                            <option value="Rice">Rice</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Category <span class="text-red-500">*</span>
+                            </label>
+                            <select id="display_menu_category_select" required
+                                onchange="toggleNewCategoryInput(this)"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">Select Category</option>
+                                @if(isset($displayCategories) && count($displayCategories) > 0)
+                                    @foreach($displayCategories as $cat)
+                                        <option value="{{ $cat }}">{{ $cat }}</option>
+                                    @endforeach
+                                @endif
+                                <option value="__new__">+ Add New Category</option>
+                            </select>
+                            
+                            {{-- Hidden input for category value (this is what gets submitted) --}}
+                            <input type="hidden" name="category" id="newDisplayCategory">
+                            
+                            {{-- Visible input for new category name --}}
+                            <input type="text" id="newDisplayCategoryInput" 
+                                class="hidden w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2"
+                                placeholder="Enter new category name">
+                        </div>
 
                     {{-- Description --}}
                     <div>
@@ -1051,16 +1055,16 @@
                     {{-- Price --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Price (Optional)
+                            Price <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <span class="absolute left-3 top-2 text-gray-500">₱</span>
-                            <input type="number" name="price" id="display_menu_price" step="0.01" min="0"
+                            <input type="number" name="price" id="display_menu_price" step="0.01" min="0" required
                                 class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 placeholder="0.00">
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Leave blank if price varies</p>
                     </div>
+                    
 
                     {{-- Image --}}
                     <div>
@@ -1493,36 +1497,53 @@
                 },
 
                 openEditDisplayMenuModal(id, name, category, description, price, status) {
-                    document.getElementById('editDisplayMenuName').value = name;
-                    document.getElementById('editDisplayMenuDescription').value = description || '';
-                    document.getElementById('editDisplayMenuPrice').value = price || '';
-                    document.getElementById('editDisplayMenuStatus').value = status;
+                    // Update modal title and button
+                    document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
+                    document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
+                    
+                    // Set form action and method
+                    document.getElementById('displayMenuForm').action = `/caterer/display-menus/${id}`;
+                    document.getElementById('displayMenuFormMethod').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                    
+                    // Populate form fields
+                    document.getElementById('display_menu_name').value = name;
+                    document.getElementById('display_menu_description').value = description || '';
+                    document.getElementById('display_menu_price').value = price || '';
+                    document.getElementById('display_menu_status').value = status;
 
                     // Set category
-                    const categorySelect = document.getElementById('editDisplayCategorySelect');
-                    const newCategoryInput = document.getElementById('editNewDisplayCategory');
+                    const categorySelect = document.getElementById('display_menu_category_select');
+                    const newCategoryInput = document.getElementById('newDisplayCategory');
 
                     // Check if category exists in dropdown
                     let categoryExists = false;
                     for (let option of categorySelect.options) {
-                        if (option.value === category) {
+                        if (option.value === category && option.value !== '__new__') {
                             categorySelect.value = category;
                             categoryExists = true;
                             break;
                         }
                     }
 
-                    if (!categoryExists) {
+                    if (!categoryExists && category) {
+                        // Category doesn't exist in dropdown, set as new
                         categorySelect.value = '__new__';
                         newCategoryInput.classList.remove('hidden');
                         newCategoryInput.value = category;
+                        newCategoryInput.required = true;
                     } else {
                         newCategoryInput.classList.add('hidden');
-                        newCategoryInput.value = category;
+                        newCategoryInput.required = false;
                     }
 
-                    document.getElementById('editDisplayMenuForm').action = `/caterer/display-menus/${id}`;
-                    this.openModal('editDisplayMenuModal');
+                    // Clear image preview (will show current image from server if editing)
+                    const imagePreview = document.getElementById('display_menu_image_preview');
+                    if (imagePreview) {
+                        imagePreview.classList.add('hidden');
+                    }
+
+                    // Show modal
+                    document.getElementById('displayMenuModal').classList.remove('hidden');
                 }
             }
         }
@@ -1561,22 +1582,31 @@
         });
 
         function openDisplayMenuModal() {
-            // Reset form
-            document.getElementById('displayMenuForm').reset();
-            document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
-            document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
-            document.getElementById('displayMenuForm').action = '/caterer/display-menus';
-            document.getElementById('displayMenuFormMethod').innerHTML = '';
+        // Reset form
+        document.getElementById('displayMenuForm').reset();
+        document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
+        document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
+        document.getElementById('displayMenuForm').action = '{{ route("caterer.display-menus.store") }}';
+        document.getElementById('displayMenuFormMethod').innerHTML = '';
 
-            // Clear image preview
-            const imagePreview = document.getElementById('display_menu_image_preview');
-            if (imagePreview) {
-                imagePreview.classList.add('hidden');
-            }
+        // Reset category fields
+        const categorySelect = document.getElementById('display_menu_category_select');
+        const newCategoryInput = document.getElementById('newDisplayCategory');
+        
+        categorySelect.value = '';
+        newCategoryInput.classList.add('hidden');
+        newCategoryInput.value = '';
+        newCategoryInput.required = false;
 
-            // Show modal
-            document.getElementById('displayMenuModal').classList.remove('hidden');
+        // Clear image preview
+        const imagePreview = document.getElementById('display_menu_image_preview');
+        if (imagePreview) {
+            imagePreview.classList.add('hidden');
         }
+
+        // Show modal
+        document.getElementById('displayMenuModal').classList.remove('hidden');
+    }
 
         // Close display menu modal
         function closeDisplayMenuModal() {
@@ -1666,15 +1696,18 @@
         })();
 
         function toggleNewCategoryInput(select) {
-            const newCategoryInput = document.getElementById('newDisplayCategory');
+            const newCategoryInput = document.getElementById('newDisplayCategoryInput');
+            const hiddenCategoryInput = document.getElementById('newDisplayCategory');
+            
             if (select.value === '__new__') {
                 newCategoryInput.classList.remove('hidden');
                 newCategoryInput.required = true;
                 newCategoryInput.value = '';
+                hiddenCategoryInput.value = '';
             } else {
                 newCategoryInput.classList.add('hidden');
                 newCategoryInput.required = false;
-                newCategoryInput.value = select.value;
+                hiddenCategoryInput.value = select.value;
             }
         }
 
@@ -1690,6 +1723,24 @@
                 newCategoryInput.value = select.value;
             }
         }
+
+        // 🆕 ADD THIS HERE (Item #4)
+    document.addEventListener('DOMContentLoaded', function() {
+        const displayMenuForm = document.getElementById('displayMenuForm');
+        if (displayMenuForm) {
+            displayMenuForm.addEventListener('submit', function(e) {
+                const categorySelect = document.getElementById('display_menu_category_select');
+                const newCategoryInput = document.getElementById('newDisplayCategory');
+                
+                // If "Add New Category" is selected, use the new category input value
+                if (categorySelect.value === '__new__') {
+                    newCategoryInput.value = document.getElementById('newDisplayCategoryInput').value;
+                } else {
+                    newCategoryInput.value = categorySelect.value;
+                }
+            });
+        }
+    });
 
     </script>
 
