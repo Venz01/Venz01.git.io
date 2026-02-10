@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Helpers\ActivityLogger;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -37,17 +38,13 @@ class AdminController extends Controller
             $query->where('role', $request->role);
         }
         
-        // Filter by status
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
-        }
-        
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%')
-                  ->orWhere('business_name', 'like', '%' . $request->search . '%');
+        // Apply search filter
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                  ->orWhere('email', 'like', $searchTerm)
+                  ->orWhere('business_name', 'like', $searchTerm);
             });
         }
         
@@ -55,6 +52,9 @@ class AdminController extends Controller
         $query->orderBy('created_at', 'desc');
         
         $users = $query->paginate(15);
+        
+        // Append query parameters to pagination links
+        $users->appends($request->only(['role', 'search']));
         
         return view('admin.users', compact('users'));
     }
@@ -119,6 +119,84 @@ class AdminController extends Controller
         };
         
         return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Delete a single user
+     */
+    public function destroy(User $user)
+    {
+        // Prevent admin from deleting themselves
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $userName = $user->name;
+        
+        // Delete user and all related data
+        $user->delete();
+
+        return back()->with('success', "User {$userName} has been deleted successfully.");
+    }
+
+    /**
+     * Handle bulk actions (activate, suspend, delete)
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'user_ids' => 'required|json',
+            'action' => 'required|in:activate,suspend,delete'
+        ]);
+
+        $userIds = json_decode($request->user_ids, true);
+        
+        if (empty($userIds) || !is_array($userIds)) {
+            return back()->with('error', 'No users selected.');
+        }
+
+        // Remove current admin from the list to prevent self-action
+        $userIds = array_filter($userIds, function($id) {
+            return $id != auth()->id();
+        });
+
+        if (empty($userIds)) {
+            return back()->with('error', 'Cannot perform bulk actions on your own account.');
+        }
+
+        $count = 0;
+        $action = $request->action;
+
+        DB::beginTransaction();
+        try {
+            switch ($action) {
+                case 'activate':
+                    $count = User::whereIn('id', $userIds)->update(['status' => 'active']);
+                    $message = "{$count} user(s) have been activated successfully.";
+                    break;
+
+                case 'suspend':
+                    $count = User::whereIn('id', $userIds)->update(['status' => 'suspended']);
+                    $message = "{$count} user(s) have been suspended successfully.";
+                    break;
+
+                case 'delete':
+                    $count = User::whereIn('id', $userIds)->count();
+                    User::whereIn('id', $userIds)->delete();
+                    $message = "{$count} user(s) have been deleted successfully.";
+                    break;
+
+                default:
+                    throw new \Exception('Invalid action');
+            }
+
+            DB::commit();
+            return back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'An error occurred while performing the bulk action: ' . $e->getMessage());
+        }
     }
 
     public function showCaterer($id)
