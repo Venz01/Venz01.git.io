@@ -56,9 +56,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile/portfolio/{id}', [ProfileController::class, 'deletePortfolio'])->name('profile.portfolio.delete');
     Route::patch('/profile/portfolio/{id}/toggle-featured', [ProfileController::class, 'toggleFeatured'])->name('profile.portfolio.toggle-featured');
     Route::post('/profile/portfolio/update-order', [ProfileController::class, 'updatePortfolioOrder'])->name('profile.portfolio.update-order');
-    Route::patch('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
-    Route::delete('/profile/portfolio/{id}', [ProfileController::class, 'deletePortfolio'])->name('profile.portfolio.delete');
-    Route::patch('/profile/portfolio/order', [ProfileController::class, 'updatePortfolioOrder'])->name('profile.portfolio.order');
 });
 
 // Notification routes (all authenticated users)
@@ -189,14 +186,11 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
 
     Route::post('/bulk-action', [CatererController::class, 'bulkAction'])->name('bulk-action');
 
+    // Orders Management
     Route::get('/orders', [CatererController::class, 'orders'])->name('orders');
     Route::get('/orders/{order}', [CatererController::class, 'showOrder'])->name('orders.show');
     Route::patch('/orders/{order}/status', [CatererController::class, 'updateOrderStatus'])->name('orders.update-status');
     Route::patch('/orders/{order}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('orders.confirm-payment');
-
-    Route::get('/orders', [CatererController::class, 'orders'])->name('orders');
-    Route::get('/orders/{id}', [CatererController::class, 'showOrder'])->name('orders.show');
-    Route::post('/orders/{id}/status', [CatererController::class, 'updateOrderStatus'])->name('orders.update-status');
     
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
@@ -210,19 +204,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [AdminController::class, 'userManagement'])->name('users');
     Route::patch('/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
     
-    // Add these caterer management routes
+    // Caterer management routes
     Route::get('/caterers/{caterer}', [AdminController::class, 'showCaterer'])->name('caterers.show');
-// Change from PATCH to POST
-Route::post('/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
-Route::post('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
+    Route::post('/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
+    Route::post('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
+
+    // Feedback & Ratings Routes
+    Route::get('/feedback-ratings', [AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
+    Route::get('/feedback-ratings/{review}', [AdminController::class, 'showReview'])->name('feedback-ratings.show');
+    Route::patch('/feedback-ratings/{review}/approve', [AdminController::class, 'approveReview'])->name('feedback-ratings.approve');
+    Route::patch('/feedback-ratings/{review}/flag', [AdminController::class, 'flagReview'])->name('feedback-ratings.flag');
+    Route::patch('/feedback-ratings/{review}/remove', [AdminController::class, 'removeReview'])->name('feedback-ratings.remove');
+    Route::patch('/feedback-ratings/{review}/restore', [AdminController::class, 'restoreReview'])->name('feedback-ratings.restore');
+    Route::post('/feedback-ratings/bulk-action', [AdminController::class, 'bulkReviewAction'])->name('feedback-ratings.bulk-action');
 
     // Activity Logs
     Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
-
-    // Activity Logs Detail Route (for AJAX)
-    Route::get('/admin/activity-logs/{id}', [AdminController::class, 'getActivityLogDetails'])
-    ->name('admin.activity-log-details')
-    ->middleware(['auth', 'admin']);
+    Route::get('/activity-logs/{id}', [AdminController::class, 'getActivityLogDetails'])->name('activity-log-details');
 });
 
 Route::middleware(['auth'])->prefix('caterer')->name('caterer.')->group(function () {
@@ -235,37 +233,6 @@ Route::middleware(['auth'])->prefix('caterer')->name('caterer.')->group(function
     Route::get('/reports/export/excel', [App\Http\Controllers\ReportsController::class, 'exportExcel'])->name('reports.excel');
     
 });
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/users', [AdminController::class, 'userManagement'])->name('users');
-    
-    // 🆕 ADD THESE NEW ROUTES HERE
-    Route::get('/feedback-ratings', [AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
-    Route::get('/feedback-ratings/{review}', [AdminController::class, 'showReview'])->name('feedback-ratings.show');
-    Route::patch('/feedback-ratings/{review}/approve', [AdminController::class, 'approveReview'])->name('feedback-ratings.approve');
-    Route::patch('/feedback-ratings/{review}/flag', [AdminController::class, 'flagReview'])->name('feedback-ratings.flag');
-    Route::patch('/feedback-ratings/{review}/remove', [AdminController::class, 'removeReview'])->name('feedback-ratings.remove');
-    Route::patch('/feedback-ratings/{review}/restore', [AdminController::class, 'restoreReview'])->name('feedback-ratings.restore');
-    Route::post('/feedback-ratings/bulk-action', [AdminController::class, 'bulkReviewAction'])->name('feedback-ratings.bulk-action');
-    
-    Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
-});
-
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    // ... existing routes ...
-    
-    // Feedback & Ratings Routes
-    Route::get('/feedback-ratings', [App\Http\Controllers\AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
-    Route::get('/feedback-ratings/{review}', [App\Http\Controllers\AdminController::class, 'showReview'])->name('feedback-ratings.show');
-    Route::patch('/feedback-ratings/{review}/approve', [App\Http\Controllers\AdminController::class, 'approveReview'])->name('feedback-ratings.approve');
-    Route::patch('/feedback-ratings/{review}/flag', [App\Http\Controllers\AdminController::class, 'flagReview'])->name('feedback-ratings.flag');
-    Route::patch('/feedback-ratings/{review}/remove', [App\Http\Controllers\AdminController::class, 'removeReview'])->name('feedback-ratings.remove');
-    Route::patch('/feedback-ratings/{review}/restore', [App\Http\Controllers\AdminController::class, 'restoreReview'])->name('feedback-ratings.restore');
-    Route::post('/feedback-ratings/bulk-action', [App\Http\Controllers\AdminController::class, 'bulkReviewAction'])->name('feedback-ratings.bulk-action');
-});
-
-
-
 
 // Registration pending page
 Route::get('/register-pending', function () {
