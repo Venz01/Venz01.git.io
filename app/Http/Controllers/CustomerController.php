@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Package;
 use App\Models\MenuItem;
+use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
@@ -185,9 +186,49 @@ class CustomerController extends Controller
         return view('customer.cart');
     }
 
+    /**
+     * Show combined payment history: bookings + orders
+     */
     public function payments()
     {
-        return view('customer.payments');
+        $customerId = auth()->id();
+
+        $bookings = \App\Models\Booking::where('customer_id', $customerId)
+            ->with(['caterer', 'package'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $orders = Order::where('customer_id', $customerId)
+            ->with(['caterer', 'items.displayMenu'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Booking payment totals
+        $bookingTotalPaid     = $bookings->where('payment_status', 'fully_paid')->sum('total_price');
+        $bookingTotalDeposits = $bookings->where('payment_status', 'deposit_paid')->sum('deposit_paid');
+        $bookingPendingBalance = $bookings->where('payment_status', 'deposit_paid')->sum('balance');
+
+        // Order payment totals
+        $orderTotalPaid    = $orders->where('payment_status', 'paid')->sum('total_amount');
+        $orderTotalPending = $orders->where('payment_status', 'pending')->sum('total_amount');
+
+        // Combined totals
+        $totalPaid          = $bookingTotalPaid + $orderTotalPaid;
+        $totalDeposits      = $bookingTotalDeposits;
+        $pendingBalance     = $bookingPendingBalance + $orderTotalPending;
+
+        return view('customer.payments', compact(
+            'bookings',
+            'orders',
+            'bookingTotalPaid',
+            'bookingTotalDeposits',
+            'bookingPendingBalance',
+            'orderTotalPaid',
+            'orderTotalPending',
+            'totalPaid',
+            'totalDeposits',
+            'pendingBalance'
+        ));
     }
 
     public function notifications()

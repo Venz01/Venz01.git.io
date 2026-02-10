@@ -97,15 +97,25 @@ class Notification extends Model
     public function getIconAttribute()
     {
         return match($this->type) {
-            'booking_created', 'booking_pending' => 'clock',
-            'booking_confirmed' => 'check-circle',
-            'booking_rejected', 'booking_cancelled' => 'x-circle',
-            'booking_completed' => 'check',
-            'payment_received' => 'credit-card',
-            'review_received' => 'star',
-            'review_response' => 'message-circle',
-            'balance_due' => 'alert-circle',
-            default => 'bell',
+            // Bookings
+            'booking_created', 'booking_pending'          => 'clock',
+            'booking_confirmed'                           => 'check-circle',
+            'booking_rejected', 'booking_cancelled'       => 'x-circle',
+            'booking_completed'                           => 'check',
+            // Orders
+            'order_placed'                                => 'shopping-cart',
+            'order_confirmed'                             => 'check-circle',
+            'order_preparing'                             => 'fire',
+            'order_ready'                                 => 'bell',
+            'order_completed'                             => 'check',
+            'order_cancelled', 'order_update'             => 'x-circle',
+            // Payments
+            'payment_received'                            => 'credit-card',
+            'balance_due'                                 => 'alert-circle',
+            // Reviews
+            'review_received'                             => 'star',
+            'review_response'                             => 'message-circle',
+            default                                       => 'bell',
         };
     }
 
@@ -115,11 +125,19 @@ class Notification extends Model
     public function getColorAttribute()
     {
         return match($this->type) {
-            'booking_confirmed', 'booking_completed', 'payment_received' => 'green',
-            'booking_pending', 'balance_due' => 'yellow',
-            'booking_rejected', 'booking_cancelled' => 'red',
-            'review_received', 'review_response' => 'blue',
-            default => 'gray',
+            'booking_confirmed', 'booking_completed',
+            'order_confirmed', 'order_completed',
+            'payment_received'                            => 'green',
+
+            'booking_pending', 'balance_due',
+            'order_placed', 'order_preparing'             => 'yellow',
+
+            'booking_rejected', 'booking_cancelled',
+            'order_cancelled'                             => 'red',
+
+            'order_ready'                                 => 'indigo',
+            'review_received', 'review_response'          => 'blue',
+            default                                       => 'gray',
         };
     }
 }

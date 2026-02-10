@@ -6,6 +6,7 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Models\Booking;
 use App\Models\Review;
+use App\Models\Order;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
@@ -14,15 +15,24 @@ class NotificationService
     /**
      * Create a notification for a user
      */
-    public function create($userId, $type, $title, $message, $data = [])
+    private function create(int $userId, string $type, string $title, string $message, array $data = []): ?Notification
     {
-        return Notification::create([
-            'user_id' => $userId,
-            'type' => $type,
-            'title' => $title,
-            'message' => $message,
-            'data' => $data,
-        ]);
+        try {
+            return Notification::create([
+                'user_id' => $userId,
+                'type'    => $type,
+                'title'   => $title,
+                'message' => $message,
+                'data'    => $data,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('NotificationService::create failed', [
+                'user_id' => $userId,
+                'type'    => $type,
+                'error'   => $e->getMessage(),
+            ]);
+            return null;
+        }
     }
 
     /**
@@ -288,4 +298,136 @@ class NotificationService
         return Notification::where('created_at', '<', now()->subDays(30))
             ->delete();
     }
+
+    // =========================================================================
+    // ORDER NOTIFICATIONS
+    // =========================================================================
+
+    /**
+     * Customer places an order → notify the caterer.
+     */
+    public function notifyOrderCreated(Order $order): void
+    {
+        $itemCount = $order->items->count();
+
+        $this->create(
+            $order->caterer_id,
+            'order_placed',
+            'New Order Received',
+            "{$order->customer_name} placed a new order ({$order->order_number}) for ₱" . number_format($order->total_amount, 2) . " — {$itemCount} item(s).",
+            [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'url'          => route('caterer.orders.show', $order->id),
+            ]
+        );
+    }
+
+    /**
+     * Confirmation to the customer that their order was received.
+     */
+    public function notifyCustomerOrderPlaced(Order $order): void
+    {
+        $catererName = $order->caterer->business_name ?? $order->caterer->name;
+
+        $this->create(
+            $order->customer_id,
+            'order_placed',
+            'Order Received!',
+            "Your order {$order->order_number} has been sent to {$catererName}. We'll notify you once it's confirmed.",
+            [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'url'          => route('customer.orders.show', $order->id),
+            ]
+        );
+    }
+
+    /**
+     * Caterer updates order status → notify the customer.
+     */
+    public function notifyOrderStatusUpdate(Order $order): void
+    {
+        $catererName = $order->caterer->business_name ?? $order->caterer->name;
+
+        $messages = [
+            'confirmed'  => "Your order {$order->order_number} has been confirmed by {$catererName}!",
+            'preparing'  => "{$catererName} is now preparing your order {$order->order_number}.",
+            'ready'      => "Your order {$order->order_number} is ready! " . ($order->fulfillment_type === 'delivery' ? 'It will be delivered soon.' : 'Please come to pick it up.'),
+            'completed'  => "Your order {$order->order_number} has been completed. Thank you!",
+            'cancelled'  => "Your order {$order->order_number} has been cancelled by {$catererName}.",
+        ];
+
+        $titles = [
+            'confirmed'  => 'Order Confirmed',
+            'preparing'  => 'Order Being Prepared',
+            'ready'      => 'Order Ready ' . ($order->fulfillment_type === 'delivery' ? 'for Delivery' : 'for Pickup'),
+            'completed'  => 'Order Completed',
+            'cancelled'  => 'Order Cancelled',
+        ];
+
+        $types = [
+            'confirmed'  => 'order_confirmed',
+            'preparing'  => 'order_preparing',
+            'ready'      => 'order_ready',
+            'completed'  => 'order_completed',
+            'cancelled'  => 'order_cancelled',
+        ];
+
+        $status  = $order->order_status;
+        $message = $messages[$status] ?? "Your order {$order->order_number} status has been updated to: " . ucfirst($status) . ".";
+        $title   = $titles[$status]  ?? 'Order Update';
+        $type    = $types[$status]   ?? 'order_update';
+
+        $this->create(
+            $order->customer_id,
+            $type,
+            $title,
+            $message,
+            [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'url'          => route('customer.orders.show', $order->id),
+            ]
+        );
+    }
+
+    /**
+     * Caterer confirms COD payment on an order → notify the customer.
+     */
+    public function notifyOrderPaymentConfirmed(Order $order): void
+    {
+        $catererName = $order->caterer->business_name ?? $order->caterer->name;
+
+        $this->create(
+            $order->customer_id,
+            'payment_received',
+            'Payment Confirmed',
+            "{$catererName} has confirmed payment for your order {$order->order_number}.",
+            [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'url'          => route('customer.orders.show', $order->id),
+            ]
+        );
+    }
+
+    /**
+     * Customer cancels an order → notify the caterer.
+     */
+    public function notifyOrderCancelledByCaterer(Order $order): void
+    {
+        $this->create(
+            $order->customer_id,
+            'order_cancelled',
+            'Order Cancelled',
+            "Your order {$order->order_number} has been cancelled.",
+            [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'url'          => route('customer.orders.show', $order->id),
+            ]
+        );
+    }
+
 }

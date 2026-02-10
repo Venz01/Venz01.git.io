@@ -252,11 +252,16 @@ class OrderController extends Controller
             // Send notifications
             try {
                 Log::info('Creating notifications for order', ['order_id' => $order->id]);
-                
-                // You can create similar notification methods for orders
-                // $this->notificationService->notifyOrderCreated($order);
-                // $this->notificationService->notifyCatererNewOrder($order);
-                
+
+                // Reload order with relationships needed by the notification service
+                $order->load(['caterer', 'items']);
+
+                // Notify the caterer of the new order
+                $this->notificationService->notifyOrderCreated($order);
+
+                // Confirm to the customer their order was received
+                $this->notificationService->notifyCustomerOrderPlaced($order);
+
                 Log::info('Notifications created successfully', ['order_id' => $order->id]);
             } catch (\Exception $e) {
                 Log::error('Failed to create notifications', [

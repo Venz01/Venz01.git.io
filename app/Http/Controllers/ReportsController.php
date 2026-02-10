@@ -28,8 +28,13 @@ class ReportsController extends Controller
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->get();
         
-        // Calculate metrics
-        $metrics = $this->calculateMetrics($bookings);
+        // ✅ NEW: Get orders for the caterer in the selected period
+        $orders = \App\Models\Order::where('caterer_id', $caterer_id)
+            ->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->get();
+        
+        // Calculate metrics (now includes orders)
+        $metrics = $this->calculateMetrics($bookings, $orders);
         
         // Get payment status breakdown
         $paymentStatusData = $this->getPaymentStatusData($caterer_id, $dates);
@@ -37,22 +42,34 @@ class ReportsController extends Controller
         // Get booking status breakdown
         $bookingStatusData = $this->getBookingStatusData($caterer_id, $dates);
         
+        // ✅ NEW: Get order status breakdown
+        $orderStatusData = $this->getOrderStatusData($caterer_id, $dates);
+        
         // Get revenue trends (daily data for charts)
         $revenueTrends = $this->getRevenueTrends($caterer_id, $dates, $period);
         
-        // Get popular menu items
+        // Get popular menu items (from bookings)
         $popularItems = $this->getPopularMenuItems($caterer_id, $dates);
+        
+        // ✅ NEW: Get popular display menu items (from orders)
+        $popularDisplayItems = $this->getPopularDisplayMenuItems($caterer_id, $dates);
         
         // Get event types breakdown
         $eventTypes = $this->getEventTypesData($caterer_id, $dates);
+        
+        // ✅ NEW: Get fulfillment types breakdown (for orders)
+        $fulfillmentTypes = $this->getFulfillmentTypesData($caterer_id, $dates);
         
         return view('caterer.reports', compact(
             'metrics',
             'paymentStatusData',
             'bookingStatusData',
+            'orderStatusData',
             'revenueTrends',
             'popularItems',
+            'popularDisplayItems',
             'eventTypes',
+            'fulfillmentTypes',
             'period'
         ));
     }
@@ -78,9 +95,9 @@ class ReportsController extends Controller
         return ['start' => $start, 'end' => $end];
     }
     
-    private function calculateMetrics($bookings)
+    private function calculateMetrics($bookings, $orders = null)
     {
-        // Handle both possible column names for guests and balance
+        // Handle both possible column names for guests and balance in bookings
         $totalGuests = 0;
         $totalBalance = 0;
         
@@ -93,17 +110,43 @@ class ReportsController extends Controller
             $balance = $booking->balance ?? $booking->balance_amount ?? 0;
             $totalBalance += $balance;
         }
-        
+
+        // ✅ NEW: Calculate order metrics
+        $orderRevenue = 0;
+        $ordersPaid = 0;
+        $ordersPending = 0;
+        $ordersCount = 0;
+
+        if ($orders) {
+            $orderRevenue = $orders->where('payment_status', 'paid')->sum('total_amount');
+            $ordersPaid = $orders->where('payment_status', 'paid')->count();
+            $ordersPending = $orders->where('payment_status', 'pending')->count();
+            $ordersCount = $orders->count();
+        }
+
+        // ✅ UPDATED: Combined metrics
         return [
+            // Bookings
             'total_bookings' => $bookings->count(),
-            'total_revenue' => $bookings->sum('total_price'),
+            'booking_revenue' => $bookings->sum('total_price'),
             'total_deposits' => $bookings->sum('deposit_amount'),
             'total_balance' => $totalBalance,
-            'average_booking_value' => $bookings->avg('total_price') ?? 0,
             'total_guests' => $totalGuests,
             'paid_bookings' => $bookings->where('payment_status', 'paid')->count(),
             'pending_bookings' => $bookings->where('payment_status', 'pending')->count(),
             'confirmed_bookings' => $bookings->where('booking_status', 'confirmed')->count(),
+            
+            // ✅ NEW: Orders
+            'total_orders' => $ordersCount,
+            'order_revenue' => $orderRevenue,
+            'paid_orders' => $ordersPaid,
+            'pending_orders' => $ordersPending,
+            
+            // ✅ NEW: Combined totals
+            'total_revenue' => $bookings->sum('total_price') + $orderRevenue,
+            'total_transactions' => $bookings->count() + $ordersCount,
+            'average_booking_value' => $bookings->avg('total_price') ?? 0,
+            'average_order_value' => $orders ? $orders->avg('total_amount') ?? 0 : 0,
         ];
     }
     
@@ -141,16 +184,49 @@ class ReportsController extends Controller
             $dateColumn = DB::raw("DATE_FORMAT(created_at, '$format') as date");
         }
         
-        return Booking::where('caterer_id', $caterer_id)
+        // Get booking revenue trends
+        $bookingTrends = Booking::where('caterer_id', $caterer_id)
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->select(
                 $dateColumn,
-                DB::raw('sum(total_price) as revenue'),
-                DB::raw('count(*) as bookings')
+                DB::raw('sum(total_price) as booking_revenue'),
+                DB::raw('count(*) as booking_count')
             )
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
+
+        // ✅ NEW: Get order revenue trends
+        $orderTrends = \App\Models\Order::where('caterer_id', $caterer_id)
+            ->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->select(
+                $dateColumn,
+                DB::raw('sum(total_amount) as order_revenue'),
+                DB::raw('count(*) as order_count')
+            )
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->keyBy('date');
+
+        // ✅ UPDATED: Merge booking and order trends
+        $allDates = $bookingTrends->keys()->merge($orderTrends->keys())->unique()->sort();
+        
+        return $allDates->map(function($date) use ($bookingTrends, $orderTrends) {
+            $booking = $bookingTrends->get($date);
+            $order = $orderTrends->get($date);
+            
+            return [
+                'date' => $date,
+                'booking_revenue' => $booking->booking_revenue ?? 0,
+                'booking_count' => $booking->booking_count ?? 0,
+                'order_revenue' => $order->order_revenue ?? 0,
+                'order_count' => $order->order_count ?? 0,
+                'total_revenue' => ($booking->booking_revenue ?? 0) + ($order->order_revenue ?? 0),
+                'total_count' => ($booking->booking_count ?? 0) + ($order->order_count ?? 0),
+            ];
+        })->values();
     }
     
     private function getPopularMenuItems($caterer_id, $dates)
@@ -182,6 +258,54 @@ class ReportsController extends Controller
             ->get();
     }
     
+    /**
+     * ✅ NEW: Get order status breakdown
+     */
+    private function getOrderStatusData($caterer_id, $dates)
+    {
+        return \App\Models\Order::where('caterer_id', $caterer_id)
+            ->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->select('order_status', DB::raw('count(*) as count'))
+            ->groupBy('order_status')
+            ->get();
+    }
+    
+    /**
+     * ✅ NEW: Get popular display menu items from orders
+     */
+    private function getPopularDisplayMenuItems($caterer_id, $dates)
+    {
+        return DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('display_menus', 'order_items.display_menu_id', '=', 'display_menus.id')
+            ->where('orders.caterer_id', $caterer_id)
+            ->whereBetween('orders.created_at', [$dates['start'], $dates['end']])
+            ->select(
+                'display_menus.name',
+                'display_menus.price',
+                DB::raw('sum(order_items.quantity) as total_quantity'),
+                DB::raw('count(distinct orders.id) as times_ordered'),
+                DB::raw('sum(order_items.subtotal) as total_revenue')
+            )
+            ->groupBy('display_menus.id', 'display_menus.name', 'display_menus.price')
+            ->orderBy('times_ordered', 'desc')
+            ->limit(10)
+            ->get();
+    }
+    
+    /**
+     * ✅ NEW: Get fulfillment types breakdown for orders
+     */
+    private function getFulfillmentTypesData($caterer_id, $dates)
+    {
+        return \App\Models\Order::where('caterer_id', $caterer_id)
+            ->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->select('fulfillment_type', DB::raw('count(*) as count'), DB::raw('sum(total_amount) as revenue'))
+            ->groupBy('fulfillment_type')
+            ->orderBy('count', 'desc')
+            ->get();
+    }
+    
     public function exportPdf(Request $request)
     {
         $caterer_id = Auth::id();
@@ -195,11 +319,20 @@ class ReportsController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        $metrics = $this->calculateMetrics($bookings);
+        // ✅ NEW: Get all orders for the period
+        $orders = \App\Models\Order::where('caterer_id', $caterer_id)
+            ->whereBetween('created_at', [$dates['start'], $dates['end']])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $metrics = $this->calculateMetrics($bookings, $orders);
         $paymentStatusData = $this->getPaymentStatusData($caterer_id, $dates);
         $bookingStatusData = $this->getBookingStatusData($caterer_id, $dates);
+        $orderStatusData = $this->getOrderStatusData($caterer_id, $dates);
         $popularItems = $this->getPopularMenuItems($caterer_id, $dates);
+        $popularDisplayItems = $this->getPopularDisplayMenuItems($caterer_id, $dates);
         $eventTypes = $this->getEventTypesData($caterer_id, $dates);
+        $fulfillmentTypes = $this->getFulfillmentTypesData($caterer_id, $dates);
         
         $caterer = Auth::user();
         
@@ -207,13 +340,17 @@ class ReportsController extends Controller
             'metrics',
             'paymentStatusData',
             'bookingStatusData',
+            'orderStatusData',
             'popularItems',
+            'popularDisplayItems',
             'eventTypes',
+            'fulfillmentTypes',
             'period',
             'dates',
             'caterer',
-            'bookings'  // Pass bookings to the PDF view
-        ))->setPaper('a4', 'landscape');  // Set landscape orientation
+            'bookings',
+            'orders'  // ✅ NEW: Pass orders to PDF view
+        ))->setPaper('a4', 'landscape');
         
         $filename = 'report_' . $period . '_' . date('Y-m-d') . '.pdf';
         return $pdf->download($filename);

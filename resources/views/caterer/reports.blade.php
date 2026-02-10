@@ -43,9 +43,10 @@
 
     <div class="py-6 sm:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Key Metrics -->
+            
+            <!-- ✅ UPDATED: Key Metrics with Orders -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <!-- Total Revenue -->
+                <!-- Total Revenue (Combined) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
@@ -55,35 +56,42 @@
                             </svg>
                         </div>
                         <p class="text-2xl sm:text-3xl font-bold">₱{{ number_format($metrics['total_revenue'], 2) }}</p>
-                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">{{ ucfirst($period) }} earnings</p>
+                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            Bookings: ₱{{ number_format($metrics['booking_revenue'], 2) }}<br>
+                            Orders: ₱{{ number_format($metrics['order_revenue'], 2) }}
+                        </p>
                     </div>
                 </div>
 
-                <!-- Total Bookings -->
+                <!-- Total Transactions (Combined) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-medium">Total Bookings</h3>
+                            <h3 class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-medium">Total Transactions</h3>
                             <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                         </div>
-                        <p class="text-2xl sm:text-3xl font-bold">{{ $metrics['total_bookings'] }}</p>
-                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">{{ $metrics['confirmed_bookings'] }} confirmed</p>
+                        <p class="text-2xl sm:text-3xl font-bold">{{ $metrics['total_transactions'] }}</p>
+                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            {{ $metrics['total_bookings'] }} bookings | {{ $metrics['total_orders'] }} orders
+                        </p>
                     </div>
                 </div>
 
-                <!-- Average Booking Value -->
+                <!-- Average Values -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-medium">Avg Booking Value</h3>
+                            <h3 class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-medium">Avg Transaction Value</h3>
                             <svg class="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
                         </div>
                         <p class="text-2xl sm:text-3xl font-bold">₱{{ number_format($metrics['average_booking_value'], 2) }}</p>
-                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">Per booking</p>
+                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            Orders: ₱{{ number_format($metrics['average_order_value'], 2) }}
+                        </p>
                     </div>
                 </div>
 
@@ -97,18 +105,18 @@
                             </svg>
                         </div>
                         <p class="text-2xl sm:text-3xl font-bold">{{ number_format($metrics['total_guests']) }}</p>
-                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">Across all events</p>
+                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">From event bookings</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Row -->
+            <!-- ✅ UPDATED: Charts Row with Combined Data -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <!-- Revenue Trends Chart -->
+                <!-- Revenue Trends Chart (Combined) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Revenue Trends</h3>
-                        <div class="relative" style="height: 250px;">
+                        <div class="relative" style="height: 300px;">
                             <canvas id="revenueTrendsChart"></canvas>
                         </div>
                     </div>
@@ -118,7 +126,7 @@
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Payment Status</h3>
-                        <div class="relative" style="height: 250px;">
+                        <div class="relative" style="height: 300px;">
                             <canvas id="paymentStatusChart"></canvas>
                         </div>
                     </div>
@@ -137,126 +145,178 @@
                     </div>
                 </div>
 
+                <!-- ✅ NEW: Order Status Chart -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Order Status</h3>
+                        <div class="relative" style="height: 250px;">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Third Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <!-- Event Types Chart -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
-                        <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Event Types</h3>
+                        <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Event Types (Bookings)</h3>
                         <div class="relative" style="height: 250px;">
                             <canvas id="eventTypesChart"></canvas>
                         </div>
                     </div>
                 </div>
+
+                <!-- ✅ NEW: Fulfillment Types Chart (Orders) -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Fulfillment Types (Orders)</h3>
+                        <div class="relative" style="height: 250px;">
+                            <canvas id="fulfillmentTypesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Popular Menu Items Table -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6 sm:mb-8">
-                <div class="p-4 sm:p-6">
-                    <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Top Menu Items</h3>
-                    <div class="overflow-x-auto -mx-4 sm:mx-0">
-                        <div class="inline-block min-w-full align-middle">
+            <!-- ✅ UPDATED: Popular Items Tables (Both Types) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <!-- Popular Package Items (Bookings) -->
+                @if($popularItems->count() > 0)
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                            🎉 Popular Package Items
+                        </h3>
+                        <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead>
-                                    <tr class="bg-gray-50 dark:bg-gray-700">
-                                        <th class="text-left py-3 px-4 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">Item Name</th>
-                                        <th class="text-right py-3 px-4 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Times Ordered</th>
-                                        <th class="text-right py-3 px-4 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hidden sm:table-cell">Price</th>
-                                        <th class="text-right py-3 px-4 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Total Revenue</th>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Item</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Orders</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Revenue</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    @forelse($popularItems as $item)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="py-3 px-4 text-xs sm:text-sm text-gray-900 dark:text-gray-100">{{ $item->name }}</td>
-                                        <td class="text-right py-3 px-4 text-xs sm:text-sm text-gray-900 dark:text-gray-100">{{ $item->times_ordered }}</td>
-                                        <td class="text-right py-3 px-4 text-xs sm:text-sm text-gray-900 dark:text-gray-100 hidden sm:table-cell">₱{{ number_format($item->price, 2) }}</td>
-                                        <td class="text-right py-3 px-4 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">₱{{ number_format($item->total_revenue, 2) }}</td>
-                                    </tr>
-                                    @empty
+                                    @foreach($popularItems as $item)
                                     <tr>
-                                        <td colspan="4" class="text-center py-8 text-sm text-gray-500 dark:text-gray-400">No menu items data available</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $item->name }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $item->times_ordered }}</td>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">₱{{ number_format($item->total_revenue, 2) }}</td>
                                     </tr>
-                                    @endforelse
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </div>
+                @endif
 
-            <!-- Financial Summary -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-4 sm:p-6">
-                    <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Financial Summary</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <p class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-1">Total Deposits Collected</p>
-                            <p class="text-xl sm:text-2xl font-bold text-green-500">₱{{ number_format($metrics['total_deposits'], 2) }}</p>
-                        </div>
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <p class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-1">Outstanding Balance</p>
-                            <p class="text-xl sm:text-2xl font-bold text-yellow-500">₱{{ number_format($metrics['total_balance'], 2) }}</p>
-                        </div>
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 sm:col-span-2 lg:col-span-1">
-                            <p class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-1">Paid Bookings</p>
-                            <p class="text-xl sm:text-2xl font-bold text-blue-500">{{ $metrics['paid_bookings'] }} / {{ $metrics['total_bookings'] }}</p>
+                <!-- ✅ NEW: Popular Display Menu Items (Orders) -->
+                @if(isset($popularDisplayItems) && $popularDisplayItems->count() > 0)
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                            📦 Popular Menu Items (Orders)
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Item</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Times Ordered</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total Qty</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach($popularDisplayItems as $item)
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $item->name }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $item->times_ordered }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $item->total_quantity }}</td>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">₱{{ number_format($item->total_revenue, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
+
         </div>
     </div>
 
-    <!-- Chart.js Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Determine if dark mode is active
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        const textColor = isDarkMode ? '#9CA3AF' : '#6B7280';
-        const gridColor = isDarkMode ? '#374151' : '#E5E7EB';
-
-        // Get window width for responsive font sizes
+        // ✅ Chart configuration
         const isMobile = window.innerWidth < 640;
         const fontSize = isMobile ? 10 : 12;
         const legendFontSize = isMobile ? 10 : 12;
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#e5e7eb' : '#374151';
+        const gridColor = isDark ? '#374151' : '#e5e7eb';
 
-        // Common chart options
         const commonOptions = {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             plugins: {
                 legend: {
                     labels: {
                         color: textColor,
-                        font: { size: legendFontSize },
-                        padding: isMobile ? 8 : 10,
-                        boxWidth: isMobile ? 30 : 40
+                        font: { size: legendFontSize }
                     }
                 }
             }
         };
 
-        // Revenue Trends Chart
+        // ✅ UPDATED: Revenue Trends Chart with Booking + Order Data
         const revenueTrendsCtx = document.getElementById('revenueTrendsChart').getContext('2d');
         const revenueTrendsChart = new Chart(revenueTrendsCtx, {
             type: 'line',
             data: {
                 labels: {!! json_encode($revenueTrends->pluck('date')) !!},
-                datasets: [{
-                    label: 'Revenue',
-                    data: {!! json_encode($revenueTrends->pluck('revenue')) !!},
-                    borderColor: 'rgb(34, 197, 94)',
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 4 : 5
-                }]
+                datasets: [
+                    {
+                        label: 'Booking Revenue',
+                        data: {!! json_encode($revenueTrends->pluck('booking_revenue')) !!},
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Order Revenue',
+                        data: {!! json_encode($revenueTrends->pluck('order_revenue')) !!},
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Total Revenue',
+                        data: {!! json_encode($revenueTrends->pluck('total_revenue')) !!},
+                        borderColor: 'rgb(139, 92, 246)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: false,
+                        borderWidth: 3,
+                        tension: 0.4
+                    }
+                ]
             },
             options: {
                 ...commonOptions,
                 plugins: {
                     ...commonOptions.plugins,
-                    legend: { display: false }
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₱' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
                 },
                 scales: {
                     y: {
@@ -264,7 +324,9 @@
                         ticks: { 
                             color: textColor,
                             font: { size: fontSize },
-                            maxTicksLimit: isMobile ? 5 : 8
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
                         },
                         grid: { color: gridColor }
                     },
@@ -337,17 +399,52 @@
                         beginAtZero: true,
                         ticks: { 
                             color: textColor,
-                            font: { size: fontSize },
-                            maxTicksLimit: isMobile ? 5 : 8
+                            font: { size: fontSize }
                         },
                         grid: { color: gridColor }
                     },
                     x: {
                         ticks: { 
                             color: textColor,
-                            font: { size: fontSize },
-                            maxRotation: isMobile ? 45 : 0,
-                            minRotation: isMobile ? 45 : 0
+                            font: { size: fontSize }
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+
+        // ✅ NEW: Order Status Chart
+        const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+        const orderStatusChart = new Chart(orderStatusCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! isset($orderStatusData) ? json_encode($orderStatusData->pluck('order_status')) : '[]' !!},
+                datasets: [{
+                    label: 'Orders',
+                    data: {!! isset($orderStatusData) ? json_encode($orderStatusData->pluck('count')) : '[]' !!},
+                    backgroundColor: 'rgb(16, 185, 129)'
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            color: textColor,
+                            font: { size: fontSize }
+                        },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { 
+                            color: textColor,
+                            font: { size: fontSize }
                         },
                         grid: { color: gridColor }
                     }
@@ -390,16 +487,48 @@
             }
         });
 
-        // Handle window resize - resize charts instead of reloading page
+        // ✅ NEW: Fulfillment Types Chart (Orders)
+        const fulfillmentTypesCtx = document.getElementById('fulfillmentTypesChart').getContext('2d');
+        const fulfillmentTypesChart = new Chart(fulfillmentTypesCtx, {
+            type: 'pie',
+            data: {
+                labels: {!! isset($fulfillmentTypes) ? json_encode($fulfillmentTypes->pluck('fulfillment_type')) : '[]' !!},
+                datasets: [{
+                    data: {!! isset($fulfillmentTypes) ? json_encode($fulfillmentTypes->pluck('count')) : '[]' !!},
+                    backgroundColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(16, 185, 129)'
+                    ]
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            font: { size: legendFontSize },
+                            padding: isMobile ? 8 : 10,
+                            boxWidth: isMobile ? 30 : 40
+                        }
+                    }
+                }
+            }
+        });
+
+        // Handle window resize
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                // Update chart responsive settings
                 revenueTrendsChart.resize();
                 paymentStatusChart.resize();
                 bookingStatusChart.resize();
+                orderStatusChart.resize();
                 eventTypesChart.resize();
+                fulfillmentTypesChart.resize();
             }, 250);
         });
     </script>

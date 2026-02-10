@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Package;
 use App\Models\Booking;
 use App\Models\CatererAvailability;
+use App\Models\Order;
+use App\Models\DisplayMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -21,147 +23,196 @@ class CatererController extends Controller
         $this->notificationService = $notificationService;
     }
 
-    public function dashboard(Request $request)
+    public function dashboard()
     {
-        $catererId = auth()->id();
-        $period = $request->get('period', 'monthly'); // NEW: Add period parameter
-        
-        // NEW: Get date range based on period
-        $dates = $this->getDateRange($period);
-        
-        // Get bookings for the selected period
-        $bookings = Booking::where('caterer_id', $catererId)
-            ->whereBetween('created_at', [$dates['start'], $dates['end']])
-            ->get();
-        
-        // Get current month statistics (keep your existing logic)
-        $currentMonth = now()->startOfMonth();
-        $lastMonth = now()->subMonth()->startOfMonth();
-        
-        // Revenue statistics (existing)
-        $currentMonthRevenue = Booking::where('caterer_id', $catererId)
-            ->whereIn('booking_status', ['confirmed', 'completed'])
-            ->whereMonth('event_date', $currentMonth->month)
-            ->whereYear('event_date', $currentMonth->year)
-            ->sum('total_price');
-            
-        $lastMonthRevenue = Booking::where('caterer_id', $catererId)
-            ->whereIn('booking_status', ['confirmed', 'completed'])
-            ->whereMonth('event_date', $lastMonth->month)
-            ->whereYear('event_date', $lastMonth->year)
-            ->sum('total_price');
-            
-        $revenueGrowth = $lastMonthRevenue > 0 
-            ? (($currentMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100 
-            : 0;
-        
-        // Booking statistics (existing)
-        $totalBookings = Booking::where('caterer_id', $catererId)->count();
-        $pendingBookings = Booking::where('caterer_id', $catererId)
-            ->where('booking_status', 'pending')
-            ->count();
-        $confirmedBookings = Booking::where('caterer_id', $catererId)
-            ->where('booking_status', 'confirmed')
-            ->count();
-        $completedBookings = Booking::where('caterer_id', $catererId)
-            ->where('booking_status', 'completed')
-            ->count();
-            
-        // Upcoming bookings (next 30 days) - existing
-        $upcomingBookings = Booking::where('caterer_id', $catererId)
-            ->whereIn('booking_status', ['confirmed', 'pending'])
-            ->whereBetween('event_date', [now(), now()->addDays(30)])
-            ->orderBy('event_date', 'asc')
-            ->with('customer')
-            ->limit(5)
-            ->get();
-        
-        // Recent bookings - existing
+        $caterer = auth()->user();
+        $catererId = $caterer->id;
+
+        // Get bookings statistics
+        $bookingStats = [
+            'pending' => Booking::where('caterer_id', $catererId)->where('booking_status', 'pending')->count(),
+            'confirmed' => Booking::where('caterer_id', $catererId)->where('booking_status', 'confirmed')->count(),
+            'completed' => Booking::where('caterer_id', $catererId)->where('booking_status', 'completed')->count(),
+            'total' => Booking::where('caterer_id', $catererId)->count(),
+        ];
+
+        // ✅ NEW: Get orders statistics
+        $orderStats = [
+            'pending' => Order::where('caterer_id', $catererId)->where('order_status', 'pending')->count(),
+            'confirmed' => Order::where('caterer_id', $catererId)->where('order_status', 'confirmed')->count(),
+            'completed' => Order::where('caterer_id', $catererId)->where('order_status', 'completed')->count(),
+            'total' => Order::where('caterer_id', $catererId)->count(),
+        ];
+
+        // ✅ UPDATED: Revenue from BOTH bookings and orders
+        $revenueStats = [
+            'bookings_total' => Booking::where('caterer_id', $catererId)
+                ->whereIn('payment_status', ['deposit_paid', 'fully_paid'])
+                ->sum('total_price'),
+            'orders_total' => Order::where('caterer_id', $catererId)
+                ->where('payment_status', 'paid')
+                ->sum('total_amount'),
+            'bookings_pending' => Booking::where('caterer_id', $catererId)
+                ->where('payment_status', 'deposit_paid')
+                ->sum('balance'),
+            'orders_pending' => Order::where('caterer_id', $catererId)
+                ->where('payment_status', 'pending')
+                ->sum('total_amount'),
+        ];
+
+        // Calculate combined total revenue
+        $revenueStats['total_revenue'] = $revenueStats['bookings_total'] + $revenueStats['orders_total'];
+        $revenueStats['pending_revenue'] = $revenueStats['bookings_pending'] + $revenueStats['orders_pending'];
+
+        // ✅ UPDATED: Recent bookings AND orders combined
         $recentBookings = Booking::where('caterer_id', $catererId)
+            ->with(['customer', 'package'])
             ->orderBy('created_at', 'desc')
-            ->with('customer')
             ->limit(5)
-            ->get();
-        
-        // Monthly revenue chart data (last 6 months) - existing
-        $revenueChartData = [];
+            ->get()
+            ->map(function($booking) {
+                return [
+                    'type' => 'booking',
+                    'id' => $booking->id,
+                    'number' => $booking->booking_number,
+                    'customer_name' => $booking->customer_name,
+                    'date' => $booking->event_date,
+                    'amount' => $booking->total_price,
+                    'status' => $booking->booking_status,
+                    'payment_status' => $booking->payment_status,
+                    'created_at' => $booking->created_at,
+                ];
+            });
+
+        $recentOrders = Order::where('caterer_id', $catererId)
+            ->with(['customer', 'items.displayMenu'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function($order) {
+                return [
+                    'type' => 'order',
+                    'id' => $order->id,
+                    'number' => $order->order_number,
+                    'customer_name' => $order->customer_name,
+                    'date' => $order->fulfillment_date,
+                    'amount' => $order->total_amount,
+                    'status' => $order->order_status,
+                    'payment_status' => $order->payment_status,
+                    'created_at' => $order->created_at,
+                ];
+            });
+
+        // Combine and sort by created_at
+        $recentTransactions = $recentBookings->concat($recentOrders)
+            ->sortByDesc('created_at')
+            ->take(10);
+
+        // ✅ UPDATED: Upcoming events from both bookings and orders
+        $upcomingEvents = collect();
+
+        // Get upcoming bookings
+        $upcomingBookings = Booking::where('caterer_id', $catererId)
+            ->whereIn('booking_status', ['pending', 'confirmed'])
+            ->where('event_date', '>=', now())
+            ->orderBy('event_date', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function($booking) {
+                return [
+                    'type' => 'booking',
+                    'id' => $booking->id,
+                    'number' => $booking->booking_number,
+                    'customer_name' => $booking->customer_name,
+                    'date' => $booking->event_date,
+                    'time' => $booking->time_slot,
+                    'venue' => $booking->venue_name,
+                    'status' => $booking->booking_status,
+                    'event_date' => $booking->event_date,
+                ];
+            });
+
+        // Get upcoming orders
+        $upcomingOrders = Order::where('caterer_id', $catererId)
+            ->whereIn('order_status', ['pending', 'confirmed', 'preparing'])
+            ->where('fulfillment_date', '>=', now())
+            ->orderBy('fulfillment_date', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function($order) {
+                return [
+                    'type' => 'order',
+                    'id' => $order->id,
+                    'number' => $order->order_number,
+                    'customer_name' => $order->customer_name,
+                    'date' => $order->fulfillment_date,
+                    'time' => $order->fulfillment_time,
+                    'venue' => $order->fulfillment_type === 'delivery' ? $order->delivery_address : 'Pickup',
+                    'status' => $order->order_status,
+                    'event_date' => $order->fulfillment_date,
+                ];
+            });
+
+        $upcomingEvents = $upcomingBookings->concat($upcomingOrders)
+            ->sortBy('event_date')
+            ->take(10);
+
+        // Menu statistics
+        $menuStats = [
+            'total_items' => MenuItem::where('user_id', $catererId)->count(),
+            'active_packages' => Package::where('user_id', $catererId)->where('status', 'active')->count(),
+            'display_menus' => DisplayMenu::where('user_id', $catererId)->where('status', 'active')->count(),
+        ];
+
+        // ✅ NEW: Monthly revenue chart data (last 6 months)
+        $monthlyRevenue = $this->getMonthlyRevenue($catererId);
+
+        return view('caterer.dashboard', compact(
+            'bookingStats',
+            'orderStats',
+            'revenueStats',
+            'recentTransactions',
+            'upcomingEvents',
+            'menuStats',
+            'monthlyRevenue'
+        ));
+    }
+
+    private function getMonthlyRevenue($catererId)
+    {
+        $months = [];
         for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $revenue = Booking::where('caterer_id', $catererId)
-                ->whereIn('booking_status', ['confirmed', 'completed'])
-                ->whereMonth('event_date', $month->month)
-                ->whereYear('event_date', $month->year)
+            $date = Carbon::now()->subMonths($i);
+            $months[] = $date->format('M Y');
+        }
+
+        $data = [];
+        foreach ($months as $index => $month) {
+            $date = Carbon::now()->subMonths(5 - $index);
+            $startOfMonth = $date->copy()->startOfMonth();
+            $endOfMonth = $date->copy()->endOfMonth();
+
+            // Bookings revenue
+            $bookingRevenue = Booking::where('caterer_id', $catererId)
+                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->whereIn('payment_status', ['deposit_paid', 'fully_paid'])
                 ->sum('total_price');
-            
-            $revenueChartData[] = [
-                'month' => $month->format('M Y'),
-                'revenue' => $revenue
+
+            // Orders revenue
+            $orderRevenue = Order::where('caterer_id', $catererId)
+                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->where('payment_status', 'paid')
+                ->sum('total_amount');
+
+            $data[] = [
+                'month' => $month,
+                'booking_revenue' => $bookingRevenue,
+                'order_revenue' => $orderRevenue,
+                'total_revenue' => $bookingRevenue + $orderRevenue,
             ];
         }
-        
-        // Bookings by status for pie chart - existing
-        $bookingsByStatus = [
-            'pending' => $pendingBookings,
-            'confirmed' => $confirmedBookings,
-            'completed' => $completedBookings,
-            'cancelled' => Booking::where('caterer_id', $catererId)
-                ->where('booking_status', 'cancelled')
-                ->count()
-        ];
-        
-        // Popular packages - existing
-        $popularPackages = Package::where('user_id', $catererId)
-            ->withCount('bookings')
-            ->orderBy('bookings_count', 'desc')
-            ->limit(5)
-            ->get();
-        
-        // Average booking value - existing
-        $avgBookingValue = Booking::where('caterer_id', $catererId)
-            ->whereIn('booking_status', ['confirmed', 'completed'])
-            ->avg('total_price') ?? 0;
-        
-        // NEW: Calculate metrics for selected period
-        $metrics = $this->calculateMetrics($bookings);
-        
-        // NEW: Get payment status breakdown
-        $paymentStatusData = $this->getPaymentStatusData($catererId, $dates);
-        
-        // NEW: Get booking status breakdown
-        $bookingStatusData = $this->getBookingStatusData($catererId, $dates);
-        
-        // NEW: Get revenue trends
-        $revenueTrends = $this->getRevenueTrends($catererId, $dates, $period);
-        
-        // NEW: Get popular menu items
-        $popularItems = $this->getPopularMenuItems($catererId, $dates);
-        
-        // NEW: Get event types breakdown
-        $eventTypes = $this->getEventTypesData($catererId, $dates);
-        
-        return view('caterer.dashboard', compact(
-            // Existing variables
-            'currentMonthRevenue',
-            'revenueGrowth',
-            'totalBookings',
-            'pendingBookings',
-            'confirmedBookings',
-            'completedBookings',
-            'upcomingBookings',
-            'recentBookings',
-            'revenueChartData',
-            'bookingsByStatus',
-            'popularPackages',
-            'avgBookingValue',
-            // NEW: Reports variables
-            'metrics',
-            'paymentStatusData',
-            'bookingStatusData',
-            'revenueTrends',
-            'popularItems',
-            'eventTypes',
-            'period'
-        ));
+
+        return $data;
     }
 
     // NEW: Helper methods for reports functionality
@@ -288,60 +339,81 @@ class CatererController extends Controller
     /**
      * Show calendar view
      */
-    public function calendar(Request $request)
+     public function calendar()
     {
         $catererId = auth()->id();
-        $year = $request->get('year', now()->year);
-        $month = $request->get('month', now()->month);
-        
-        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-        $endDate = $startDate->copy()->endOfMonth();
-        
-        // Get all bookings for the month
+
+        // Get bookings for calendar
         $bookings = Booking::where('caterer_id', $catererId)
-            ->whereBetween('event_date', [$startDate, $endDate])
+            ->with(['customer', 'package'])
             ->get()
-            ->groupBy(function($booking) {
-                return $booking->event_date->format('Y-m-d');
+            ->map(function($booking) {
+                return [
+                    'id' => 'booking-' . $booking->id,
+                    'type' => 'booking',
+                    'title' => $booking->customer_name . ' - ' . $booking->event_type,
+                    'start' => $booking->event_date->format('Y-m-d'),
+                    'backgroundColor' => $this->getBookingColor($booking->booking_status),
+                    'borderColor' => $this->getBookingColor($booking->booking_status),
+                    'extendedProps' => [
+                        'booking_id' => $booking->id,
+                        'customer_name' => $booking->customer_name,
+                        'event_type' => $booking->event_type,
+                        'guests' => $booking->guests,
+                        'venue' => $booking->venue_name,
+                        'status' => $booking->booking_status,
+                        'payment_status' => $booking->payment_status,
+                    ]
+                ];
             });
-        
-        // Get availability records
-        $availability = CatererAvailability::where('caterer_id', $catererId)
-            ->whereBetween('date', [$startDate, $endDate])
+
+        // ✅ NEW: Get orders for calendar
+        $orders = Order::where('caterer_id', $catererId)
+            ->with(['customer', 'items.displayMenu'])
             ->get()
-            ->keyBy(function($item) {
-                return $item->date->format('Y-m-d');
+            ->map(function($order) {
+                return [
+                    'id' => 'order-' . $order->id,
+                    'type' => 'order',
+                    'title' => $order->customer_name . ' - Order',
+                    'start' => Carbon::parse($order->fulfillment_date)->format('Y-m-d'),
+                    'backgroundColor' => $this->getOrderColor($order->order_status),
+                    'borderColor' => $this->getOrderColor($order->order_status),
+                    'extendedProps' => [
+                        'order_id' => $order->id,
+                        'customer_name' => $order->customer_name,
+                        'fulfillment_type' => $order->fulfillment_type,
+                        'fulfillment_time' => $order->fulfillment_time,
+                        'status' => $order->order_status,
+                        'payment_status' => $order->payment_status,
+                    ]
+                ];
             });
-        
-        // Get statistics
-        $stats = [
-            'total_bookings' => Booking::where('caterer_id', $catererId)
-                ->whereBetween('event_date', [$startDate, $endDate])
-                ->count(),
-            'confirmed' => Booking::where('caterer_id', $catererId)
-                ->whereBetween('event_date', [$startDate, $endDate])
-                ->where('booking_status', 'confirmed')
-                ->count(),
-            'pending' => Booking::where('caterer_id', $catererId)
-                ->whereBetween('event_date', [$startDate, $endDate])
-                ->where('booking_status', 'pending')
-                ->count(),
-            'blocked_days' => CatererAvailability::where('caterer_id', $catererId)
-                ->whereBetween('date', [$startDate, $endDate])
-                ->where('status', 'blocked')
-                ->count(),
-        ];
-        
-        return view('caterer.calendar', compact(
-            'bookings',
-            'availability',
-            'startDate',
-            'endDate',
-            'stats',
-            'year',
-            'month'
-        ));
+
+        // Combine bookings and orders
+        $events = $bookings->concat($orders);
+
+        // Get blocked dates
+        $blockedDates = CatererAvailability::where('caterer_id', $catererId)
+            ->where('status', 'blocked')
+            ->get()
+            ->map(function($availability) {
+                return [
+                    'id' => 'blocked-' . $availability->id,
+                    'type' => 'blocked',
+                    'title' => 'Blocked',
+                    'start' => $availability->date->format('Y-m-d'),
+                    'backgroundColor' => '#DC2626',
+                    'borderColor' => '#DC2626',
+                    'display' => 'background',
+                ];
+            });
+
+        $allEvents = $events->concat($blockedDates);
+
+        return view('caterer.calendar', compact('allEvents'));
     }
+
 
     /**
      * Block/unblock a date
@@ -631,9 +703,65 @@ class CatererController extends Controller
         return view('caterer.verifyReceipt');
     }
 
-    public function payments()
+    public function payments(Request $request)
     {
-        return view('caterer.payments');
+        $catererId = auth()->id();
+
+        // ✅ UPDATED: Get bookings payments
+        $bookingPayments = Booking::where('caterer_id', $catererId)
+            ->with(['customer', 'package'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('payment_status')) {
+            $bookingPayments->where('payment_status', $request->payment_status);
+        }
+
+        // ✅ NEW: Get orders payments
+        $orderPayments = Order::where('caterer_id', $catererId)
+            ->with(['customer', 'items.displayMenu'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('payment_status')) {
+            $orderPayments->where('payment_status', $request->payment_status);
+        }
+
+        $bookings = $bookingPayments->paginate(10, ['*'], 'bookings_page');
+        $orders = $orderPayments->paginate(10, ['*'], 'orders_page');
+
+        // ✅ UPDATED: Payment statistics from both sources
+        $paymentStats = [
+            'total_revenue' => Booking::where('caterer_id', $catererId)
+                    ->whereIn('payment_status', ['deposit_paid', 'fully_paid'])
+                    ->sum('total_price') +
+                Order::where('caterer_id', $catererId)
+                    ->where('payment_status', 'paid')
+                    ->sum('total_amount'),
+            
+            'pending_payments' => Booking::where('caterer_id', $catererId)
+                    ->where('payment_status', 'deposit_paid')
+                    ->sum('balance') +
+                Order::where('caterer_id', $catererId)
+                    ->where('payment_status', 'pending')
+                    ->sum('total_amount'),
+            
+            'bookings_deposit_paid' => Booking::where('caterer_id', $catererId)
+                ->where('payment_status', 'deposit_paid')
+                ->count(),
+            
+            'bookings_fully_paid' => Booking::where('caterer_id', $catererId)
+                ->where('payment_status', 'fully_paid')
+                ->count(),
+
+            'orders_paid' => Order::where('caterer_id', $catererId)
+                ->where('payment_status', 'paid')
+                ->count(),
+
+            'orders_pending' => Order::where('caterer_id', $catererId)
+                ->where('payment_status', 'pending')
+                ->count(),
+        ];
+
+        return view('caterer.payments', compact('bookings', 'orders', 'paymentStats'));
     }
 
     public function reviews()
@@ -898,8 +1026,15 @@ class CatererController extends Controller
             'order_status' => $request->status
         ]);
 
-        // Send notification to customer (if you have notification service)
-        // $this->notificationService->notifyOrderStatusUpdate($order);
+        try {
+            $order->load('caterer');
+            $this->notificationService->notifyOrderStatusUpdate($order);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send order status notification', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return back()->with('success', 'Order status updated successfully!');
     }
@@ -915,6 +1050,16 @@ class CatererController extends Controller
         $order->update([
             'payment_status' => 'paid'
         ]);
+
+        try {
+            $order->load('caterer');
+            $this->notificationService->notifyOrderPaymentConfirmed($order);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send payment confirmation notification', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return back()->with('success', 'Payment confirmed!');
     }

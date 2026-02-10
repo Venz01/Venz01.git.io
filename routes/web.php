@@ -194,6 +194,14 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::patch('/orders/{order}/status', [CatererController::class, 'updateOrderStatus'])->name('orders.update-status');
     Route::patch('/orders/{order}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('orders.confirm-payment');
 
+    Route::get('/orders', [CatererController::class, 'orders'])->name('orders');
+    Route::get('/orders/{id}', [CatererController::class, 'showOrder'])->name('orders.show');
+    Route::post('/orders/{id}/status', [CatererController::class, 'updateOrderStatus'])->name('orders.update-status');
+    
+    Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
+    Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
+
 });
 
 // Admin routes
