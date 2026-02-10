@@ -137,6 +137,7 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     
     // Calendar and Availability
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
+    Route::post('/calendar/block-date', [CatererController::class, 'toggleAvailability'])->name('calendar.block-date');
     Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
     Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
     
@@ -192,7 +193,6 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::patch('/orders/{order}/status', [CatererController::class, 'updateOrderStatus'])->name('orders.update-status');
     Route::patch('/orders/{order}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('orders.confirm-payment');
     
-    Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
 

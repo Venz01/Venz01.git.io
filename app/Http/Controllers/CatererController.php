@@ -337,6 +337,38 @@ class CatererController extends Controller
     }
 
     /**
+     * Get color for booking status
+     */
+    private function getBookingColor($status)
+    {
+        $colors = [
+            'pending' => '#F59E0B',      // Amber
+            'confirmed' => '#3B82F6',    // Blue
+            'completed' => '#10B981',    // Green
+            'cancelled' => '#EF4444',    // Red
+        ];
+
+        return $colors[$status] ?? '#6B7280'; // Default gray
+    }
+
+    /**
+     * Get color for order status
+     */
+    private function getOrderColor($status)
+    {
+        $colors = [
+            'pending' => '#F59E0B',      // Amber
+            'confirmed' => '#8B5CF6',    // Purple
+            'preparing' => '#06B6D4',    // Cyan
+            'ready' => '#14B8A6',        // Teal
+            'completed' => '#10B981',    // Green
+            'cancelled' => '#EF4444',    // Red
+        ];
+
+        return $colors[$status] ?? '#6B7280'; // Default gray
+    }
+
+    /**
      * Show calendar view
      */
      public function calendar()
@@ -1063,4 +1095,4 @@ class CatererController extends Controller
 
         return back()->with('success', 'Payment confirmed!');
     }
-}
+}   
