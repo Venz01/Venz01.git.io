@@ -388,6 +388,16 @@
                                         </svg>
                                         {{ $package->items->count() }} menu items
                                     </div>
+
+                                    <!-- ADD DIETARY BADGES HERE -->
+                                    @auth
+                                        @if(auth()->user()->isCustomer() && auth()->user()->hasDietaryPreferences())
+                                            @include('admin.partials.package-dietary-badges', [
+                                                'package' => $package,
+                                            ])
+                                        @endif
+                                    @endauth
+
                                 </div>
                                 @endif
 

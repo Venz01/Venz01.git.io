@@ -486,15 +486,22 @@
                             <!-- Actions -->
                             <div class="flex gap-2 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <button type="button"
-                                    @click="openEditPackageModal({{ $package->id }}, '{{ addslashes($package->name) }}', '{{ addslashes($package->description ?? '') }}', {{ $package->pax }})"
+                                    @click="openEditPackageModal(
+                                        {{ $package->id }}, 
+                                        '{{ addslashes($package->name) }}', 
+                                        '{{ addslashes($package->description ?? '') }}', 
+                                        {{ $package->pax }},
+                                        {{ json_encode($package->dietary_tags ?? []) }}
+                                    )"
                                     class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium text-xs sm:text-sm transition-colors">
+                                    
                                     <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                     Edit
-                                </button>
+                                </button>   
 
                                 <button type="button"
                                     @click="showDeleteConfirm('{{ route('caterer.packages.destroy', $package->id) }}', 'package', '{{ addslashes($package->name) }}')"
@@ -873,6 +880,11 @@
                         @endforeach
                     </div>
 
+                    <!-- Dietary Preferences & Allergy Tags -->
+                    <div class="mt-4">
+                       @include('admin.partials.package-dietary-tags', ['selectedTags' => []])
+                    </div>
+
                     <!-- Price Breakdown -->
                     <div x-show="selectedItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
@@ -985,6 +997,12 @@
                             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Available Menu Items
                             </p>
+
+                            <!-- Dietary Preferences & Allergy Tags -->
+                            <div class="mt-4">
+                                @include('admin.partials.package-dietary-tags', ['selectedTags' => []])
+                            </div>
+
                             <div class="max-h-48 overflow-y-auto space-y-1">
                                 @foreach($categories as $category)
                                 @if($category->items->count() > 0)
@@ -1224,14 +1242,16 @@
             }
         }
 
-        function openEditPackageModal(packageId, name, description, pax) {
+        function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
             document.getElementById('editPackageName').value = name;
             document.getElementById('editPackageDescription').value = description;
             document.getElementById('editPackagePax').value = pax;
             document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
 
-            document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => {
-                cb.checked = false;
+            document.querySelectorAll('.dietary-tag-checkbox').forEach(checkbox => {
+                const tagValue = checkbox.value;
+                checkbox.checked = dietaryTags.includes(tagValue);
+                toggleDietaryTag(checkbox);
             });
 
             document.getElementById('editPackageModal').classList.remove('hidden');

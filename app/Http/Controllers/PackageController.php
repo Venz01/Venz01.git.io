@@ -40,6 +40,8 @@ class PackageController extends Controller
                 }
             ],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'dietary_tags' => 'nullable|array',
+            'dietary_tags.*' => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
         ]);
 
         try {
@@ -59,6 +61,7 @@ class PackageController extends Controller
                 'pax' => $request->pax,
                 'status' => 'active',
                 'image_path' => $imagePath,
+                'dietary_tags' => $request->input('dietary_tags', []),
             ]);
 
             $package->items()->attach($request->menu_items);
@@ -90,6 +93,8 @@ class PackageController extends Controller
                 }
             ],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'dietary_tags' => 'nullable|array',
+            'dietary_tags.*' => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
         ]);
 
         try {
@@ -118,6 +123,7 @@ class PackageController extends Controller
                 'price' => $calculatedPrice,
                 'pax' => $request->pax,
                 'image_path' => $imagePath,
+                'dietary_tags' => $request->input('dietary_tags', []),
             ]);
 
             $package->items()->sync($menuItems);

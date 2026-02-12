@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\DisplayMenu; // ✅ ADD THIS IMPORT
+use App\Models\DisplayMenu;
 
 class User extends Authenticatable
 {
@@ -55,6 +55,9 @@ class User extends Authenticatable
         'default_address',
         'city',
         'postal_code',
+        // Dietary fields
+        'dietary_preferences',
+        'food_allergies',
     ];
 
     protected $hidden = [
@@ -65,15 +68,20 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'cuisine_types' => 'array',
-            'service_areas' => 'array',
-            'business_days' => 'array',
-            'offers_delivery' => 'boolean',
-            'offers_setup' => 'boolean',
+            'email_verified_at'   => 'datetime',
+            'password'            => 'hashed',
+            'cuisine_types'       => 'array',
+            'service_areas'       => 'array',
+            'business_days'       => 'array',
+            'offers_delivery'     => 'boolean',
+            'offers_setup'        => 'boolean',
+            'dietary_preferences' => 'array',   // ← new
         ];
     }
+
+    // ─────────────────────────────────────────────
+    // Relationships
+    // ─────────────────────────────────────────────
 
     public function packages()
     {
@@ -100,38 +108,29 @@ class User extends Authenticatable
         return $this->hasMany(PortfolioImage::class)->featured()->ordered();
     }
 
-    // ✅ ADD THESE NEW RELATIONSHIPS
-    /**
-     * Get the display menus for the caterer
-     */
     public function displayMenus()
     {
         return $this->hasMany(DisplayMenu::class, 'user_id');
     }
 
-    /**
-     * Get only active display menus
-     */
     public function activeDisplayMenus()
     {
         return $this->hasMany(DisplayMenu::class, 'user_id')->where('status', 'active');
     }
 
-    /**
-     * Get the bookings for this caterer
-     */
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'caterer_id');
     }
 
-    /**
-     * Get the bookings made by this customer
-     */
     public function customerBookings()
     {
         return $this->hasMany(Booking::class, 'customer_id');
     }
+
+    // ─────────────────────────────────────────────
+    // Role helpers
+    // ─────────────────────────────────────────────
 
     public function isApproved()
     {
@@ -153,6 +152,69 @@ class User extends Authenticatable
         return $this->role === self::ROLE_ADMIN;
     }
 
+    // ─────────────────────────────────────────────
+    // Dietary helpers
+    // ─────────────────────────────────────────────
+
+    /**
+     * Human-readable labels for each preference key.
+     */
+    public static function dietaryLabels(): array
+    {
+        return [
+            'no_pork'      => 'No Pork',
+            'vegetarian'   => 'Vegetarian',
+            'vegan'        => 'Vegan',
+            'halal'        => 'Halal Only',
+            'gluten_free'  => 'Gluten-Free',
+            'dairy_free'   => 'Dairy-Free',
+            'seafood_free' => 'Seafood-Free',
+            'nut_free'     => 'Nut-Free',
+            'low_sodium'   => 'Low Sodium',
+            'diabetic'     => 'Diabetic-Friendly',
+        ];
+    }
+
+    /**
+     * Returns true when the customer has at least one dietary preference saved.
+     */
+    public function hasDietaryPreferences(): bool
+    {
+        return ! empty($this->dietary_preferences);
+    }
+
+    /**
+     * Returns true when the customer has saved food allergies text.
+     */
+    public function hasFoodAllergies(): bool
+    {
+        return ! empty($this->food_allergies);
+    }
+
+    /**
+     * Checks whether a given preference key is set for this customer.
+     */
+    public function hasDietaryPreference(string $key): bool
+    {
+        return in_array($key, (array) ($this->dietary_preferences ?? []), true);
+    }
+
+    /**
+     * Returns an array of the customer's dietary preferences as human-readable labels.
+     */
+    public function getDietaryLabelsAttribute(): array
+    {
+        $labels = static::dietaryLabels();
+        return array_values(array_map(
+            fn ($key) => $labels[$key] ?? ucfirst(str_replace('_', ' ', $key)),
+            (array) ($this->dietary_preferences ?? [])
+        ));
+    }
+
+    // ─────────────────────────────────────────────
+    // String accessors
+    // ─────────────────────────────────────────────
+
     public function getCuisineTypesStringAttribute()
     {
         return is_array($this->cuisine_types) ? implode(', ', $this->cuisine_types) : '';
@@ -165,52 +227,40 @@ class User extends Authenticatable
 
     public function getBusinessDaysStringAttribute()
     {
-        return is_array($this->business_days) ? implode(', ', array_map('ucfirst', $this->business_days)) : '';
+        return is_array($this->business_days)
+            ? implode(', ', array_map('ucfirst', $this->business_days))
+            : '';
     }
 
-   /**
-     * Get reviews written by this customer
-     */
+    // ─────────────────────────────────────────────
+    // Review relationships & stats
+    // ─────────────────────────────────────────────
+
     public function reviewsGiven()
     {
         return $this->hasMany(Review::class, 'customer_id');
     }
 
-    /**
-     * Get reviews received by this caterer
-     */
     public function reviewsReceived()
     {
         return $this->hasMany(Review::class, 'caterer_id');
     }
 
-    /**
-     * Get approved reviews for this caterer
-     */
     public function approvedReviews()
     {
         return $this->hasMany(Review::class, 'caterer_id')->where('is_approved', true);
     }
 
-    /**
-     * Get average rating for this caterer
-     */
     public function averageRating()
     {
         return round($this->approvedReviews()->avg('rating') ?? 0, 1);
     }
 
-    /**
-     * Get total review count for this caterer
-     */
     public function totalReviews()
     {
         return $this->approvedReviews()->count();
     }
 
-    /**
-     * Get rating distribution
-     */
     public function ratingDistribution()
     {
         return [
@@ -222,21 +272,15 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Get reviews with responses percentage
-     */
     public function responseRate()
     {
         $total = $this->approvedReviews()->count();
         if ($total === 0) return 0;
-        
+
         $responded = $this->approvedReviews()->whereNotNull('caterer_response')->count();
         return round(($responded / $total) * 100, 1);
     }
 
-    /**
-     * Get the reviews for the caterer
-     */
     public function reviews()
     {
         return $this->hasMany(Review::class, 'caterer_id');

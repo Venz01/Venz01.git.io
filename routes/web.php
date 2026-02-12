@@ -48,6 +48,9 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Preferences
+    Route::patch('/profile/dietary', [ProfileController::class, 'updateDietaryPreferences'])->name('profile.dietary.update');
+
     // Profile photo route (separate from profile update)
     Route::patch('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     

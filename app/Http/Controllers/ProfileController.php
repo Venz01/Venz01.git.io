@@ -131,6 +131,38 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the customer's dietary preferences and food allergies.
+     */
+    public function updateDietaryPreferences(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        // Only customers can update dietary preferences
+        if (! $user->isCustomer()) {
+            abort(403);
+        }
+
+        $allowedPreferences = [
+            'no_pork', 'vegetarian', 'vegan', 'halal',
+            'gluten_free', 'dairy_free', 'seafood_free',
+            'nut_free', 'low_sodium', 'diabetic',
+        ];
+
+        $validated = $request->validate([
+            'dietary_preferences'   => 'nullable|array',
+            'dietary_preferences.*' => 'string|in:' . implode(',', $allowedPreferences),
+            'food_allergies'        => 'nullable|string|max:1000',
+        ]);
+
+        $user->dietary_preferences = $validated['dietary_preferences'] ?? [];
+        $user->food_allergies      = $validated['food_allergies'] ?? null;
+        $user->save();
+
+        return Redirect::route('profile.edit')
+            ->with('dietary_success', 'Dietary preferences saved successfully!');
+    }
+
+    /**
      * Update or remove profile photo
      */
     public function updatePhoto(Request $request): RedirectResponse

@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Package extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'description', 'price', 'pax', 'status', 'image_path'
+        'user_id', 'name', 'description', 'price', 'pax', 'status', 'image_path', 'dietary_tags'
+    ];
+
+    protected $casts = [
+        'dietary_tags' => 'array',
     ];
 
     public function items()
@@ -51,5 +55,34 @@ class Package extends Model
     public function scopeInactive($query)
     {
         return $query->where('status', 'inactive');
+    }
+
+    /**
+     * Check if package has a specific dietary tag
+     */
+    public function hasDietaryTag(string $tag): bool
+    {
+        return in_array($tag, (array) ($this->dietary_tags ?? []), true);
+    }
+
+    /**
+     * Get dietary tags as human-readable labels
+     */
+    public function getDietaryLabelsAttribute(): array
+    {
+        $labels = [
+            'no_pork'      => 'No Pork',
+            'vegetarian'   => 'Vegetarian',
+            'vegan'        => 'Vegan',
+            'halal'        => 'Halal',
+            'gluten_free'  => 'Gluten-Free',
+            'dairy_free'   => 'Dairy-Free',
+            'seafood_free' => 'Seafood-Free',
+        ];
+
+        return array_values(array_map(
+            fn ($key) => $labels[$key] ?? ucfirst(str_replace('_', ' ', $key)),
+            (array) ($this->dietary_tags ?? [])
+        ));
     }
 }
