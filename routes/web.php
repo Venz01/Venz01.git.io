@@ -138,11 +138,20 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     // Main caterer pages
     Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
     
-    // Calendar and Availability
+    // ✅ FIXED: Calendar and Availability Routes - Removed duplication and clarified purposes
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
-    Route::post('/calendar/block-date', [CatererController::class, 'toggleAvailability'])->name('calendar.block-date');
+    
+    // Single date toggle (block/unblock)
     Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
+    
+    // Block date range
     Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
+    
+    // ✅ NEW: Unblock date range
+    Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])->name('availability.unblock-range');
+    
+    // ✅ NEW: Clear all blocked dates
+    Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])->name('availability.clear-all');
     
     // Bookings
     Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');

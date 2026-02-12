@@ -446,6 +446,56 @@ class CatererController extends Controller
         return view('caterer.calendar', compact('allEvents'));
     }
 
+    public function unblockDateRange(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $catererId = auth()->id();
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+        
+        // Unblock all dates in range
+        $unblocked = CatererAvailability::where('caterer_id', $catererId)
+            ->where('status', 'blocked')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->delete();
+        
+        if ($unblocked > 0) {
+            return back()->with('success', "Successfully unblocked {$unblocked} date(s).");
+        } else {
+            return back()->with('info', 'No blocked dates found in the selected range.');
+        }
+    }
+
+    public function clearAllBlocked(Request $request)
+    {
+        $catererId = auth()->id();
+        
+        // Optional: only clear future dates
+        $clearFutureOnly = $request->input('future_only', true);
+        
+        $query = CatererAvailability::where('caterer_id', $catererId)
+            ->where('status', 'blocked');
+            
+        if ($clearFutureOnly) {
+            $query->where('date', '>=', now()->toDateString());
+        }
+        
+        $cleared = $query->delete();
+        
+        if ($cleared > 0) {
+            $message = $clearFutureOnly 
+                ? "Successfully cleared {$cleared} future blocked date(s)."
+                : "Successfully cleared all {$cleared} blocked date(s).";
+            return back()->with('success', $message);
+        } else {
+            return back()->with('info', 'No blocked dates to clear.');
+        }
+    }
+
 
     /**
      * Block/unblock a date
@@ -454,38 +504,61 @@ class CatererController extends Controller
     {
         $request->validate([
             'date' => 'required|date|after_or_equal:today',
-            'status' => 'required|in:available,blocked',
+            'action' => 'required|in:block,unblock', // Changed from 'status' to 'action' for clarity
             'notes' => 'nullable|string|max:500'
         ]);
 
         $catererId = auth()->id();
+        $date = $request->date;
+        $action = $request->action;
         
-        // Check if date has confirmed bookings
+        // Check if date has confirmed bookings or orders
         $hasBooking = Booking::where('caterer_id', $catererId)
-            ->where('event_date', $request->date)
+            ->where('event_date', $date)
             ->whereIn('booking_status', ['confirmed', 'pending'])
             ->exists();
+            
+        $hasOrder = Order::where('caterer_id', $catererId)
+            ->where('fulfillment_date', $date)
+            ->whereIn('order_status', ['confirmed', 'pending', 'preparing', 'ready'])
+            ->exists();
         
-        if ($hasBooking && $request->status === 'blocked') {
-            return back()->with('error', 'Cannot block a date with existing bookings.');
+        if (($hasBooking || $hasOrder) && $action === 'block') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot block a date with existing bookings or orders.'
+            ], 400);
         }
         
-        CatererAvailability::updateOrCreate(
-            [
-                'caterer_id' => $catererId,
-                'date' => $request->date
-            ],
-            [
-                'status' => $request->status,
-                'notes' => $request->notes
-            ]
-        );
-        
-        $message = $request->status === 'blocked' 
-            ? 'Date blocked successfully.' 
-            : 'Date unblocked successfully.';
-        
-        return back()->with('success', $message);
+        if ($action === 'block') {
+            // Block the date
+            CatererAvailability::updateOrCreate(
+                [
+                    'caterer_id' => $catererId,
+                    'date' => $date
+                ],
+                [
+                    'status' => 'blocked',
+                    'notes' => $request->notes
+                ]
+            );
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Date blocked successfully.'
+            ]);
+        } else {
+            // Unblock the date
+            CatererAvailability::where('caterer_id', $catererId)
+                ->where('date', $date)
+                ->where('status', 'blocked')
+                ->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Date unblocked successfully.'
+            ]);
+        }
     }
 
     /**
@@ -508,9 +581,14 @@ class CatererController extends Controller
             ->whereBetween('event_date', [$startDate, $endDate])
             ->whereIn('booking_status', ['confirmed', 'pending'])
             ->exists();
+            
+        $hasOrders = Order::where('caterer_id', $catererId)
+            ->whereBetween('fulfillment_date', [$startDate, $endDate])
+            ->whereIn('order_status', ['confirmed', 'pending', 'preparing', 'ready'])
+            ->exists();
         
-        if ($hasBookings) {
-            return back()->with('error', 'Cannot block dates with existing bookings in the selected range.');
+        if ($hasBookings || $hasOrders) {
+            return back()->with('error', 'Cannot block dates with existing bookings or orders in the selected range.');
         }
         
         // Block all dates in range
@@ -533,7 +611,7 @@ class CatererController extends Controller
         }
         
         return back()->with('success', "Successfully blocked {$blocked} date(s).");
-    }
+    }   
 
     public function bookings(Request $request)
     {

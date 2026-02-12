@@ -9,13 +9,29 @@
                     Manage your bookings, orders, and availability in one place
                 </p>
             </div>
-            <button onclick="toggleBlockModal()" 
-                    class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                </svg>
-                Block Date
-            </button>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="toggleBlockModal()" 
+                        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                    Block Date
+                </button>
+                <button onclick="toggleRangeModal()" 
+                        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Manage Ranges
+                </button>
+                <button onclick="confirmClearAll()" 
+                        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Clear All Blocks
+                </button>
+            </div>
         </div>
     </x-slot>
 
@@ -128,74 +144,61 @@
                                 <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                Event Calendar
+                                Your Schedule
                             </h3>
-                            <p class="text-indigo-100 text-xs sm:text-sm mt-1">
-                                Click on any event to view details
-                            </p>
+                            <p class="text-indigo-100 text-sm mt-1">View and manage all your bookings, orders, and blocked dates</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Legend Section -->
-                <div class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 py-3 sm:py-4">
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-                        Legend
-                    </p>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <!-- Event Booking Legend -->
-                        <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-blue-200 dark:border-blue-900">
-                            <div class="flex-shrink-0">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: #3B82F6;">
-                                    <span class="text-xl">🎉</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-sm text-gray-800 dark:text-gray-200">Event Booking</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Full catering service</p>
-                            </div>
-                        </div>
-
-                        <!-- Menu Order Legend -->
-                        <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-green-200 dark:border-green-900">
-                            <div class="flex-shrink-0">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: #10B981;">
-                                    <span class="text-xl">📦</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-sm text-gray-800 dark:text-gray-200">Menu Order</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Pickup/Delivery order</p>
-                            </div>
-                        </div>
-
-                        <!-- Blocked Date Legend -->
-                        <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-red-200 dark:border-red-900">
-                            <div class="flex-shrink-0">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600">
-                                    <span class="text-xl">🚫</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-sm text-gray-800 dark:text-gray-200">Blocked Date</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Unavailable for bookings</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Calendar Container -->
+                <!-- Calendar Body -->
                 <div class="p-4 sm:p-6">
-                    <div id="calendar" class="calendar-responsive"></div>
+                    <div id='calendar' class="dark:text-gray-100"></div>
                 </div>
             </div>
 
-            <!-- Quick Tips Card -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-gray-700 rounded-xl p-4 sm:p-6">
-                <div class="flex items-start gap-3">
+            <!-- Legend Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                <h4 class="font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Color Legend
+                </h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-yellow-500"></div>
+                        <span class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Pending</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-blue-500"></div>
+                        <span class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Confirmed</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-green-500"></div>
+                        <span class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Completed</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-red-500"></div>
+                        <span class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Cancelled</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-purple-500"></div>
+                        <span class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Orders</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-red-600"></div>
+                        <span class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Blocked (click to unblock)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-gray-600">
+                <div class="flex gap-4">
                     <div class="flex-shrink-0">
-                        <div class="bg-blue-500 rounded-full p-2">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
@@ -205,19 +208,19 @@
                         <ul class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-500 mt-0.5">•</span>
-                                <span>Click any event on the calendar to view full details</span>
+                                <span><strong>Click any event</strong> on the calendar to view full details</span>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-500 mt-0.5">•</span>
-                                <span>Use the "Block Date" button to mark days when you're unavailable</span>
+                                <span><strong>Click on blocked dates</strong> (red background) to quickly unblock them</span>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-500 mt-0.5">•</span>
-                                <span>Switch between Month, Week, and List views using the buttons in the top-right</span>
+                                <span>Use <strong>"Manage Ranges"</strong> to block or unblock multiple dates at once</span>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-500 mt-0.5">•</span>
-                                <span>Blue events are catering bookings, green events are menu orders</span>
+                                <span>Use <strong>"Clear All Blocks"</strong> to remove all blocked dates instantly</span>
                             </li>
                         </ul>
                     </div>
@@ -226,7 +229,7 @@
         </div>
     </div>
 
-    <!-- Enhanced Block Date Modal -->
+    <!-- Block Single Date Modal -->
     <div id="blockDateModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-95 modal-content">
             <!-- Modal Header -->
@@ -246,13 +249,12 @@
                         </svg>
                     </button>
                 </div>
-                <p class="text-red-100 text-sm mt-2">Mark dates when you're unavailable for new bookings</p>
+                <p class="text-red-100 text-sm mt-2">Mark a date when you're unavailable for new bookings</p>
             </div>
             
             <!-- Modal Body -->
-            <form action="{{ route('caterer.calendar.block-date') }}" method="POST" class="p-6">
+            <form id="blockDateForm" class="p-6">
                 @csrf
-                <input type="hidden" name="status" value="blocked">
                 
                 <div class="space-y-5">
                     <!-- Date Selection -->
@@ -318,13 +320,111 @@
         </div>
     </div>
 
+    <!-- Manage Date Ranges Modal -->
+    <div id="rangeModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-5 rounded-t-2xl">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white bg-opacity-20 p-2 rounded-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Manage Date Ranges</h3>
+                    </div>
+                    <button onclick="toggleRangeModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-purple-100 text-sm mt-2">Block or unblock multiple dates at once</p>
+            </div>
+            
+            <!-- Modal Body with Tabs -->
+            <div class="p-6">
+                <!-- Tab Buttons -->
+                <div class="flex gap-2 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                    <button onclick="switchRangeTab('block')" id="blockTab" class="flex-1 px-4 py-2 rounded-md font-medium transition-all duration-200 bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm">
+                        Block Range
+                    </button>
+                    <button onclick="switchRangeTab('unblock')" id="unblockTab" class="flex-1 px-4 py-2 rounded-md font-medium transition-all duration-200 text-gray-600 dark:text-gray-300">
+                        Unblock Range
+                    </button>
+                </div>
+
+                <!-- Block Range Form -->
+                <form id="blockRangeForm" action="{{ route('caterer.availability.block-range') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+                        <input type="date" 
+                               name="start_date" 
+                               required
+                               min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
+                               class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+                        <input type="date" 
+                               name="end_date" 
+                               required
+                               min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
+                               class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Reason (Optional)</label>
+                        <textarea name="notes" 
+                                  rows="2"
+                                  class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-gray-100 resize-none"
+                                  placeholder="E.g., Holiday period, Renovation..."></textarea>
+                    </div>
+                    <button type="submit"
+                            class="w-full px-5 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                        Block Date Range
+                    </button>
+                </form>
+
+                <!-- Unblock Range Form -->
+                <form id="unblockRangeForm" action="{{ route('caterer.availability.unblock-range') }}" method="POST" class="space-y-4 hidden">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+                        <input type="date" 
+                               name="start_date" 
+                               required
+                               class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+                        <input type="date" 
+                               name="end_date" 
+                               required
+                               class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+                    <button type="submit"
+                            class="w-full px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Unblock Date Range
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- FullCalendar CSS & JS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Custom CSS for Calendar Responsiveness -->
     <style>
-        /* Make calendar more responsive */
         @media (max-width: 640px) {
             .fc .fc-toolbar {
                 flex-direction: column;
@@ -344,17 +444,8 @@
                 padding: 0.4rem 0.6rem !important;
                 font-size: 0.875rem !important;
             }
-            
-            .fc-daygrid-day-number {
-                font-size: 0.875rem !important;
-            }
-            
-            .fc-event {
-                font-size: 0.75rem !important;
-            }
         }
 
-        /* Enhanced calendar styling */
         .fc {
             background: transparent;
         }
@@ -400,35 +491,14 @@
             background-color: #4338CA !important;
             border-color: #4338CA !important;
         }
-        
-        .fc-button-primary:not(:disabled).fc-button-active {
-            background-color: #3730A3 !important;
-            border-color: #3730A3 !important;
+
+        /* Make blocked dates more obvious with cursor */
+        .fc-daygrid-day.blocked-date {
+            cursor: pointer !important;
         }
 
-        /* Modal animation */
-        #blockDateModal.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        #blockDateModal {
-            opacity: 1;
-        }
-        
-        .modal-content {
-            animation: modalSlideIn 0.3s ease-out;
-        }
-        
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        .fc-daygrid-day.blocked-date:hover {
+            opacity: 0.8 !important;
         }
     </style>
 
@@ -436,53 +506,258 @@
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             
-            var events = {!! json_encode($allEvents) !!};
+            var events = @json($allEvents);
             
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: window.innerWidth < 768 ? 'listMonth' : 'dayGridMonth',
+                initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: window.innerWidth < 640 ? 'dayGridMonth,listMonth' : 'dayGridMonth,timeGridWeek,listMonth'
+                    right: 'dayGridMonth,timeGridWeek,listMonth'
                 },
                 events: events,
                 eventClick: function(info) {
-                    showEventDetails(info.event);
+                    const props = info.event.extendedProps;
+                    
+                    if (props.type === 'booking' || props.type === 'order') {
+                        showEventDetails(info.event);
+                    }
+                },
+                dateClick: function(info) {
+                    // ✅ NEW: Click on blocked dates to unblock them
+                    const clickedDate = info.dateStr;
+                    const blockedEvent = events.find(e => 
+                        e.type === 'blocked' && e.start === clickedDate
+                    );
+                    
+                    if (blockedEvent) {
+                        confirmUnblockDate(clickedDate);
+                    }
+                },
+                dayCellDidMount: function(info) {
+                    // Add visual indicator for blocked dates
+                    const dateStr = info.date.toISOString().split('T')[0];
+                    const isBlocked = events.some(e => 
+                        e.type === 'blocked' && e.start === dateStr
+                    );
+                    
+                    if (isBlocked) {
+                        info.el.classList.add('blocked-date');
+                        info.el.style.cursor = 'pointer';
+                        info.el.title = 'Click to unblock this date';
+                    }
                 },
                 height: 'auto',
-                eventDisplay: 'block',
-                displayEventTime: false,
-                windowResize: function(view) {
-                    if (window.innerWidth < 768 && calendar.view.type !== 'listMonth') {
-                        calendar.changeView('listMonth');
-                    }
-                },
-                eventDidMount: function(info) {
-                    info.el.setAttribute('title', info.event.title);
-                    
-                    if (info.event.extendedProps.type === 'booking') {
-                        const icon = document.createElement('span');
-                        icon.innerHTML = '🎉 ';
-                        icon.style.marginRight = '4px';
-                        const titleEl = info.el.querySelector('.fc-event-title');
-                        if (titleEl) titleEl.prepend(icon);
-                    } else if (info.event.extendedProps.type === 'order') {
-                        const icon = document.createElement('span');
-                        icon.innerHTML = '📦 ';
-                        icon.style.marginRight = '4px';
-                        const titleEl = info.el.querySelector('.fc-event-title');
-                        if (titleEl) titleEl.prepend(icon);
-                    }
-                }
+                contentHeight: 'auto',
+                aspectRatio: 1.8
             });
             
             calendar.render();
         });
 
+        // ✅ NEW: Confirm and unblock a date via AJAX
+        function confirmUnblockDate(date) {
+            Swal.fire({
+                title: 'Unblock Date?',
+                html: `Do you want to unblock <strong>${new Date(date).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}</strong>?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Unblock It',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    unblockDate(date);
+                }
+            });
+        }
+
+        // ✅ NEW: Unblock date via AJAX
+        function unblockDate(date) {
+            fetch('{{ route("caterer.availability.toggle") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    date: date,
+                    action: 'unblock'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Date Unblocked!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.'
+                });
+            });
+        }
+
+        // Block single date form submission via AJAX
+        document.getElementById('blockDateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const date = formData.get('date');
+            const notes = formData.get('notes');
+            
+            fetch('{{ route("caterer.availability.toggle") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    date: date,
+                    action: 'block',
+                    notes: notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toggleBlockModal();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Date Blocked!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.'
+                });
+            });
+        });
+
+        // ✅ NEW: Clear all blocked dates
+        function confirmClearAll() {
+            Swal.fire({
+                title: 'Clear All Blocked Dates?',
+                text: 'This will remove all your currently blocked dates. This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Clear All',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Submit form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ route("caterer.availability.clear-all") }}';
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function toggleBlockModal() {
+            const modal = document.getElementById('blockDateModal');
+            modal.classList.toggle('hidden');
+            
+            if (modal.classList.contains('hidden')) {
+                document.getElementById('blockDate').value = '';
+                document.querySelector('#blockDateForm textarea[name="notes"]').value = '';
+            }
+        }
+
+        function toggleRangeModal() {
+            const modal = document.getElementById('rangeModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // ✅ NEW: Switch between block and unblock tabs in range modal
+        function switchRangeTab(tab) {
+            const blockTab = document.getElementById('blockTab');
+            const unblockTab = document.getElementById('unblockTab');
+            const blockForm = document.getElementById('blockRangeForm');
+            const unblockForm = document.getElementById('unblockRangeForm');
+
+            if (tab === 'block') {
+                blockTab.classList.add('bg-white', 'dark:bg-gray-600', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+                blockTab.classList.remove('text-gray-600', 'dark:text-gray-300');
+                unblockTab.classList.remove('bg-white', 'dark:bg-gray-600', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+                unblockTab.classList.add('text-gray-600', 'dark:text-gray-300');
+                
+                blockForm.classList.remove('hidden');
+                unblockForm.classList.add('hidden');
+            } else {
+                unblockTab.classList.add('bg-white', 'dark:bg-gray-600', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+                unblockTab.classList.remove('text-gray-600', 'dark:text-gray-300');
+                blockTab.classList.remove('bg-white', 'dark:bg-gray-600', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+                blockTab.classList.add('text-gray-600', 'dark:text-gray-300');
+                
+                unblockForm.classList.remove('hidden');
+                blockForm.classList.add('hidden');
+            }
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('blockDateModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleBlockModal();
+            }
+        });
+
+        document.getElementById('rangeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleRangeModal();
+            }
+        });
+
         function showEventDetails(event) {
             const props = event.extendedProps;
-            
             let details = '';
+            
             if (props.type === 'booking') {
                 details = `
                     <div class="text-left space-y-3 p-2">
@@ -491,7 +766,7 @@
                                 <span class="text-3xl">🎉</span>
                             </div>
                             <div>
-                                <h4 class="text-xl font-bold text-gray-900">Event Booking</h4>
+                                <h4 class="text-xl font-bold text-gray-900">Catering Booking</h4>
                                 <p class="text-sm text-gray-500">${event.title}</p>
                             </div>
                         </div>
@@ -505,12 +780,6 @@
                             <div class="flex items-center gap-2">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                </svg>
-                                <span class="text-gray-700"><strong>Event Type:</strong> ${props.event_type}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                 </svg>
                                 <span class="text-gray-700"><strong>Guests:</strong> ${props.guests}</span>
                             </div>
@@ -592,23 +861,6 @@
                         </div>
                     </div>
                 `;
-            } else if (props.type === 'blocked') {
-                details = `
-                    <div class="text-left space-y-3 p-2">
-                        <div class="flex items-center gap-3 pb-3 border-b">
-                            <div class="bg-red-100 p-3 rounded-lg">
-                                <span class="text-3xl">🚫</span>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-gray-900">Blocked Date</h4>
-                                <p class="text-sm text-gray-500">Unavailable for bookings</p>
-                            </div>
-                        </div>
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-                            <p class="text-red-700 font-medium">This date is blocked and unavailable for new bookings or orders.</p>
-                        </div>
-                    </div>
-                `;
             }
             
             Swal.fire({
@@ -653,26 +905,5 @@
             };
             return classes[status] || 'bg-gray-100 text-gray-800 border border-gray-300';
         }
-
-        function toggleBlockModal() {
-            const modal = document.getElementById('blockDateModal');
-            modal.classList.toggle('hidden');
-            
-            // Reset form when closing
-            if (modal.classList.contains('hidden')) {
-                document.getElementById('blockDate').value = '';
-                document.querySelector('textarea[name="notes"]').value = '';
-            }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('blockDateModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                toggleBlockModal();
-            }
-        });
     </script>
-
-    <!-- SweetAlert for event details popup -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </x-app-layout>
