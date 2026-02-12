@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Menu Items & Packages') }}
+            {{ __('Menu Management') }}
         </h2>
     </x-slot>
 
@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <!-- ✅ CONFIRMATION MODAL -->
+        <!-- Confirmation Modal -->
         <div x-show="confirmModal.show" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
@@ -82,145 +82,471 @@
             </div>
         </div>
 
-        <!-- Top Actions -->
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <button @click="openModal('categoryModal')"
-                    class="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Add Category</span>
-                </button>
-                <button @click="openModal('packageModal')"
-                    class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Create Package</span>
+        <!-- TAB NAVIGATION -->
+        <div class="border-b border-gray-200 dark:border-gray-700">
+            <nav class="flex space-x-8" aria-label="Tabs">
+                <button @click="activeTab = 'packages'" 
+                    :class="activeTab === 'packages' ? 
+                        'border-purple-500 text-purple-600 dark:text-purple-400' : 
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Packages & Menu Items
                 </button>
 
-                <!-- 🆕 BULK SELECT TOGGLE BUTTON -->
-                <button @click="toggleBulkMode()"
-                    :class="bulkMode ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'"
-                    class="text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    <span x-text="bulkMode ? 'Exit Bulk Select' : 'Bulk Select'"></span>
+                <button @click="activeTab = 'display'" 
+                    :class="activeTab === 'display' ? 
+                        'border-purple-500 text-purple-600 dark:text-purple-400' : 
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Customer Display Menus
                 </button>
-            </div>
-
-            <!-- Filter -->
-            <div class="w-full lg:w-auto">
-                <select x-model="selectedCategory"
-                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="all">All Categories</option>
-                    @foreach($categories as $category)
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+            </nav>
         </div>
 
-        <!-- 🆕 BULK ACTION BAR (shows when items are selected) -->
-        <div x-show="bulkMode && (selectedCategories.length > 0 || selectedItems.length > 0)"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 transform -translate-y-2"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 sticky top-4 z-40">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
-                <!-- Selection Info -->
-                <div class="flex items-center gap-3 sm:gap-4 text-white w-full md:w-auto">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clip-rule="evenodd" />
+        <!-- PACKAGES TAB CONTENT -->
+        <div x-show="activeTab === 'packages'" x-transition class="space-y-6">
+            
+            <!-- Top Actions for Packages Tab -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button @click="openModal('categoryModal')"
+                        class="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        <span class="font-semibold text-sm sm:text-base">
-                            <span x-text="selectedCategories.length + selectedItems.length"></span> selected
-                        </span>
-                    </div>
-                    <span class="text-purple-200 text-xs sm:text-sm">
-                        (<span x-text="selectedCategories.length"></span> categories,
-                        <span x-text="selectedItems.length"></span> items)
-                    </span>
-                </div>
-
-                <!-- Bulk Actions -->
-                <div class="flex gap-2 flex-wrap w-full md:w-auto">
-                    <!-- Deselect All -->
-                    <button @click="clearAllSelections()"
-                        class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium">
-                        Clear All
+                        <span>Add Category</span>
+                    </button>
+                    <button @click="openModal('packageModal')"
+                        class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Create Package</span>
                     </button>
 
-                    <!-- Change Status Dropdown -->
-                    <div class="relative" x-data="{ showStatusMenu: false }">
-                        <button @click="showStatusMenu = !showStatusMenu" :disabled="selectedItems.length === 0"
-                            :class="selectedItems.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/30'"
-                            class="px-3 sm:px-4 py-1.5 bg-white/20 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <!-- BULK SELECT TOGGLE BUTTON -->
+                    <button @click="toggleBulkMode()"
+                        :class="bulkMode ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'"
+                        class="text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <span x-text="bulkMode ? 'Exit Bulk Select' : 'Bulk Select'"></span>
+                    </button>
+                </div>
+
+                <!-- Filter -->
+                <div class="w-full lg:w-auto">
+                    <select x-model="selectedCategory"
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="all">All Categories</option>
+                        @foreach($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- BULK ACTION BAR -->
+            <div x-show="bulkMode && (selectedCategories.length > 0 || selectedItems.length > 0)"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 transform -translate-y-2"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 sticky top-4 z-40">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
+                    <!-- Selection Info -->
+                    <div class="flex items-center gap-3 sm:gap-4 text-white w-full md:w-auto">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span class="font-semibold text-sm sm:text-base">
+                                <span x-text="selectedCategories.length + selectedItems.length"></span> selected
+                            </span>
+                        </div>
+                        <span class="text-purple-200 text-xs sm:text-sm">
+                            (<span x-text="selectedCategories.length"></span> categories,
+                            <span x-text="selectedItems.length"></span> items)
+                        </span>
+                    </div>
+
+                    <!-- Bulk Actions -->
+                    <div class="flex gap-2 flex-wrap w-full md:w-auto">
+                        <button @click="clearAllSelections()"
+                            class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium">
+                            Clear All
+                        </button>
+
+                        <!-- Change Status Dropdown -->
+                        <div class="relative" x-data="{ showStatusMenu: false }">
+                            <button @click="showStatusMenu = !showStatusMenu" :disabled="selectedItems.length === 0"
+                                :class="selectedItems.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/30'"
+                                class="px-3 sm:px-4 py-1.5 bg-white/20 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                                <span class="hidden sm:inline">Change Status</span>
+                                <span class="sm:hidden">Status</span>
+                            </button>
+                            <div x-show="showStatusMenu" @click.away="showStatusMenu = false" x-transition
+                                class="absolute right-0 mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+                                <button @click="bulkChangeStatus('available'); showStatusMenu = false"
+                                    class="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2 text-xs sm:text-sm">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Set as Available
+                                </button>
+                                <button @click="bulkChangeStatus('unavailable'); showStatusMenu = false"
+                                    class="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2 text-xs sm:text-sm">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                    Set as Unavailable
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Delete -->
+                        <button @click="bulkDelete()"
+                            class="px-3 sm:px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            <span class="hidden sm:inline">Change Status</span>
-                            <span class="sm:hidden">Status</span>
+                            <span class="hidden sm:inline">Delete Selected</span>
+                            <span class="sm:hidden">Delete</span>
                         </button>
-                        <div x-show="showStatusMenu" @click.away="showStatusMenu = false" x-transition
-                            class="absolute right-0 mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
-                            <button @click="bulkChangeStatus('available'); showStatusMenu = false"
-                                class="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2 text-xs sm:text-sm">
-                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                                Set as Available
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- CATEGORIES SECTION — NOW WITH COLLAPSIBLE TOGGLE             -->
+            <!-- ============================================================ -->
+            @foreach($categories as $category)
+            <div x-show="selectedCategory === 'all' || selectedCategory == '{{ $category->id }}'"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 transform translate-y-2"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                x-data="{ collapsed: false }"
+                class="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+
+                <!-- Category Header -->
+                <div class="p-4 sm:p-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+
+                        <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto min-w-0 flex-1">
+                            <!-- CATEGORY CHECKBOX (bulk mode) -->
+                            <div x-show="bulkMode" x-transition class="flex items-center flex-shrink-0">
+                                <input type="checkbox" :checked="selectedCategories.includes({{ $category->id }})"
+                                    @change="toggleCategorySelection({{ $category->id }})"
+                                    class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
+                            </div>
+
+                            <!-- Collapse Toggle Button (wraps icon + title) -->
+                            <button type="button"
+                                @click="collapsed = !collapsed"
+                                class="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1 text-left">
+
+                                <!-- Chevron Icon -->
+                                <span class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                                    <svg class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform duration-200"
+                                        :class="collapsed ? '-rotate-90' : 'rotate-0'"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </span>
+
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                                        {{ $category->name }}
+                                        <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-normal ml-1.5">
+                                            ({{ $category->items->count() }} items)
+                                        </span>
+                                    </h3>
+                                    @if($category->description)
+                                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                                        {{ $category->description }}
+                                    </p>
+                                    @endif
+                                </div>
                             </button>
-                            <button @click="bulkChangeStatus('unavailable'); showStatusMenu = false"
-                                class="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2 text-xs sm:text-sm">
-                                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-                                Set as Unavailable
+                        </div>
+
+                        <!-- Action Buttons (Edit / Delete / Add Item) -->
+                        <div x-show="!bulkMode" class="flex gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto justify-end flex-shrink-0">
+                            <button type="button"
+                                @click.stop="openEditCategoryModal({{ $category->id }}, '{{ addslashes($category->name) }}', '{{ addslashes($category->description ?? '') }}')"
+                                class="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <span class="hidden xs:inline">Edit</span>
+                            </button>
+
+                            <button type="button"
+                                @click.stop="showDeleteConfirm('{{ route('caterer.categories.destroy', $category->id) }}', 'category', '{{ addslashes($category->name) }}', {{ $category->items->count() }})"
+                                class="flex items-center gap-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span class="hidden xs:inline">Delete</span>
+                            </button>
+
+                            <button type="button" @click.stop="openItemModal({{ $category->id }})"
+                                class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors font-medium flex items-center gap-1">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span class="hidden sm:inline">Add Item</span>
+                                <span class="sm:hidden">Add</span>
                             </button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Bulk Delete -->
-                    <button @click="bulkDelete()"
-                        class="px-3 sm:px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Items List — Collapsible -->
+                <div x-show="!collapsed"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 -translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 -translate-y-1"
+                    class="border-t border-gray-100 dark:border-gray-700 px-4 sm:px-6 pb-4 sm:pb-6 pt-4 space-y-3 sm:space-y-4">
+
+                    @forelse($category->items as $item)
+                    <div class="flex flex-col xs:flex-row items-start gap-3 sm:gap-4 border-b border-gray-100 dark:border-gray-700 pb-3 sm:pb-4 last:border-b-0 rounded-lg transition-all"
+                        :class="selectedItems.includes({{ $item->id }}) ? 'bg-purple-50 dark:bg-purple-900/10 border-l-4 border-l-purple-500 pl-2' : ''">
+
+                        <div class="flex items-start gap-3 w-full xs:w-auto xs:flex-shrink-0">
+                            <!-- ITEM CHECKBOX (bulk mode) -->
+                            <div x-show="bulkMode" x-transition class="flex-shrink-0 pt-1">
+                                <input type="checkbox" :checked="selectedItems.includes({{ $item->id }})"
+                                    @change="toggleItemSelection({{ $item->id }})"
+                                    class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
+                            </div>
+
+                            <!-- Image -->
+                            @if($item->image_path)
+                            <img src="{{ $item->image_path }}"
+                                class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600 shadow-sm flex-shrink-0"
+                                alt="{{ $item->name }}">
+                            @else
+                            <div
+                                class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg text-xs text-gray-500 dark:text-gray-400 font-medium shadow-sm flex-shrink-0">
+                                No Image
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- Details -->
+                        <div class="flex-1 min-w-0 w-full xs:w-auto">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <h4 class="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-200">
+                                    {{ $item->name }}</h4>
+                                <span
+                                    class="px-2 sm:px-2.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap {{ $item->status === 'available' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' }}">
+                                    {{ ucfirst($item->status) }}
+                                </span>
+                            </div>
+
+                            @if($item->description)
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                {{ $item->description }}</p>
+                            @endif
+
+                            <p class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100">
+                                ₱{{ number_format($item->price, 2) }}<span
+                                    class="text-xs font-normal text-gray-500 dark:text-gray-400">/serving</span>
+                            </p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div x-show="!bulkMode"
+                            class="flex gap-2 flex-shrink-0 w-full xs:w-auto justify-end xs:justify-start">
+                            <button type="button"
+                                @click="openEditItemModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->description ?? '') }}', {{ $item->price }}, '{{ $item->status }}')"
+                                class="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                title="Edit item">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+
+                            <button type="button"
+                                @click="showDeleteConfirm('{{ route('caterer.menu-items.destroy', $item->id) }}', 'item', '{{ addslashes($item->name) }}')"
+                                class="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                title="Delete item">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center py-6 sm:py-8">
+                        <svg class="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 dark:text-gray-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                         </svg>
-                        <span class="hidden sm:inline">Delete Selected</span>
-                        <span class="sm:hidden">Delete</span>
-                    </button>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">No items in this category yet.</p>
+                        <button @click="openItemModal({{ $category->id }})"
+                            class="mt-3 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
+                            + Add your first item
+                        </button>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+            @endforeach
+
+            <!-- Packages Section -->
+            <div class="mt-8 sm:mt-12">
+                <div class="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 mb-4 sm:mb-6">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200">Packages</h2>
+                    <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ $packages->count() }} total
+                        packages</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    @forelse($packages as $package)
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+                        <!-- Package Image -->
+                        @if($package->image_path)
+                        <img src="{{ $package->image_path }}" class="h-40 sm:h-48 w-full object-cover"
+                            alt="{{ $package->name }}">
+                        @else
+                        <div
+                            class="h-40 sm:h-48 w-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">
+                            <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-500" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                        </div>
+                        @endif
+
+                        <!-- Package Content -->
+                        <div class="p-4 sm:p-5">
+                            <div class="flex justify-between items-start gap-2 mb-2">
+                                <h3
+                                    class="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200 leading-tight line-clamp-1 flex-1">
+                                    {{ $package->name }}
+                                </h3>
+                                <span
+                                    class="px-2 sm:px-2.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap {{ $package->status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' }}">
+                                    {{ ucfirst($package->status) }}
+                                </span>
+                            </div>
+
+                            @if($package->description)
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                {{ $package->description }}
+                            </p>
+                            @endif
+
+                            <div class="space-y-1.5 mb-4">
+                                <p class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                                    ₱{{ number_format($package->price, 2) }}
+                                    <span class="text-xs sm:text-sm font-normal text-gray-500 dark:text-gray-400">per
+                                        head</span>
+                                </p>
+                                <div
+                                    class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <strong>{{ $package->pax }}</strong> guests
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        <strong>{{ $package->items->count() }}</strong> items
+                                    </span>
+                                </div>
+                                <p class="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                    Total: ₱{{ number_format($package->price * $package->pax, 2) }}
+                                </p>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <button type="button"
+                                    @click="openEditPackageModal({{ $package->id }}, '{{ addslashes($package->name) }}', '{{ addslashes($package->description ?? '') }}', {{ $package->pax }})"
+                                    class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium text-xs sm:text-sm transition-colors">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit
+                                </button>
+
+                                <button type="button"
+                                    @click="showDeleteConfirm('{{ route('caterer.packages.destroy', $package->id) }}', 'package', '{{ addslashes($package->name) }}')"
+                                    class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 font-medium text-xs sm:text-sm transition-colors">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div
+                        class="col-span-full text-center py-12 sm:py-16 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+                        <svg class="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 dark:text-gray-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-300">No packages yet</h3>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first package.
+                        </p>
+                        <button @click="openModal('packageModal')"
+                            class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Create Package
+                        </button>
+                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
 
-        <div
-            class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 sm:p-6 border-2 border-purple-200 dark:border-purple-700">
-            <div class="flex items-start gap-3 mb-4">
-                <div class="flex-shrink-0">
-                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-2">Display Menu for
-                        Customers</h3>
-                    <p class="text-sm text-purple-700 dark:text-purple-300">
-                        <strong>Note:</strong> Menus added here will be displayed on your caterer profile for customers
-                        to view.
-                        This is different from menu items used in packages. Use the "Add Display Menu" button above to
-                        showcase your offerings to potential customers.
+        <!-- DISPLAY MENUS TAB CONTENT -->
+        <div x-show="activeTab === 'display'" x-transition class="space-y-6">
+            
+            <!-- Display Menu Header with Add Button -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Customer Display Menus</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Menus shown to customers on your profile page (separate from package items)
                     </p>
                 </div>
-                <button type="button" onclick="openDisplayMenuModal()"
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button type="button" @click="openDisplayMenuModal()"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Add Display Menu
@@ -228,58 +554,70 @@
             </div>
 
             @if(isset($displayMenus) && $displayMenus->count() > 0)
-            <div class="space-y-4 mt-4">
+            <div class="space-y-6">
                 @foreach($displayMenus as $category => $menus)
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-                    <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                             <path
                                 d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z">
                             </path>
                         </svg>
                         {{ $category }}
-                    </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 font-normal">({{ count($menus) }} items)</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($menus as $menu)
-                        <div class="border dark:border-gray-700 rounded-lg p-3 hover:shadow-md transition-shadow">
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                             @if($menu->image_path)
                             <img src="{{ $menu->image_path }}" alt="{{ $menu->name }}"
-                                class="w-full h-32 object-cover rounded-lg mb-2">
+                                class="w-full h-40 object-cover">
+                            @else
+                            <div class="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
                             @endif
-                            <h5 class="font-medium text-gray-900 dark:text-gray-100">{{ $menu->name }}</h5>
-                            @if($menu->description)
-                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                {{ Str::limit($menu->description, 60) }}</p>
-                            @endif
-                            @if($menu->price)
-                            <p class="text-sm font-semibold text-purple-600 dark:text-purple-400 mt-2">
-                                ₱{{ number_format($menu->price, 2) }}</p>
-                            @endif
-                            <div class="flex items-center justify-between mt-2">
-                                <span
-                                    class="text-xs px-2 py-1 rounded-full {{ $menu->status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' }}">
-                                    {{ ucfirst($menu->status) }}
-                                </span>
-                                <div class="flex gap-1">
+                            <div class="p-4">
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 flex-1">{{ $menu->name }}</h4>
+                                    <span
+                                        class="text-xs px-2 py-1 rounded-full flex-shrink-0 {{ $menu->status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' }}">
+                                        {{ ucfirst($menu->status) }}
+                                    </span>
+                                </div>
+                                @if($menu->description)
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                    {{ $menu->description }}
+                                </p>
+                                @endif
+                                @if($menu->price)
+                                <p class="text-base font-bold text-purple-600 dark:text-purple-400 mb-3">
+                                    ₱{{ number_format($menu->price, 2) }}
+                                </p>
+                                @endif
+                                <div class="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                                     <button
-                                        @click="openEditDisplayMenuModal({{ $menu->id }}, '{{ $menu->name }}', '{{ $menu->category }}', '{{ addslashes($menu->description ?? '') }}', {{ $menu->price ?? 'null' }}, '{{ $menu->status }}')"
-                                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 p-1"
-                                        title="Edit menu">
+                                        @click="openEditDisplayMenuModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', '{{ $menu->category }}', '{{ addslashes($menu->description ?? '') }}', {{ $menu->price ?? 'null' }}, '{{ $menu->status }}')"
+                                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium text-sm transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                             </path>
                                         </svg>
+                                        Edit
                                     </button>
                                     <button
                                         @click="showDeleteConfirm('{{ route('caterer.display-menus.destroy', $menu->id) }}', 'display_menu', '{{ addslashes($menu->name) }}')"
-                                        class="text-red-600 hover:text-red-800 dark:text-red-400 p-1"
-                                        title="Delete menu">
+                                        class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 font-medium text-sm transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                                             </path>
                                         </svg>
+                                        Delete
                                     </button>
                                 </div>
                             </div>
@@ -290,301 +628,28 @@
                 @endforeach
             </div>
             @else
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center mt-4">
-                <svg class="w-16 h-16 mx-auto text-purple-300 dark:text-purple-700 mb-3" fill="none"
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-dashed border-gray-300 dark:border-gray-600 p-12 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                     </path>
                 </svg>
-                <h4 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No Display Menus Yet</h4>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                    Click "Add Display Menu" above to create menus that will be shown to customers on your profile.
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-300 mb-2">No Display Menus Yet</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">
+                    Create showcase menus that will be displayed to customers on your profile page.
                 </p>
+                <button @click="openDisplayMenuModal()"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Your First Display Menu
+                </button>
             </div>
             @endif
         </div>
 
-        <!-- Categories -->
-        @foreach($categories as $category)
-        <div x-show="selectedCategory === 'all' || selectedCategory == '{{ $category->id }}'"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 transform translate-y-2"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            class="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-
-            <!-- Category Header -->
-            <div
-                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
-                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                    <!-- 🆕 CATEGORY CHECKBOX (bulk mode) -->
-                    <div x-show="bulkMode" x-transition class="flex items-center flex-shrink-0">
-                        <input type="checkbox" :checked="selectedCategories.includes({{ $category->id }})"
-                            @change="toggleCategorySelection({{ $category->id }})"
-                            class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">
-                            {{ $category->name }}
-                            <span
-                                class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 ml-2">({{ $category->items->count() }}
-                                items)</span>
-                        </h3>
-                        @if($category->description)
-                        <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                            {{ $category->description }}</p>
-                        @endif
-                    </div>
-                </div>
-
-                <div x-show="!bulkMode" class="flex gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto justify-end">
-                    <button type="button"
-                        @click="openEditCategoryModal({{ $category->id }}, '{{ addslashes($category->name) }}', '{{ addslashes($category->description ?? '') }}')"
-                        class="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span class="hidden xs:inline">Edit</span>
-                    </button>
-
-                    <button type="button"
-                        @click="showDeleteConfirm('{{ route('caterer.categories.destroy', $category->id) }}', 'category', '{{ addslashes($category->name) }}', {{ $category->items->count() }})"
-                        class="flex items-center gap-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <span class="hidden xs:inline">Delete</span>
-                    </button>
-
-                    <button type="button" @click="openItemModal({{ $category->id }})"
-                        class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors font-medium flex items-center gap-1">
-                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span class="hidden sm:inline">Add Item</span>
-                        <span class="sm:hidden">Add</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Items List -->
-            <div class="space-y-3 sm:space-y-4">
-                @forelse($category->items as $item)
-                <div class="flex flex-col xs:flex-row items-start gap-3 sm:gap-4 border-b border-gray-100 dark:border-gray-700 pb-3 sm:pb-4 last:border-b-0 rounded-lg transition-all"
-                    :class="selectedItems.includes({{ $item->id }}) ? 'bg-purple-50 dark:bg-purple-900/10 border-l-4 border-l-purple-500 pl-2' : ''">
-
-                    <div class="flex items-start gap-3 w-full xs:w-auto xs:flex-shrink-0">
-                        <!-- 🆕 ITEM CHECKBOX (bulk mode) -->
-                        <div x-show="bulkMode" x-transition class="flex-shrink-0 pt-1">
-                            <input type="checkbox" :checked="selectedItems.includes({{ $item->id }})"
-                                @change="toggleItemSelection({{ $item->id }})"
-                                class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
-                        </div>
-
-                        <!-- Image -->
-                        @if($item->image_path)
-                        <img src="{{ $item->image_path }}"
-                            class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600 shadow-sm flex-shrink-0"
-                            alt="{{ $item->name }}">
-                        @else
-                        <div
-                            class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg text-xs text-gray-500 dark:text-gray-400 font-medium shadow-sm flex-shrink-0">
-                            No Image
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Details -->
-                    <div class="flex-1 min-w-0 w-full xs:w-auto">
-                        <div class="flex items-center gap-2 mb-1 flex-wrap">
-                            <h4 class="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-200">
-                                {{ $item->name }}</h4>
-                            <span
-                                class="px-2 sm:px-2.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap {{ $item->status === 'available' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' }}">
-                                {{ ucfirst($item->status) }}
-                            </span>
-                        </div>
-
-                        @if($item->description)
-                        <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-                            {{ $item->description }}</p>
-                        @endif
-
-                        <p class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100">
-                            ₱{{ number_format($item->price, 2) }}<span
-                                class="text-xs font-normal text-gray-500 dark:text-gray-400">/serving</span>
-                        </p>
-                    </div>
-
-                    <!-- Actions -->
-                    <div x-show="!bulkMode"
-                        class="flex gap-2 flex-shrink-0 w-full xs:w-auto justify-end xs:justify-start">
-                        <button type="button"
-                            @click="openEditItemModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->description ?? '') }}', {{ $item->price }}, '{{ $item->status }}')"
-                            class="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                            title="Edit item">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </button>
-
-                        <button type="button"
-                            @click="showDeleteConfirm('{{ route('caterer.menu-items.destroy', $item->id) }}', 'item', '{{ addslashes($item->name) }}')"
-                            class="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="Delete item">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                @empty
-                <div class="text-center py-6 sm:py-8">
-                    <svg class="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 dark:text-gray-600" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">No items in this category yet.</p>
-                    <button @click="openItemModal({{ $category->id }})"
-                        class="mt-3 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
-                        + Add your first item
-                    </button>
-                </div>
-                @endforelse
-            </div>
-        </div>
-        @endforeach
-
-        <!-- Packages Section -->
-        <div class="mt-8 sm:mt-12">
-            <div class="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 mb-4 sm:mb-6">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200">Packages</h2>
-                <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ $packages->count() }} total
-                    packages</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                @forelse($packages as $package)
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-                    <!-- Package Image -->
-                    @if($package->image_path)
-                    <img src="{{ $package->image_path }}" class="h-40 sm:h-48 w-full object-cover"
-                        alt="{{ $package->name }}">
-                    @else
-                    <div
-                        class="h-40 sm:h-48 w-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">
-                        <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-500" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                    </div>
-                    @endif
-
-                    <!-- Package Content -->
-                    <div class="p-4 sm:p-5">
-                        <div class="flex justify-between items-start gap-2 mb-2">
-                            <h3
-                                class="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200 leading-tight line-clamp-1 flex-1">
-                                {{ $package->name }}
-                            </h3>
-                            <span
-                                class="px-2 sm:px-2.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap {{ $package->status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' }}">
-                                {{ ucfirst($package->status) }}
-                            </span>
-                        </div>
-
-                        @if($package->description)
-                        <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                            {{ $package->description }}
-                        </p>
-                        @endif
-
-                        <div class="space-y-1.5 mb-4">
-                            <p class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
-                                ₱{{ number_format($package->price, 2) }}
-                                <span class="text-xs sm:text-sm font-normal text-gray-500 dark:text-gray-400">per
-                                    head</span>
-                            </p>
-                            <div
-                                class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                <span class="flex items-center gap-1">
-                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                    <strong>{{ $package->pax }}</strong> guests
-                                </span>
-                                <span class="flex items-center gap-1">
-                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                    </svg>
-                                    <strong>{{ $package->items->count() }}</strong> items
-                                </span>
-                            </div>
-                            <p class="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400">
-                                Total: ₱{{ number_format($package->price * $package->pax, 2) }}
-                            </p>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="flex gap-2 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <button type="button"
-                                @click="openEditPackageModal({{ $package->id }}, '{{ addslashes($package->name) }}', '{{ addslashes($package->description ?? '') }}', {{ $package->pax }})"
-                                class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium text-xs sm:text-sm transition-colors">
-                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                Edit
-                            </button>
-
-                            <button type="button"
-                                @click="showDeleteConfirm('{{ route('caterer.packages.destroy', $package->id) }}', 'package', '{{ addslashes($package->name) }}')"
-                                class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 font-medium text-xs sm:text-sm transition-colors">
-                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                @empty
-                <div
-                    class="col-span-full text-center py-12 sm:py-16 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-                    <svg class="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 dark:text-gray-600" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-300">No packages yet</h3>
-                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first package.
-                    </p>
-                    <button @click="openModal('packageModal')"
-                        class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Create Package
-                    </button>
-                </div>
-                @endforelse
-            </div>
-        </div>
     </div>
 
     <!-- Hidden form for deletions -->
@@ -990,12 +1055,13 @@
         </div>
     </div>
 
+    <!-- Display Menu Modal -->
     <div id="displayMenuModal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white dark:bg-gray-800">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="displayMenuModalTitle" class="text-xl font-bold text-gray-800">Add Display Menu</h3>
-                <button type="button" onclick="closeDisplayMenuModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 id="displayMenuModalTitle" class="text-xl font-bold text-gray-800 dark:text-gray-200">Add Display Menu</h3>
+                <button type="button" onclick="closeDisplayMenuModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -1008,95 +1074,84 @@
                 <div id="displayMenuFormMethod"></div>
 
                 <div class="space-y-4">
-                    {{-- Name --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Item Name <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="name" id="display_menu_name" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                             placeholder="e.g., Grilled Chicken">
                     </div>
 
-                    {{-- Category --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Category <span class="text-red-500">*</span>
-                            </label>
-                            <select id="display_menu_category_select" required
-                                onchange="toggleNewCategoryInput(this)"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                <option value="">Select Category</option>
-                                @if(isset($displayCategories) && count($displayCategories) > 0)
-                                    @foreach($displayCategories as $cat)
-                                        <option value="{{ $cat }}">{{ $cat }}</option>
-                                    @endforeach
-                                @endif
-                                <option value="__new__">+ Add New Category</option>
-                            </select>
-                            
-                            {{-- Hidden input for category value (this is what gets submitted) --}}
-                            <input type="hidden" name="category" id="newDisplayCategory">
-                            
-                            {{-- Visible input for new category name --}}
-                            <input type="text" id="newDisplayCategoryInput" 
-                                class="hidden w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2"
-                                placeholder="Enter new category name">
-                        </div>
-
-                    {{-- Description --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Category <span class="text-red-500">*</span>
+                        </label>
+                        <select id="display_menu_category_select" required
+                            onchange="toggleNewCategoryInput(this)"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">Select Category</option>
+                            @if(isset($displayCategories) && count($displayCategories) > 0)
+                                @foreach($displayCategories as $cat)
+                                    <option value="{{ $cat }}">{{ $cat }}</option>
+                                @endforeach
+                            @endif
+                            <option value="__new__">+ Add New Category</option>
+                        </select>
+                        
+                        <input type="hidden" name="category" id="newDisplayCategory">
+                        
+                        <input type="text" id="newDisplayCategoryInput" 
+                            class="hidden w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2 dark:bg-gray-700 dark:text-gray-200"
+                            placeholder="Enter new category name">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                         <textarea name="description" id="display_menu_description" rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                             placeholder="Brief description of the item"></textarea>
                     </div>
 
-                    {{-- Price --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Price <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2 text-gray-500">₱</span>
+                            <span class="absolute left-3 top-2 text-gray-500 dark:text-gray-400">₱</span>
                             <input type="number" name="price" id="display_menu_price" step="0.01" min="0" required
-                                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                class="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                                 placeholder="0.00">
                         </div>
                     </div>
-                    
 
-                    {{-- Image --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image</label>
                         <input type="file" name="image" id="display_menu_image" accept="image/jpeg,image/jpg,image/png"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        <p class="text-xs text-gray-500 mt-1">JPG, JPEG, PNG (Max: 2MB)</p>
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, JPEG, PNG (Max: 2MB)</p>
 
-                        {{-- Image Preview --}}
                         <div id="display_menu_image_preview" class="mt-2 hidden">
                             <img id="display_menu_preview_img" src="" alt="Preview"
                                 class="w-32 h-32 object-cover rounded-lg">
                         </div>
                     </div>
 
-                    {{-- Status --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Status <span class="text-red-500">*</span>
                         </label>
                         <select name="status" id="display_menu_status" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200">
                             <option value="active">Active (Visible to customers)</option>
                             <option value="inactive">Inactive (Hidden from customers)</option>
                         </select>
                     </div>
                 </div>
 
-                {{-- Buttons --}}
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeDisplayMenuModal()"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                         Cancel
                     </button>
                     <button type="submit"
@@ -1131,7 +1186,7 @@
                     const profitMargin = this.foodCost * 0.25;
 
                     const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
-                    this.calculatedPrice = Math.round(total / 5) * 5; // Round to nearest 5
+                    this.calculatedPrice = Math.round(total / 5) * 5;
                 }
             }
         }
@@ -1175,15 +1230,12 @@
             document.getElementById('editPackagePax').value = pax;
             document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
 
-            // Uncheck all checkboxes first
             document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => {
                 cb.checked = false;
             });
 
-            // Show modal
             document.getElementById('editPackageModal').classList.remove('hidden');
 
-            // Fetch and check the items for this package
             const container = document.getElementById('editSelectedItemsContainer');
             container.innerHTML = '<p class="text-sm text-gray-500">Loading items...</p>';
 
@@ -1281,10 +1333,11 @@
         // Main Alpine.js component
         function menuManager() {
             return {
+                activeTab: 'packages',
                 selectedCategory: 'all',
                 loading: false,
 
-                // 🆕 BULK ACTION PROPERTIES
+                // BULK ACTION PROPERTIES
                 bulkMode: false,
                 selectedCategories: [],
                 selectedItems: [],
@@ -1312,7 +1365,7 @@
                                 `Cannot delete "${name}" - This category has ${itemCount} item(s). Please delete all items first before deleting the category.`;
                             confirmText = 'OK, Got It';
                             this.confirmModal.type = 'warning';
-                            this.confirmModal.action = null; // No action for warning
+                            this.confirmModal.action = null;
                         } else {
                             message =
                                 `Are you sure you want to delete the category "${name}"? This action cannot be undone.`;
@@ -1349,7 +1402,7 @@
                     this.confirmModal.confirmText = confirmText;
                 },
 
-                // 🆕 BULK ACTION METHODS
+                // BULK ACTION METHODS
                 toggleBulkMode() {
                     this.bulkMode = !this.bulkMode;
                     if (!this.bulkMode) {
@@ -1459,18 +1512,15 @@
 
                 confirmAction() {
                     if (typeof this.confirmModal.action === 'function') {
-                        // For bulk actions
                         this.confirmModal.action();
                         this.confirmModal.show = false;
                     } else if (this.confirmModal.action) {
-                        // For delete actions with URL
                         const form = document.getElementById('deleteForm');
                         if (form) {
                             form.action = this.confirmModal.action;
                             form.submit();
                         }
                     } else {
-                        // Just close modal (for warnings with no action)
                         this.confirmModal.show = false;
                     }
                 },
@@ -1497,25 +1547,20 @@
                 },
 
                 openEditDisplayMenuModal(id, name, category, description, price, status) {
-                    // Update modal title and button
                     document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
                     document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
                     
-                    // Set form action and method
                     document.getElementById('displayMenuForm').action = `/caterer/display-menus/${id}`;
                     document.getElementById('displayMenuFormMethod').innerHTML = '<input type="hidden" name="_method" value="PUT">';
                     
-                    // Populate form fields
                     document.getElementById('display_menu_name').value = name;
                     document.getElementById('display_menu_description').value = description || '';
                     document.getElementById('display_menu_price').value = price || '';
                     document.getElementById('display_menu_status').value = status;
 
-                    // Set category
                     const categorySelect = document.getElementById('display_menu_category_select');
                     const newCategoryInput = document.getElementById('newDisplayCategory');
 
-                    // Check if category exists in dropdown
                     let categoryExists = false;
                     for (let option of categorySelect.options) {
                         if (option.value === category && option.value !== '__new__') {
@@ -1526,23 +1571,42 @@
                     }
 
                     if (!categoryExists && category) {
-                        // Category doesn't exist in dropdown, set as new
                         categorySelect.value = '__new__';
-                        newCategoryInput.classList.remove('hidden');
-                        newCategoryInput.value = category;
-                        newCategoryInput.required = true;
+                        document.getElementById('newDisplayCategoryInput').classList.remove('hidden');
+                        document.getElementById('newDisplayCategoryInput').value = category;
+                        document.getElementById('newDisplayCategoryInput').required = true;
                     } else {
-                        newCategoryInput.classList.add('hidden');
-                        newCategoryInput.required = false;
+                        document.getElementById('newDisplayCategoryInput').classList.add('hidden');
+                        document.getElementById('newDisplayCategoryInput').required = false;
                     }
 
-                    // Clear image preview (will show current image from server if editing)
                     const imagePreview = document.getElementById('display_menu_image_preview');
                     if (imagePreview) {
                         imagePreview.classList.add('hidden');
                     }
 
-                    // Show modal
+                    document.getElementById('displayMenuModal').classList.remove('hidden');
+                },
+
+                openDisplayMenuModal() {
+                    document.getElementById('displayMenuForm').reset();
+                    document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
+                    document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
+                    document.getElementById('displayMenuForm').action = '{{ route("caterer.display-menus.store") }}';
+                    document.getElementById('displayMenuFormMethod').innerHTML = '';
+
+                    const categorySelect = document.getElementById('display_menu_category_select');
+                    
+                    categorySelect.value = '';
+                    document.getElementById('newDisplayCategoryInput').classList.add('hidden');
+                    document.getElementById('newDisplayCategoryInput').value = '';
+                    document.getElementById('newDisplayCategoryInput').required = false;
+
+                    const imagePreview = document.getElementById('display_menu_image_preview');
+                    if (imagePreview) {
+                        imagePreview.classList.add('hidden');
+                    }
+
                     document.getElementById('displayMenuModal').classList.remove('hidden');
                 }
             }
@@ -1557,12 +1621,38 @@
             document.getElementById(modalId).classList.add('hidden');
         }
 
+        function closeDisplayMenuModal() {
+            document.getElementById('displayMenuModal').classList.add('hidden');
+            document.getElementById('displayMenuForm').reset();
+
+            const imagePreview = document.getElementById('display_menu_image_preview');
+            if (imagePreview) {
+                imagePreview.classList.add('hidden');
+            }
+        }
+
+        function toggleNewCategoryInput(select) {
+            const newCategoryInput = document.getElementById('newDisplayCategoryInput');
+            const hiddenCategoryInput = document.getElementById('newDisplayCategory');
+            
+            if (select.value === '__new__') {
+                newCategoryInput.classList.remove('hidden');
+                newCategoryInput.required = true;
+                newCategoryInput.value = '';
+                hiddenCategoryInput.value = '';
+            } else {
+                newCategoryInput.classList.add('hidden');
+                newCategoryInput.required = false;
+                hiddenCategoryInput.value = select.value;
+            }
+        }
+
         // Close modals when clicking outside
         document.addEventListener('click', function (e) {
             if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
                 const modals = document.querySelectorAll('[id$="Modal"]');
                 modals.forEach(modal => {
-                    if (!modal.id.includes('confirm')) { // Don't auto-close confirmation modal
+                    if (!modal.id.includes('confirm')) {
                         modal.classList.add('hidden');
                     }
                 });
@@ -1574,97 +1664,12 @@
             if (e.key === 'Escape') {
                 const modals = document.querySelectorAll('[id$="Modal"]');
                 modals.forEach(modal => {
-                    if (!modal.id.includes('confirm')) { // Don't auto-close confirmation modal
+                    if (!modal.id.includes('confirm')) {
                         modal.classList.add('hidden');
                     }
                 });
             }
         });
-
-        function openDisplayMenuModal() {
-        // Reset form
-        document.getElementById('displayMenuForm').reset();
-        document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
-        document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
-        document.getElementById('displayMenuForm').action = '{{ route("caterer.display-menus.store") }}';
-        document.getElementById('displayMenuFormMethod').innerHTML = '';
-
-        // Reset category fields
-        const categorySelect = document.getElementById('display_menu_category_select');
-        const newCategoryInput = document.getElementById('newDisplayCategory');
-        
-        categorySelect.value = '';
-        newCategoryInput.classList.add('hidden');
-        newCategoryInput.value = '';
-        newCategoryInput.required = false;
-
-        // Clear image preview
-        const imagePreview = document.getElementById('display_menu_image_preview');
-        if (imagePreview) {
-            imagePreview.classList.add('hidden');
-        }
-
-        // Show modal
-        document.getElementById('displayMenuModal').classList.remove('hidden');
-    }
-
-        // Close display menu modal
-        function closeDisplayMenuModal() {
-            document.getElementById('displayMenuModal').classList.add('hidden');
-            document.getElementById('displayMenuForm').reset();
-
-            // Clear image preview
-            const imagePreview = document.getElementById('display_menu_image_preview');
-            if (imagePreview) {
-                imagePreview.classList.add('hidden');
-            }
-        }
-
-        // Edit existing display menu
-        function editDisplayMenu(menuId) {
-            // Fetch the menu data
-            fetch(`/caterer/display-menus/${menuId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch menu data');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Update modal title and button
-                    document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
-                    document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
-
-                    // Set form action and method
-                    document.getElementById('displayMenuForm').action = `/caterer/display-menus/${menuId}`;
-                    document.getElementById('displayMenuFormMethod').innerHTML =
-                        '<input type="hidden" name="_method" value="PUT">';
-
-                    // Populate form fields
-                    document.getElementById('display_menu_name').value = data.name || '';
-                    document.getElementById('display_menu_category').value = data.category || '';
-                    document.getElementById('display_menu_description').value = data.description || '';
-                    document.getElementById('display_menu_price').value = data.price || '';
-                    document.getElementById('display_menu_status').value = data.status || 'active';
-
-                    // Show existing image if available
-                    if (data.image_path) {
-                        const previewImg = document.getElementById('display_menu_preview_img');
-                        const imagePreview = document.getElementById('display_menu_image_preview');
-                        if (previewImg && imagePreview) {
-                            previewImg.src = data.image_path;
-                            imagePreview.classList.remove('hidden');
-                        }
-                    }
-
-                    // Show modal
-                    document.getElementById('displayMenuModal').classList.remove('hidden');
-                })
-                .catch(error => {
-                    console.error('Error fetching display menu:', error);
-                    alert('Error loading display menu data. Please try again.');
-                });
-        }
 
         // Image preview on file select
         (function () {
@@ -1673,7 +1678,6 @@
                 imageInput.addEventListener('change', function (e) {
                     const file = e.target.files[0];
                     if (file) {
-                        // Check file size (2MB = 2097152 bytes)
                         if (file.size > 2097152) {
                             alert('File size must be less than 2MB');
                             this.value = '';
@@ -1695,57 +1699,25 @@
             }
         })();
 
-        function toggleNewCategoryInput(select) {
-            const newCategoryInput = document.getElementById('newDisplayCategoryInput');
-            const hiddenCategoryInput = document.getElementById('newDisplayCategory');
-            
-            if (select.value === '__new__') {
-                newCategoryInput.classList.remove('hidden');
-                newCategoryInput.required = true;
-                newCategoryInput.value = '';
-                hiddenCategoryInput.value = '';
-            } else {
-                newCategoryInput.classList.add('hidden');
-                newCategoryInput.required = false;
-                hiddenCategoryInput.value = select.value;
+        // Handle category selection for display menu form
+        document.addEventListener('DOMContentLoaded', function() {
+            const displayMenuForm = document.getElementById('displayMenuForm');
+            if (displayMenuForm) {
+                displayMenuForm.addEventListener('submit', function(e) {
+                    const categorySelect = document.getElementById('display_menu_category_select');
+                    const newCategoryInput = document.getElementById('newDisplayCategory');
+                    
+                    if (categorySelect.value === '__new__') {
+                        newCategoryInput.value = document.getElementById('newDisplayCategoryInput').value;
+                    } else {
+                        newCategoryInput.value = categorySelect.value;
+                    }
+                });
             }
-        }
-
-        function toggleEditNewCategoryInput(select) {
-            const newCategoryInput = document.getElementById('editNewDisplayCategory');
-            if (select.value === '__new__') {
-                newCategoryInput.classList.remove('hidden');
-                newCategoryInput.required = true;
-                newCategoryInput.value = '';
-            } else {
-                newCategoryInput.classList.add('hidden');
-                newCategoryInput.required = false;
-                newCategoryInput.value = select.value;
-            }
-        }
-
-        // 🆕 ADD THIS HERE (Item #4)
-    document.addEventListener('DOMContentLoaded', function() {
-        const displayMenuForm = document.getElementById('displayMenuForm');
-        if (displayMenuForm) {
-            displayMenuForm.addEventListener('submit', function(e) {
-                const categorySelect = document.getElementById('display_menu_category_select');
-                const newCategoryInput = document.getElementById('newDisplayCategory');
-                
-                // If "Add New Category" is selected, use the new category input value
-                if (categorySelect.value === '__new__') {
-                    newCategoryInput.value = document.getElementById('newDisplayCategoryInput').value;
-                } else {
-                    newCategoryInput.value = categorySelect.value;
-                }
-            });
-        }
-    });
-
+        });
     </script>
 
     <style>
-        /* Extra small breakpoint for very small devices */
         @media (min-width: 475px) {
             .xs\:flex-row {
                 flex-direction: row;
@@ -1772,12 +1744,10 @@
             }
         }
 
-        /* Prevent body scroll when modal is open */
         body.modal-open {
             overflow: hidden;
         }
 
-        /* Custom scrollbar for modal content */
         .overflow-y-auto::-webkit-scrollbar {
             width: 8px;
         }
@@ -1796,7 +1766,6 @@
             background: #555;
         }
 
-        /* Dark mode scrollbar */
         .dark .overflow-y-auto::-webkit-scrollbar-track {
             background: #374151;
         }
@@ -1808,6 +1777,5 @@
         .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: #6b7280;
         }
-
     </style>
 </x-app-layout>

@@ -3,7 +3,7 @@
     <div class="flex justify-center mb-0">
     <img src="{{ asset('images/foodlogo.png') }}" 
          alt="Restaurant Logo" 
-         style="height: 200px; width: auto;"
+         style="height: 150px; width: auto;"
          class="logo-dark-mode">
     </div>
     

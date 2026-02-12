@@ -34,7 +34,7 @@
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="flex items-center space-x-0.5">
                         <img src="{{ asset('images/foodlogo.png') }}" alt="Restaurant Logo"
-                            style="height: 100px; width: auto;" class="logo-dark-mode">
+                            style="height: 60px; width: auto;" class="logo-dark-mode">
                         <span
                             class="text-xl font-bold text-gray-800 dark:text-gray-200 hidden lg:block">CaterEase</span>
                     </a>
