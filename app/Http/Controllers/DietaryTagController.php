@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\DietaryTag;
+use App\Models\Package;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
