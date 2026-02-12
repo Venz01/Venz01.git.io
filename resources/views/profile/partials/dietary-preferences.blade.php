@@ -75,18 +75,18 @@
 
         {{-- ── Food Allergies ── --}}
         <div>
-            <x-input-label for="food_allergies" :value="__('Food Allergies & Ingredients to Avoid')" />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <!-- <x-input-label for="food_allergies" :value="__('Food Allergies & Ingredients to Avoid')" /> -->
+            <!-- <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 List specific ingredients or allergens you must avoid. This helps caterers prepare safe meals for you.
-            </p>
+            </p> -->
             <div class="mt-2 relative">
-                <div class="absolute top-3 left-3 pointer-events-none">
+                <!-- <div class="absolute top-3 left-3 pointer-events-none">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                     </svg>
-                </div>
-                <textarea
+                </div> -->
+                <!-- <textarea
                     id="food_allergies"
                     name="food_allergies"
                     rows="3"
@@ -96,15 +96,15 @@
                            rounded-xl shadow-sm resize-none"
                     placeholder="Example: Peanuts, shrimp, eggs, shellfish, tree nuts, soy, wheat, milk..."
                     oninput="updateCharCount(this)"
-                >{{ old('food_allergies', $user->food_allergies) }}</textarea>
-                <div class="mt-1 flex justify-between text-xs text-gray-400">
+                >{{ old('food_allergies', $user->food_allergies) }}</textarea> -->
+                <!-- <div class="mt-1 flex justify-between text-xs text-gray-400">
                     <span>Separate items with commas</span>
                     <span id="char-count">
                         {{ strlen(old('food_allergies', $user->food_allergies ?? '')) }}/1000
                     </span>
-                </div>
+                </div> -->
             </div>
-            <x-input-error class="mt-2" :messages="$errors->get('food_allergies')" />
+            <!-- <x-input-error class="mt-2" :messages="$errors->get('food_allergies')" /> -->
         </div>
 
         {{-- ── Info Banner ── --}}
