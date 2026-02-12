@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PackageCostingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DietaryTagController;
 
@@ -144,20 +145,11 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::post('/dietary-tags', [DietaryTagController::class, 'store'])->name('dietary-tags.store');
     Route::put('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'update'])->name('dietary-tags.update');
     Route::delete('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'destroy'])->name('dietary-tags.destroy');
-    
-    // ✅ FIXED: Calendar and Availability Routes - Removed duplication and clarified purposes
+
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
-    
-    // Single date toggle (block/unblock)
     Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
-    
-    // Block date range
     Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
-    
-    // ✅ NEW: Unblock date range
     Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])->name('availability.unblock-range');
-    
-    // ✅ NEW: Clear all blocked dates
     Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])->name('availability.clear-all');
     
     // Bookings
@@ -195,6 +187,33 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::patch('/packages/{package}/toggle', [PackageController::class, 'toggle'])->name('packages.toggle');
     Route::get('/packages/{package}/items', [PackageController::class, 'getItems'])->name('packages.items');
     Route::get('/packages/{package}/price-breakdown', [PackageController::class, 'getPriceBreakdown'])->name('packages.price-breakdown');
+
+    // --- Costing Dashboard ---------------------------------------------------
+    Route::get('/caterer/costing', [PackageCostingController::class, 'index'])
+        ->name('costing.index');
+
+    // --- Per-Package Costing Tool -------------------------------------------
+    Route::get('/caterer/packages/{package}/costing', [PackageCostingController::class, 'show'])
+        ->name('costing.show');
+
+    Route::post('/caterer/packages/{package}/costing', [PackageCostingController::class, 'store'])
+        ->name('costing.store');
+
+    // --- Live AJAX Calculator (no auth-write, just compute) -----------------
+    Route::post('/caterer/costing/calculate', [PackageCostingController::class, 'calculate'])
+        ->name('costing.calculate');
+
+    // --- Clone costing template between packages ----------------------------
+    Route::post('/caterer/costing/clone', [PackageCostingController::class, 'cloneCosting'])
+        ->name('costing.clone');
+
+    // --- Quotation PDF (for a confirmed booking) ----------------------------
+    Route::get('/caterer/bookings/{booking}/quotation', [PackageCostingController::class, 'generateQuotation'])
+        ->name('booking.quotation');
+
+    // --- Standalone package quotation (before booking) ----------------------
+    Route::get('/caterer/packages/{package}/quotation', [PackageCostingController::class, 'generatePackageQuotation'])
+        ->name('package.quotation');
 
     // View own reviews
     Route::get('/reviews', [ReviewController::class, 'catererReviews'])->name('reviews');

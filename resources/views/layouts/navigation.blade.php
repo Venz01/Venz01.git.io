@@ -303,6 +303,18 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        @php $role = auth()->user()->role; @endphp
+
+                        @if($role === 'caterer')
+                        <x-dropdown-link :href="route('caterer.costing.index')">
+                            <div class="flex items-center gap-2">
+                                <span>{{ __('Costing Tool') }}</span>
+                            </div>
+                        </x-dropdown-link>
+                        @endif
+
+
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

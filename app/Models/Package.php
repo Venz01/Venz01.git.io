@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Package extends Model
 {
@@ -84,5 +85,10 @@ class Package extends Model
             fn ($key) => $labels[$key] ?? ucfirst(str_replace('_', ' ', $key)),
             (array) ($this->dietary_tags ?? [])
         ));
+    }
+
+    public function costing(): HasOne
+    {
+        return $this->hasOne(\App\Models\PackageCosting::class);
     }
 }
