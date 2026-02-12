@@ -13,63 +13,76 @@
 --}}
 
 @php
-    $dietaryOptions = [
-        'no_pork'      => ['label' => 'No Pork',      'icon' => '🐷', 'color' => 'red'],
-        'vegetarian'   => ['label' => 'Vegetarian',   'icon' => '🥦', 'color' => 'green'],
-        'vegan'        => ['label' => 'Vegan',        'icon' => '🌱', 'color' => 'green'],
-        'halal'        => ['label' => 'Halal',        'icon' => '☪️',  'color' => 'emerald'],
-        'gluten_free'  => ['label' => 'Gluten-Free',  'icon' => '🌾', 'color' => 'yellow'],
-        'dairy_free'   => ['label' => 'Dairy-Free',   'icon' => '🥛', 'color' => 'blue'],
-        'seafood_free' => ['label' => 'Seafood-Free', 'icon' => '🦐', 'color' => 'cyan'],
-    ];
-    
+    $allTags = \App\Models\DietaryTag::orderBy('name')->get();
     $selectedTags = $selectedTags ?? [];
 @endphp
 
 <div class="dietary-tags-section">
-    <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-2">
-        Dietary Preferences & Allergy Tags
-    </h3>
+    <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-sm">
+            Dietary Preferences & Allergy Tags
+        </h3>
+        @auth
+            @if(auth()->user()->isCaterer())
+                <a href="{{ route('caterer.dietary-tags.index') }}" 
+                   class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                    Manage Tags →
+                </a>
+            @endif
+        @endauth
+    </div>
+    
     <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
         Select all dietary preferences that this package accommodates. This helps customers find suitable options.
     </p>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        @foreach($dietaryOptions as $value => $option)
-            @php
-                $isChecked = in_array($value, (array) $selectedTags);
-            @endphp
-            <label
-                class="dietary-tag-option relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg border-2 cursor-pointer transition-all duration-200 select-none
-                    {{ $isChecked
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/30 shadow-sm'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-green-300 hover:bg-green-50/50 dark:hover:bg-green-900/10' }}"
-                data-tag-value="{{ $value }}"
-            >
-                <input
-                    type="checkbox"
-                    name="dietary_tags[]"
-                    value="{{ $value }}"
-                    {{ $isChecked ? 'checked' : '' }}
-                    class="dietary-tag-checkbox sr-only"
-                    onchange="toggleDietaryTag(this)"
+    @if($allTags->count() > 0)
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            @foreach($allTags as $tag)
+                @php
+                    $isChecked = in_array($tag->slug, (array) $selectedTags);
+                @endphp
+                <label
+                    class="dietary-tag-option relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg border-2 cursor-pointer transition-all duration-200 select-none
+                        {{ $isChecked
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/30 shadow-sm'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-green-300 hover:bg-green-50/50 dark:hover:bg-green-900/10' }}"
+                    data-tag-value="{{ $tag->slug }}"
                 >
-                <span class="text-xl leading-none">{{ $option['icon'] }}</span>
-                <span class="text-xs font-medium text-center text-gray-700 dark:text-gray-300 leading-tight">
-                    {{ $option['label'] }}
-                </span>
-                {{-- Checkmark badge --}}
-                <span
-                    class="dietary-tag-check absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center transition-all duration-200
-                        {{ $isChecked ? 'opacity-100 scale-100' : 'opacity-0 scale-0' }}"
-                >
-                    <svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </span>
-            </label>
-        @endforeach
-    </div>
+                    <input
+                        type="checkbox"
+                        name="dietary_tags[]"
+                        value="{{ $tag->slug }}"
+                        {{ $isChecked ? 'checked' : '' }}
+                        class="dietary-tag-checkbox sr-only"
+                        onchange="toggleDietaryTag(this)"
+                    >
+                    <span class="text-xl leading-none">{{ $tag->icon }}</span>
+                    <span class="text-xs font-medium text-center text-gray-700 dark:text-gray-300 leading-tight">
+                        {{ $tag->name }}
+                    </span>
+                    {{-- Checkmark badge --}}
+                    <span
+                        class="dietary-tag-check absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center transition-all duration-200
+                            {{ $isChecked ? 'opacity-100 scale-100' : 'opacity-0 scale-0' }}"
+                    >
+                        <svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                </label>
+            @endforeach
+        </div>
+    @else
+        <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+            No dietary tags available. 
+            @auth
+                @if(auth()->user()->isCaterer())
+                    <a href="{{ route('caterer.dietary-tags.index') }}" class="text-blue-600 hover:underline">Add some tags</a>
+                @endif
+            @endauth
+        </p>
+    @endif
 
     {{-- Info banner --}}
     <div class="mt-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 flex gap-2">

@@ -161,18 +161,14 @@ class User extends Authenticatable
      */
     public static function dietaryLabels(): array
     {
-        return [
-            'no_pork'      => 'No Pork',
-            'vegetarian'   => 'Vegetarian',
-            'vegan'        => 'Vegan',
-            'halal'        => 'Halal Only',
-            'gluten_free'  => 'Gluten-Free',
-            'dairy_free'   => 'Dairy-Free',
-            'seafood_free' => 'Seafood-Free',
-            'nut_free'     => 'Nut-Free',
-            'low_sodium'   => 'Low Sodium',
-            'diabetic'     => 'Diabetic-Friendly',
-        ];
+        $tags = \App\Models\DietaryTag::all();
+        $labels = [];
+        
+        foreach ($tags as $tag) {
+            $labels[$tag->slug] = $tag->name;
+        }
+        
+        return $labels;
     }
 
     /**

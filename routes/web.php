@@ -13,6 +13,7 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DietaryTagController;
 
 // ============================================
 // 🏠 PUBLIC ROUTES (No Login Required)
@@ -137,6 +138,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approval'])->prefix('caterer')->name('caterer.')->group(function () {
     // Main caterer pages
     Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
+
+    // Dietary Tags Management
+    Route::get('/dietary-tags', [DietaryTagController::class, 'index'])->name('dietary-tags.index');
+    Route::post('/dietary-tags', [DietaryTagController::class, 'store'])->name('dietary-tags.store');
+    Route::put('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'update'])->name('dietary-tags.update');
+    Route::delete('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'destroy'])->name('dietary-tags.destroy');
     
     // Calendar and Availability
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
