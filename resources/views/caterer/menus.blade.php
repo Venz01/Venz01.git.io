@@ -860,7 +860,8 @@
                                 x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
-                            Price automatically calculated from selected menu items
+                            Quick estimate from menu items. For accurate pricing, use the
+                            <strong>Costing Tool</strong> after saving.
                         </p>
                     </div>
 
@@ -911,30 +912,28 @@
                     <!-- Price Breakdown -->
                     <div x-show="selectedItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
-                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown:</h4>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800 dark:text-gray-200">Quick Estimate</h4>
+                            <span class="text-xs text-gray-400 dark:text-gray-500">before costing is set up</span>
+                        </div>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
-                                <span>Food Cost:</span>
+                                <span>Menu Items Total:</span>
                                 <span x-text="'₱' + foodCost.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Labor & Utilities (20%):</span>
-                                <span x-text="'₱' + (foodCost * 0.20).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Equipment & Transport (10%):</span>
-                                <span x-text="'₱' + (foodCost * 0.10).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Profit Margin (25%):</span>
-                                <span x-text="'₱' + (foodCost * 0.25).toFixed(2)"></span>
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span>+ Overhead & margin (~55%):</span>
+                                <span x-text="'₱' + (foodCost * 0.55).toFixed(2)"></span>
                             </div>
                             <div
-                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
-                                <span>Total per Head:</span>
+                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1">
+                                <span>Suggested per Head:</span>
                                 <span x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                             </div>
                         </div>
+                        <p class="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                            Save the package then use the <strong>Costing Tool</strong> to set accurate cost components.
+                        </p>
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
@@ -978,7 +977,8 @@
                                 x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
-                            Price automatically calculated from selected menu items
+                            Quick estimate from menu items. For accurate pricing, use the
+                            <strong>Costing Tool</strong> after saving.
                         </p>
                     </div>
 
@@ -1052,46 +1052,48 @@
                     </div>
 
                     <!-- Price Breakdown -->
-                    <div x-show="selectedEditItems.length > 0"
+                    <!-- Cost Breakdown: real data OR quick estimate, never both -->
+                    <!-- JS fills #editCostingBreakdown and hides #editQuickEstimate when costing exists -->
+                    <div id="editCostingBreakdown" class="hidden"></div>
+
+                    <div id="editQuickEstimate" x-show="selectedEditItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
-                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown:</h4>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800 dark:text-gray-200">Quick Estimate</h4>
+                            <span class="text-xs text-gray-400 dark:text-gray-500">no costing set up yet</span>
+                        </div>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
-                                <span>Food Cost:</span>
+                                <span>Menu Items Total:</span>
                                 <span x-text="'₱' + foodCost.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Labor & Utilities (20%):</span>
-                                <span x-text="'₱' + (foodCost * 0.20).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Equipment & Transport (10%):</span>
-                                <span x-text="'₱' + (foodCost * 0.10).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Profit Margin (25%):</span>
-                                <span x-text="'₱' + (foodCost * 0.25).toFixed(2)"></span>
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span>+ Overhead &amp; margin (~55%):</span>
+                                <span x-text="'₱' + (foodCost * 0.55).toFixed(2)"></span>
                             </div>
                             <div
-                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
-                                <span>Total per Head:</span>
+                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1">
+                                <span>Suggested per Head:</span>
                                 <span x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                             </div>
                         </div>
+                        <p class="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                            Save then use the <a href="#" class="font-semibold underline">Costing Tool</a> to set
+                            accurate cost components.
+                        </p>
                     </div>
-                </div>
 
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditPackageModal()"
-                        class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" :disabled="selectedEditItems.length === 0"
-                        :class="selectedEditItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
-                        class="px-4 py-2 rounded-lg text-white transition-colors font-medium">
-                        Update Package
-                    </button>
-                </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeEditPackageModal()"
+                            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" :disabled="selectedEditItems.length === 0"
+                            :class="selectedEditItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                            class="px-4 py-2 rounded-lg text-white transition-colors font-medium">
+                            Update Package
+                        </button>
+                    </div>
             </form>
         </div>
     </div>
@@ -1221,17 +1223,12 @@
                         id: cb.value,
                         price: parseFloat(cb.dataset.price)
                     }));
+                    this.foodCost = this.selectedItems.reduce((sum, i) => sum + i.price, 0);
 
-                    this.foodCost = this.selectedItems.reduce((sum, item) => sum + item.price, 0);
-
-                    const laborUtilities = this.foodCost * 0.20;
-                    const equipmentTransport = this.foodCost * 0.10;
-                    const profitMargin = this.foodCost * 0.25;
-
-                    const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
-                    this.calculatedPrice = Math.round(total / 5) * 5;
+                    // ✅ ceil matches PackageCosting::getCalculatedPriceAttribute
+                    this.calculatedPrice = Math.ceil((this.foodCost * 1.55) / 5) * 5;
                 }
-            }
+            };
         }
 
         // Package Price Calculator for Edit Modal
@@ -1243,9 +1240,7 @@
                 pax: 1,
 
                 init() {
-                    this.$nextTick(() => {
-                        this.updateEditPrice();
-                    });
+                    this.$nextTick(() => this.updateEditPrice());
                 },
 
                 updateEditPrice() {
@@ -1254,70 +1249,208 @@
                         id: cb.value,
                         price: parseFloat(cb.dataset.itemPrice) || 0
                     }));
+                    this.foodCost = this.selectedEditItems.reduce((sum, i) => sum + i.price, 0);
 
-                    this.foodCost = this.selectedEditItems.reduce((sum, item) => sum + item.price, 0);
-
-                    const laborUtilities = this.foodCost * 0.20;
-                    const equipmentTransport = this.foodCost * 0.10;
-                    const profitMargin = this.foodCost * 0.25;
-
-                    const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
-                    this.calculatedPrice = Math.round(total / 5) * 5;
+                    // ✅ ceil matches costing tool
+                    this.calculatedPrice = Math.ceil((this.foodCost * 1.55) / 5) * 5;
                 }
-            }
+            };
         }
 
         function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
+            // Populate basic fields
             document.getElementById('editPackageName').value = name;
             document.getElementById('editPackageDescription').value = description;
             document.getElementById('editPackagePax').value = pax;
             document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
 
+            // Dietary tags
             document.querySelectorAll('.dietary-tag-checkbox').forEach(checkbox => {
-                const tagValue = checkbox.value;
-                checkbox.checked = dietaryTags.includes(tagValue);
+                checkbox.checked = dietaryTags.includes(checkbox.value);
                 toggleDietaryTag(checkbox);
             });
 
             document.getElementById('editPackageModal').classList.remove('hidden');
 
-            const container = document.getElementById('editSelectedItemsContainer');
-            container.innerHTML = '<p class="text-sm text-gray-500">Loading items...</p>';
+            // Reset breakdown panel to loading state
+            const breakdownEl = document.getElementById('editCostingBreakdown');
+            if (breakdownEl) {
+                breakdownEl.className = 'rounded-lg p-4 text-sm bg-gray-50 dark:bg-gray-700/50';
+                breakdownEl.innerHTML = '<p class="text-xs text-gray-400 animate-pulse">Loading cost breakdown...</p>';
+                breakdownEl.classList.remove('hidden'); // make sure it's visible while loading
+            }
+            // Reset quick estimate to default (Alpine controls it via x-show)
+            const quickEstimate = document.getElementById('editQuickEstimate');
+            if (quickEstimate) quickEstimate.style.display = '';
 
-            fetch(`/caterer/packages/${packageId}/items`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch package items');
-                    }
-                    return response.json();
+            const itemsContainer = document.getElementById('editSelectedItemsContainer');
+            itemsContainer.innerHTML = '<p class="text-sm text-gray-500 italic">Loading items...</p>';
+
+            // ── Fetch 1: Package Items ────────────────────────────────────────
+            const itemsPromise = fetch(`/caterer/packages/${packageId}/items`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Failed to fetch items');
+                    return r.json();
                 })
                 .then(data => {
                     if (data.items && Array.isArray(data.items)) {
                         data.items.forEach(itemId => {
-                            const checkbox = document.querySelector(
+                            const cb = document.querySelector(
                                 `.edit-menu-item-checkbox[value="${itemId}"]`);
-                            if (checkbox) {
-                                checkbox.checked = true;
-                            }
+                            if (cb) cb.checked = true;
                         });
                     }
-
                     setTimeout(() => {
-                        const firstCheckbox = document.querySelector('.edit-menu-item-checkbox');
-                        if (firstCheckbox) {
-                            const event = new Event('change', {
-                                bubbles: true
-                            });
-                            firstCheckbox.dispatchEvent(event);
-                        }
+                        const firstCb = document.querySelector('.edit-menu-item-checkbox');
+                        if (firstCb) firstCb.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                         updateEditSelectedItemsDisplay();
                     }, 100);
                 })
-                .catch(error => {
-                    console.error('Error fetching package items:', error);
-                    container.innerHTML =
-                        '<p class="text-sm text-red-500">Error loading items. Please refresh and try again.</p>';
+                .catch(() => {
+                    itemsContainer.innerHTML = '<p class="text-sm text-red-500">Error loading items.</p>';
                 });
+
+            // ── Fetch 2: Costing Data ─────────────────────────────────────────
+            fetch(`/caterer/packages/${packageId}/costing-data`, {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    }
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('No costing');
+                    return r.json();
+                })
+                .then(data => {
+                    if (!data.has_costing) {
+                        renderNoCosting(breakdownEl, packageId);
+                        return;
+                    }
+                    renderCostingBreakdown(breakdownEl, data);
+                })
+                .catch(() => renderNoCosting(breakdownEl, packageId));
+        }
+
+        function renderCostingBreakdown(el, data) {
+            const fmt = v => parseFloat(v || 0).toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            const pct = (v, total) => total > 0 ? Math.round((v / total) * 100) : 0;
+
+            const components = [{
+                    key: 'ingredient_cost',
+                    label: '🥩 Ingredients',
+                    color: 'bg-orange-400'
+                },
+                {
+                    key: 'labor_cost',
+                    label: '👨‍🍳 Labor & Staffing',
+                    color: 'bg-blue-400'
+                },
+                {
+                    key: 'equipment_cost',
+                    label: '🍽️ Equipment & Rentals',
+                    color: 'bg-green-400'
+                },
+                {
+                    key: 'consumables_cost',
+                    label: '🥄 Consumables',
+                    color: 'bg-yellow-400'
+                },
+                {
+                    key: 'overhead_cost',
+                    label: '⚡ Overhead',
+                    color: 'bg-purple-400'
+                },
+                {
+                    key: 'transport_cost',
+                    label: '🚐 Transport',
+                    color: 'bg-pink-400'
+                },
+            ];
+
+            const activeComponents = components.filter(c => data[c.key] > 0);
+
+            let rows = '';
+            activeComponents.forEach(c => {
+                const amount = data[c.key];
+                const p = pct(amount, data.total_cost);
+                rows += `
+                    <div class="space-y-0.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-gray-600 dark:text-gray-400">${c.label}</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">
+                                ₱${fmt(amount)}
+                                <span class="text-gray-400">(${p}%)</span>
+                            </span>
+                        </div>
+                        <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full ${c.color}" style="width:${p}%"></div>
+                        </div>
+                    </div>`;
+            });
+
+            if (activeComponents.length === 0) {
+                rows = '<p class="text-xs text-gray-400 italic">No cost components entered yet.</p>';
+            }
+
+            el.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-sm">Cost Breakdown</h4>
+                    <a href="${data.costing_url}" target="_blank"
+                       class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                        Edit in Costing Tool ↗
+                    </a>
+                </div>
+                <div class="space-y-2">${rows}</div>
+                <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600 space-y-1">
+                    <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                        <span>Total Cost:</span>
+                        <span class="font-medium">₱${fmt(data.total_cost)}</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                        <span>Profit (${data.profit_margin_percent}%):</span>
+                        <span class="font-medium">₱${fmt(data.profit_amount)}</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold text-blue-600 dark:text-blue-400 pt-1 border-t border-gray-200 dark:border-gray-600">
+                        <span>Suggested Price:</span>
+                        <span>₱${fmt(data.suggested_price)}</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold text-gray-900 dark:text-white">
+                        <span>Final Price (current):</span>
+                        <span>₱${fmt(data.final_price)}</span>
+                    </div>
+                </div>`;
+
+            el.className =
+                'rounded-lg p-4 text-sm bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600';
+
+            // ✅ Hide the quick estimate — real data is showing
+            const quickEstimate = document.getElementById('editQuickEstimate');
+            if (quickEstimate) quickEstimate.style.display = 'none';
+        }
+
+        function renderNoCosting(el, packageId) {
+            el.innerHTML = `
+                <div class="text-center py-2">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        No costing set up for this package yet.
+                    </p>
+                    <a href="/caterer/packages/${packageId}/costing"
+                       target="_blank"
+                       class="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline">
+                        💰 Set up Costing Tool →
+                    </a>
+                </div>`;
+            el.className =
+                'rounded-lg p-4 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700';
+
+            // ✅ Show the quick estimate since no real costing exists
+            const quickEstimate = document.getElementById('editQuickEstimate');
+            if (quickEstimate) quickEstimate.style.display = '';
         }
 
         function closeEditPackageModal() {

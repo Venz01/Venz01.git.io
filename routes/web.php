@@ -215,6 +215,17 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::get('/caterer/packages/{package}/quotation', [PackageCostingController::class, 'generatePackageQuotation'])
         ->name('package.quotation');
 
+    // Costing Tool
+    Route::get('/packages/{package}/costing-data', [\App\Http\Controllers\PackageCostingController::class, 'getCostingData'])->name('costing.data');
+    Route::get('/packages/{package}/costing', [\App\Http\Controllers\PackageCostingController::class, 'show'])->name('costing.show');
+    Route::post('/packages/{package}/costing', [\App\Http\Controllers\PackageCostingController::class, 'store'])->name('costing.store');
+    Route::get('/costing', [\App\Http\Controllers\PackageCostingController::class, 'index'])->name('costing.index');
+    Route::get('/costing/calculate', [\App\Http\Controllers\PackageCostingController::class, 'calculate'])->name('costing.calculate');
+    Route::post('/costing/clone', [\App\Http\Controllers\PackageCostingController::class, 'cloneCosting'])->name('costing.clone');
+    Route::get('/bookings/{booking}/quotation', [\App\Http\Controllers\PackageCostingController::class, 'generateQuotation'])->name('costing.quotation');
+    Route::get('/packages/{package}/quotation', [\App\Http\Controllers\PackageCostingController::class, 'generatePackageQuotation'])->name('costing.package-quotation');
+
+
     // View own reviews
     Route::get('/reviews', [ReviewController::class, 'catererReviews'])->name('reviews');
     
