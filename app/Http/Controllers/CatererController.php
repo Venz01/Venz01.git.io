@@ -23,6 +23,14 @@ class CatererController extends Controller
         $this->notificationService = $notificationService;
     }
 
+    /**
+     * Home page - redirects to dashboard
+     */
+    public function home()
+    {
+        return redirect()->route('caterer.dashboard');
+    }
+
     public function dashboard()
     {
         $caterer = auth()->user();
@@ -1173,4 +1181,4 @@ class CatererController extends Controller
 
         return back()->with('success', 'Payment confirmed!');
     }
-}   
+}

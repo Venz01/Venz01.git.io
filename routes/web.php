@@ -132,18 +132,33 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 
 // Caterer routes
 Route::middleware(['auth', 'role:caterer'])->prefix('caterer')->name('caterer.')->group(function () {
-    Route::get('/dashboard', [CatererController::class, 'home'])->name('dashboard');
+    Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
     
     // Calendar availability management
     Route::post('/calendar/block', [CatererController::class, 'blockDate'])->name('calendar.block');
     Route::delete('/calendar/unblock/{id}', [CatererController::class, 'unblockDate'])->name('calendar.unblock');
+    Route::post('/calendar/toggle-availability', [CatererController::class, 'toggleAvailability'])->name('calendar.toggle-availability');
+    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle'); // Alternative name
+    Route::post('/calendar/block-range', [CatererController::class, 'blockDateRange'])->name('calendar.block-range');
+    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range'); // Alternative name
+    Route::post('/calendar/unblock-range', [CatererController::class, 'unblockDateRange'])->name('calendar.unblock-range');
+    Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])->name('availability.unblock-range'); // Alternative name
+    Route::post('/calendar/clear-blocked', [CatererController::class, 'clearAllBlocked'])->name('calendar.clear-blocked');
+    Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])->name('availability.clear-all'); // Alternative name
     
     Route::get('/menus', [CatererController::class, 'menus'])->name('menus');
     Route::get('/packages', [CatererController::class, 'packages'])->name('packages');
     Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
     Route::get('/bookings/{booking}', [CatererController::class, 'showBooking'])->name('bookings.show');
+    Route::get('/booking/{booking}', [CatererController::class, 'showBooking'])->name('booking.details'); // Alternative name
     Route::patch('/bookings/{booking}/status', [CatererController::class, 'updateBookingStatus'])->name('bookings.update-status');
+    Route::post('/bookings/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('bookings.confirm');
+    Route::post('/booking/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('booking.confirm'); // Alternative name
+    Route::post('/bookings/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('bookings.reject');
+    Route::post('/booking/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('booking.reject'); // Alternative name
+    Route::post('/bookings/{booking}/complete', [CatererController::class, 'completeBooking'])->name('bookings.complete');
+    Route::post('/booking/{booking}/complete', [CatererController::class, 'completeBooking'])->name('booking.complete'); // Alternative name
     Route::patch('/bookings/{booking}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('bookings.confirm-payment');
 
     // Display menus - view list
@@ -215,6 +230,7 @@ Route::middleware(['auth', 'role:caterer'])->prefix('caterer')->name('caterer.')
     Route::patch('/orders/{order}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('orders.confirm-payment');
     
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
+    Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
     
     // Reports
     Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports');
