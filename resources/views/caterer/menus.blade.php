@@ -839,7 +839,7 @@
         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Create Package</h2>
-            <form action="{{ route('caterer.packages.store') }}" method="POST" enctype="multipart/form-data"
+            <form id="createPackageForm" action="{{ route('caterer.packages.store') }}" method="POST" enctype="multipart/form-data"
                 x-data="packagePriceCalculator()">
                 @csrf
                 <div class="space-y-4">
@@ -860,8 +860,7 @@
                                 x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
-                            Quick estimate from menu items. For accurate pricing, use the
-                            <strong>Costing Tool</strong> after saving.
+                            Price automatically calculated from selected menu items
                         </p>
                     </div>
 
@@ -904,6 +903,8 @@
                         @endforeach
                     </div>
 
+                    
+                    <!-- Dietary Preferences & Allergy Tags -->
                     <!-- Dietary Preferences & Allergy Tags -->
                     <div class="mt-4">
                         @include('admin.partials.package-dietary-tags', ['selectedTags' => []])
@@ -912,28 +913,30 @@
                     <!-- Price Breakdown -->
                     <div x-show="selectedItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
-                        <div class="flex items-center justify-between mb-2">
-                            <h4 class="font-semibold text-gray-800 dark:text-gray-200">Quick Estimate</h4>
-                            <span class="text-xs text-gray-400 dark:text-gray-500">before costing is set up</span>
-                        </div>
+                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown:</h4>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
-                                <span>Menu Items Total:</span>
+                                <span>Food Cost:</span>
                                 <span x-text="'₱' + foodCost.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                                <span>+ Overhead & margin (~55%):</span>
-                                <span x-text="'₱' + (foodCost * 0.55).toFixed(2)"></span>
+                            <div class="flex justify-between">
+                                <span>Labor & Utilities (20%):</span>
+                                <span x-text="'₱' + (foodCost * 0.20).toFixed(2)"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Equipment & Transport (10%):</span>
+                                <span x-text="'₱' + (foodCost * 0.10).toFixed(2)"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Profit Margin (25%):</span>
+                                <span x-text="'₱' + (foodCost * 0.25).toFixed(2)"></span>
                             </div>
                             <div
-                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1">
-                                <span>Suggested per Head:</span>
+                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
+                                <span>Total per Head:</span>
                                 <span x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                             </div>
                         </div>
-                        <p class="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                            Save the package then use the <strong>Costing Tool</strong> to set accurate cost components.
-                        </p>
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
@@ -977,8 +980,7 @@
                                 x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
-                            Quick estimate from menu items. For accurate pricing, use the
-                            <strong>Costing Tool</strong> after saving.
+                            Price automatically calculated from selected menu items
                         </p>
                     </div>
 
@@ -1052,48 +1054,46 @@
                     </div>
 
                     <!-- Price Breakdown -->
-                    <!-- Cost Breakdown: real data OR quick estimate, never both -->
-                    <!-- JS fills #editCostingBreakdown and hides #editQuickEstimate when costing exists -->
-                    <div id="editCostingBreakdown" class="hidden"></div>
-
-                    <div id="editQuickEstimate" x-show="selectedEditItems.length > 0"
+                    <div x-show="selectedEditItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
-                        <div class="flex items-center justify-between mb-2">
-                            <h4 class="font-semibold text-gray-800 dark:text-gray-200">Quick Estimate</h4>
-                            <span class="text-xs text-gray-400 dark:text-gray-500">no costing set up yet</span>
-                        </div>
+                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown:</h4>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
-                                <span>Menu Items Total:</span>
+                                <span>Food Cost:</span>
                                 <span x-text="'₱' + foodCost.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                                <span>+ Overhead &amp; margin (~55%):</span>
-                                <span x-text="'₱' + (foodCost * 0.55).toFixed(2)"></span>
+                            <div class="flex justify-between">
+                                <span>Labor & Utilities (20%):</span>
+                                <span x-text="'₱' + (foodCost * 0.20).toFixed(2)"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Equipment & Transport (10%):</span>
+                                <span x-text="'₱' + (foodCost * 0.10).toFixed(2)"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Profit Margin (25%):</span>
+                                <span x-text="'₱' + (foodCost * 0.25).toFixed(2)"></span>
                             </div>
                             <div
-                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1">
-                                <span>Suggested per Head:</span>
+                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
+                                <span>Total per Head:</span>
                                 <span x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                             </div>
                         </div>
-                        <p class="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                            Save then use the <a href="#" class="font-semibold underline">Costing Tool</a> to set
-                            accurate cost components.
-                        </p>
                     </div>
+                </div>
 
-                    <div class="mt-6 flex justify-end gap-3">
-                        <button type="button" onclick="closeEditPackageModal()"
-                            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" :disabled="selectedEditItems.length === 0"
-                            :class="selectedEditItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
-                            class="px-4 py-2 rounded-lg text-white transition-colors font-medium">
-                            Update Package
-                        </button>
-                    </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeEditPackageModal()"
+                        class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="selectedEditItems.length === 0"
+                        :class="selectedEditItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                        class="px-4 py-2 rounded-lg text-white transition-colors font-medium">
+                        Update Package
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -1208,695 +1208,676 @@
         </div>
     </div>
 
-    <script>
-        // Package Price Calculator for Create Modal
-        function packagePriceCalculator() {
-            return {
-                selectedItems: [],
-                foodCost: 0,
-                calculatedPrice: 0,
-                pax: 1,
+   <script>
+    // Package Price Calculator for Create Modal
+    function packagePriceCalculator() {
+        return {
+            selectedItems: [],
+            foodCost: 0,
+            calculatedPrice: 0,
+            pax: 1,
 
-                updatePrice() {
-                    const checkboxes = document.querySelectorAll('.menu-item-checkbox:checked');
-                    this.selectedItems = Array.from(checkboxes).map(cb => ({
-                        id: cb.value,
-                        price: parseFloat(cb.dataset.price)
-                    }));
-                    this.foodCost = this.selectedItems.reduce((sum, i) => sum + i.price, 0);
+            updatePrice() {
+                const checkboxes = document.querySelectorAll('#createPackageForm .menu-item-checkbox:checked');
+                this.selectedItems = Array.from(checkboxes).map(cb => ({
+                    id: cb.value,
+                    price: parseFloat(cb.dataset.price)
+                }));
 
-                    // ✅ ceil matches PackageCosting::getCalculatedPriceAttribute
-                    this.calculatedPrice = Math.ceil((this.foodCost * 1.55) / 5) * 5;
-                }
-            };
+                this.foodCost = this.selectedItems.reduce((sum, item) => sum + item.price, 0);
+
+                const laborUtilities = this.foodCost * 0.20;
+                const equipmentTransport = this.foodCost * 0.10;
+                const profitMargin = this.foodCost * 0.25;
+
+                const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
+                this.calculatedPrice = Math.round(total / 5) * 5;
+            }
         }
+    }
 
-        // Package Price Calculator for Edit Modal
-        function editPackagePriceCalculator() {
-            return {
-                selectedEditItems: [],
-                foodCost: 0,
-                calculatedPrice: 0,
-                pax: 1,
+    // Package Price Calculator for Edit Modal
+    function editPackagePriceCalculator() {
+        return {
+            selectedEditItems: [],
+            foodCost: 0,
+            calculatedPrice: 0,
+            pax: 1,
 
-                init() {
-                    this.$nextTick(() => this.updateEditPrice());
-                },
+            init() {
+                this.$nextTick(() => {
+                    this.updateEditPrice();
+                });
+            },
 
-                updateEditPrice() {
-                    const checkboxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
-                    this.selectedEditItems = Array.from(checkboxes).map(cb => ({
-                        id: cb.value,
-                        price: parseFloat(cb.dataset.itemPrice) || 0
-                    }));
-                    this.foodCost = this.selectedEditItems.reduce((sum, i) => sum + i.price, 0);
+            updateEditPrice() {
+                const checkboxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
+                this.selectedEditItems = Array.from(checkboxes).map(cb => ({
+                    id: cb.value,
+                    price: parseFloat(cb.dataset.itemPrice) || 0
+                }));
 
-                    // ✅ ceil matches costing tool
-                    this.calculatedPrice = Math.ceil((this.foodCost * 1.55) / 5) * 5;
-                }
-            };
+                this.foodCost = this.selectedEditItems.reduce((sum, item) => sum + item.price, 0);
+
+                const laborUtilities = this.foodCost * 0.20;
+                const equipmentTransport = this.foodCost * 0.10;
+                const profitMargin = this.foodCost * 0.25;
+
+                const total = this.foodCost + laborUtilities + equipmentTransport + profitMargin;
+                this.calculatedPrice = Math.round(total / 5) * 5;
+            }
         }
+    }
 
-        function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
-            // Populate basic fields
-            document.getElementById('editPackageName').value = name;
-            document.getElementById('editPackageDescription').value = description;
-            document.getElementById('editPackagePax').value = pax;
-            document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
+    function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
+        document.getElementById('editPackageName').value = name;
+        document.getElementById('editPackageDescription').value = description;
+        document.getElementById('editPackagePax').value = pax;
+        document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
 
-            // Dietary tags
-            document.querySelectorAll('.dietary-tag-checkbox').forEach(checkbox => {
-                checkbox.checked = dietaryTags.includes(checkbox.value);
+        document.querySelectorAll('#editPackageModal .dietary-tag-checkbox').forEach(checkbox => {
+            const tagValue = checkbox.value;
+            checkbox.checked = dietaryTags.includes(tagValue);
+            if (typeof toggleDietaryTag === 'function') {
                 toggleDietaryTag(checkbox);
-            });
-
-            document.getElementById('editPackageModal').classList.remove('hidden');
-
-            // Reset breakdown panel to loading state
-            const breakdownEl = document.getElementById('editCostingBreakdown');
-            if (breakdownEl) {
-                breakdownEl.className = 'rounded-lg p-4 text-sm bg-gray-50 dark:bg-gray-700/50';
-                breakdownEl.innerHTML = '<p class="text-xs text-gray-400 animate-pulse">Loading cost breakdown...</p>';
-                breakdownEl.classList.remove('hidden'); // make sure it's visible while loading
             }
-            // Reset quick estimate to default (Alpine controls it via x-show)
-            const quickEstimate = document.getElementById('editQuickEstimate');
-            if (quickEstimate) quickEstimate.style.display = '';
+        });
 
-            const itemsContainer = document.getElementById('editSelectedItemsContainer');
-            itemsContainer.innerHTML = '<p class="text-sm text-gray-500 italic">Loading items...</p>';
+        document.getElementById('editPackageModal').classList.remove('hidden');
 
-            // ── Fetch 1: Package Items ────────────────────────────────────────
-            const itemsPromise = fetch(`/caterer/packages/${packageId}/items`)
-                .then(r => {
-                    if (!r.ok) throw new Error('Failed to fetch items');
-                    return r.json();
-                })
-                .then(data => {
-                    if (data.items && Array.isArray(data.items)) {
-                        data.items.forEach(itemId => {
-                            const cb = document.querySelector(
-                                `.edit-menu-item-checkbox[value="${itemId}"]`);
-                            if (cb) cb.checked = true;
-                        });
-                    }
-                    setTimeout(() => {
-                        const firstCb = document.querySelector('.edit-menu-item-checkbox');
-                        if (firstCb) firstCb.dispatchEvent(new Event('change', {
-                            bubbles: true
-                        }));
-                        updateEditSelectedItemsDisplay();
-                    }, 100);
-                })
-                .catch(() => {
-                    itemsContainer.innerHTML = '<p class="text-sm text-red-500">Error loading items.</p>';
-                });
+        const container = document.getElementById('editSelectedItemsContainer');
+        container.innerHTML = '<p class="text-sm text-gray-500">Loading items...</p>';
 
-            // ── Fetch 2: Costing Data ─────────────────────────────────────────
-            fetch(`/caterer/packages/${packageId}/costing-data`, {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                    }
-                })
-                .then(r => {
-                    if (!r.ok) throw new Error('No costing');
-                    return r.json();
-                })
-                .then(data => {
-                    if (!data.has_costing) {
-                        renderNoCosting(breakdownEl, packageId);
-                        return;
-                    }
-                    renderCostingBreakdown(breakdownEl, data);
-                })
-                .catch(() => renderNoCosting(breakdownEl, packageId));
-        }
-
-        function renderCostingBreakdown(el, data) {
-            const fmt = v => parseFloat(v || 0).toLocaleString('en-PH', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            const pct = (v, total) => total > 0 ? Math.round((v / total) * 100) : 0;
-
-            const components = [{
-                    key: 'ingredient_cost',
-                    label: '🥩 Ingredients',
-                    color: 'bg-orange-400'
-                },
-                {
-                    key: 'labor_cost',
-                    label: '👨‍🍳 Labor & Staffing',
-                    color: 'bg-blue-400'
-                },
-                {
-                    key: 'equipment_cost',
-                    label: '🍽️ Equipment & Rentals',
-                    color: 'bg-green-400'
-                },
-                {
-                    key: 'consumables_cost',
-                    label: '🥄 Consumables',
-                    color: 'bg-yellow-400'
-                },
-                {
-                    key: 'overhead_cost',
-                    label: '⚡ Overhead',
-                    color: 'bg-purple-400'
-                },
-                {
-                    key: 'transport_cost',
-                    label: '🚐 Transport',
-                    color: 'bg-pink-400'
-                },
-            ];
-
-            const activeComponents = components.filter(c => data[c.key] > 0);
-
-            let rows = '';
-            activeComponents.forEach(c => {
-                const amount = data[c.key];
-                const p = pct(amount, data.total_cost);
-                rows += `
-                    <div class="space-y-0.5">
-                        <div class="flex justify-between text-xs">
-                            <span class="text-gray-600 dark:text-gray-400">${c.label}</span>
-                            <span class="font-medium text-gray-800 dark:text-gray-200">
-                                ₱${fmt(amount)}
-                                <span class="text-gray-400">(${p}%)</span>
-                            </span>
-                        </div>
-                        <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full ${c.color}" style="width:${p}%"></div>
-                        </div>
-                    </div>`;
-            });
-
-            if (activeComponents.length === 0) {
-                rows = '<p class="text-xs text-gray-400 italic">No cost components entered yet.</p>';
-            }
-
-            el.innerHTML = `
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-sm">Cost Breakdown</h4>
-                    <a href="${data.costing_url}" target="_blank"
-                       class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                        Edit in Costing Tool ↗
-                    </a>
-                </div>
-                <div class="space-y-2">${rows}</div>
-                <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600 space-y-1">
-                    <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                        <span>Total Cost:</span>
-                        <span class="font-medium">₱${fmt(data.total_cost)}</span>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                        <span>Profit (${data.profit_margin_percent}%):</span>
-                        <span class="font-medium">₱${fmt(data.profit_amount)}</span>
-                    </div>
-                    <div class="flex justify-between text-xs font-bold text-blue-600 dark:text-blue-400 pt-1 border-t border-gray-200 dark:border-gray-600">
-                        <span>Suggested Price:</span>
-                        <span>₱${fmt(data.suggested_price)}</span>
-                    </div>
-                    <div class="flex justify-between text-xs font-bold text-gray-900 dark:text-white">
-                        <span>Final Price (current):</span>
-                        <span>₱${fmt(data.final_price)}</span>
-                    </div>
-                </div>`;
-
-            el.className =
-                'rounded-lg p-4 text-sm bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600';
-
-            // ✅ Hide the quick estimate — real data is showing
-            const quickEstimate = document.getElementById('editQuickEstimate');
-            if (quickEstimate) quickEstimate.style.display = 'none';
-        }
-
-        function renderNoCosting(el, packageId) {
-            el.innerHTML = `
-                <div class="text-center py-2">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                        No costing set up for this package yet.
-                    </p>
-                    <a href="/caterer/packages/${packageId}/costing"
-                       target="_blank"
-                       class="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline">
-                        💰 Set up Costing Tool →
-                    </a>
-                </div>`;
-            el.className =
-                'rounded-lg p-4 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700';
-
-            // ✅ Show the quick estimate since no real costing exists
-            const quickEstimate = document.getElementById('editQuickEstimate');
-            if (quickEstimate) quickEstimate.style.display = '';
-        }
-
-        function closeEditPackageModal() {
-            document.getElementById('editPackageModal').classList.add('hidden');
-        }
-
-        function updateEditSelectedItemsDisplay() {
-            const container = document.getElementById('editSelectedItemsContainer');
-            const checkedBoxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
-
-            if (checkedBoxes.length === 0) {
-                container.innerHTML =
-                    '<p class="text-sm text-gray-500 italic">No items selected. Please select at least one menu item.</p>';
-                return;
-            }
-
-            let html = '<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2">';
-            html += '<p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Selected Items (' +
-                checkedBoxes.length + '):</p>';
-
-            checkedBoxes.forEach(checkbox => {
-                const itemName = checkbox.dataset.itemName;
-                const itemPrice = parseFloat(checkbox.dataset.itemPrice).toFixed(2);
-                const itemId = checkbox.value;
-
-                html += `
-            <div class="flex items-center justify-between bg-white dark:bg-gray-600 rounded px-3 py-2">
-                <span class="text-sm text-gray-800 dark:text-gray-200">
-                    ${itemName} - ₱${itemPrice}
-                </span>
-                <button type="button" 
-                        onclick="removeEditMenuItem(${itemId})"
-                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        `;
-            });
-
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function removeEditMenuItem(itemId) {
-            const checkbox = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
-            if (checkbox) {
-                checkbox.checked = false;
-                const event = new Event('change', {
-                    bubbles: true
-                });
-                checkbox.dispatchEvent(event);
-                updateEditSelectedItemsDisplay();
-            }
-        }
-
-        // Main Alpine.js component
-        function menuManager() {
-            return {
-                activeTab: 'packages',
-                selectedCategory: 'all',
-                loading: false,
-
-                // BULK ACTION PROPERTIES
-                bulkMode: false,
-                selectedCategories: [],
-                selectedItems: [],
-
-                confirmModal: {
-                    show: false,
-                    title: '',
-                    message: '',
-                    type: 'danger',
-                    confirmText: 'Delete',
-                    action: null
-                },
-
-                openModal(modalId) {
-                    document.getElementById(modalId).classList.remove('hidden');
-                },
-
-                showDeleteConfirm(url, type, name, itemCount = 0) {
-                    let title, message, confirmText;
-
-                    if (type === 'category') {
-                        title = 'Delete Category?';
-                        if (itemCount > 0) {
-                            message =
-                                `Cannot delete "${name}" - This category has ${itemCount} item(s). Please delete all items first before deleting the category.`;
-                            confirmText = 'OK, Got It';
-                            this.confirmModal.type = 'warning';
-                            this.confirmModal.action = null;
-                        } else {
-                            message =
-                                `Are you sure you want to delete the category "${name}"? This action cannot be undone.`;
-                            confirmText = 'Delete Category';
-                            this.confirmModal.type = 'danger';
-                            this.confirmModal.action = url;
-                        }
-                    } else if (type === 'item') {
-                        title = 'Delete Menu Item?';
-                        message =
-                            `Are you sure you want to delete "${name}"? This will remove it from all packages that include it. This action cannot be undone.`;
-                        confirmText = 'Delete Item';
-                        this.confirmModal.type = 'danger';
-                        this.confirmModal.action = url;
-                    } else if (type === 'package') {
-                        title = 'Delete Package?';
-                        message =
-                            `Are you sure you want to delete the package "${name}"? This action cannot be undone.`;
-                        confirmText = 'Delete Package';
-                        this.confirmModal.type = 'danger';
-                        this.confirmModal.action = url;
-                    } else if (type === 'display_menu') {
-                        title = 'Delete Display Menu?';
-                        message =
-                            `Are you sure you want to delete "${name}"? This will remove it from your customer-facing menu. This action cannot be undone.`;
-                        confirmText = 'Delete Menu';
-                        this.confirmModal.type = 'danger';
-                        this.confirmModal.action = url;
-                    }
-
-                    this.confirmModal.show = true;
-                    this.confirmModal.title = title;
-                    this.confirmModal.message = message;
-                    this.confirmModal.confirmText = confirmText;
-                },
-
-                // BULK ACTION METHODS
-                toggleBulkMode() {
-                    this.bulkMode = !this.bulkMode;
-                    if (!this.bulkMode) {
-                        this.clearAllSelections();
-                    }
-                },
-
-                toggleCategorySelection(categoryId) {
-                    const index = this.selectedCategories.indexOf(categoryId);
-                    if (index > -1) {
-                        this.selectedCategories.splice(index, 1);
-                    } else {
-                        this.selectedCategories.push(categoryId);
-                    }
-                },
-
-                toggleItemSelection(itemId) {
-                    const index = this.selectedItems.indexOf(itemId);
-                    if (index > -1) {
-                        this.selectedItems.splice(index, 1);
-                    } else {
-                        this.selectedItems.push(itemId);
-                    }
-                },
-
-                clearAllSelections() {
-                    this.selectedCategories = [];
-                    this.selectedItems = [];
-                },
-
-                bulkChangeStatus(status) {
-                    if (this.selectedItems.length === 0) {
-                        alert('Please select at least one item to change status');
-                        return;
-                    }
-
-                    this.confirmModal.show = true;
-                    this.confirmModal.type = 'info';
-                    this.confirmModal.title = 'Change Status';
-                    this.confirmModal.message = `Set ${this.selectedItems.length} item(s) as ${status}?`;
-                    this.confirmModal.confirmText = 'Change Status';
-                    this.confirmModal.action = () => {
-                        this.performBulkAction('change_status', status);
-                    };
-                },
-
-                bulkDelete() {
-                    const totalSelected = this.selectedCategories.length + this.selectedItems.length;
-                    if (totalSelected === 0) {
-                        alert('Please select items or categories to delete');
-                        return;
-                    }
-
-                    let message = `Are you sure you want to delete ${totalSelected} item(s)?`;
-                    if (this.selectedCategories.length > 0 && this.selectedItems.length > 0) {
-                        message =
-                            `Are you sure you want to delete ${this.selectedCategories.length} category(ies) and ${this.selectedItems.length} item(s)?`;
-                    } else if (this.selectedCategories.length > 0) {
-                        message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies)?`;
-                    } else {
-                        message = `Are you sure you want to delete ${this.selectedItems.length} item(s)?`;
-                    }
-
-                    this.confirmModal.show = true;
-                    this.confirmModal.type = 'danger';
-                    this.confirmModal.title = 'Delete Selected Items';
-                    this.confirmModal.message = message + ' This action cannot be undone.';
-                    this.confirmModal.confirmText = 'Delete All';
-                    this.confirmModal.action = () => {
-                        this.performBulkAction('delete', null);
-                    };
-                },
-
-                async performBulkAction(action, value = null) {
-                    this.loading = true;
-
-                    const formData = new FormData();
-                    formData.append('category_ids', JSON.stringify(this.selectedCategories));
-                    formData.append('item_ids', JSON.stringify(this.selectedItems));
-                    formData.append('action', action);
-                    if (value) formData.append('value', value);
-
-                    try {
-                        const response = await fetch('/caterer/bulk-action', {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Accept': 'application/json'
-                            }
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            window.location.reload();
-                        } else {
-                            alert(data.message || 'An error occurred');
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('An error occurred while processing your request');
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-
-                confirmAction() {
-                    if (typeof this.confirmModal.action === 'function') {
-                        this.confirmModal.action();
-                        this.confirmModal.show = false;
-                    } else if (this.confirmModal.action) {
-                        const form = document.getElementById('deleteForm');
-                        if (form) {
-                            form.action = this.confirmModal.action;
-                            form.submit();
-                        }
-                    } else {
-                        this.confirmModal.show = false;
-                    }
-                },
-
-                openItemModal(categoryId) {
-                    document.getElementById('itemCategoryId').value = categoryId;
-                    this.openModal('itemModal');
-                },
-
-                openEditItemModal(id, name, description, price, status) {
-                    document.getElementById('editItemName').value = name;
-                    document.getElementById('editItemDescription').value = description;
-                    document.getElementById('editItemPrice').value = price;
-                    document.getElementById('editItemStatus').value = status;
-                    document.getElementById('editItemForm').action = `/caterer/menu-items/${id}`;
-                    this.openModal('editItemModal');
-                },
-
-                openEditCategoryModal(id, name, description) {
-                    document.getElementById('editCategoryName').value = name;
-                    document.getElementById('editCategoryDescription').value = description;
-                    document.getElementById('editCategoryForm').action = `/caterer/categories/${id}`;
-                    this.openModal('editCategoryModal');
-                },
-
-                openEditDisplayMenuModal(id, name, category, description, price, status) {
-                    document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
-                    document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
-
-                    document.getElementById('displayMenuForm').action = `/caterer/display-menus/${id}`;
-                    document.getElementById('displayMenuFormMethod').innerHTML =
-                        '<input type="hidden" name="_method" value="PUT">';
-
-                    document.getElementById('display_menu_name').value = name;
-                    document.getElementById('display_menu_description').value = description || '';
-                    document.getElementById('display_menu_price').value = price || '';
-                    document.getElementById('display_menu_status').value = status;
-
-                    const categorySelect = document.getElementById('display_menu_category_select');
-                    const newCategoryInput = document.getElementById('newDisplayCategory');
-
-                    let categoryExists = false;
-                    for (let option of categorySelect.options) {
-                        if (option.value === category && option.value !== '__new__') {
-                            categorySelect.value = category;
-                            categoryExists = true;
-                            break;
-                        }
-                    }
-
-                    if (!categoryExists && category) {
-                        categorySelect.value = '__new__';
-                        document.getElementById('newDisplayCategoryInput').classList.remove('hidden');
-                        document.getElementById('newDisplayCategoryInput').value = category;
-                        document.getElementById('newDisplayCategoryInput').required = true;
-                    } else {
-                        document.getElementById('newDisplayCategoryInput').classList.add('hidden');
-                        document.getElementById('newDisplayCategoryInput').required = false;
-                    }
-
-                    const imagePreview = document.getElementById('display_menu_image_preview');
-                    if (imagePreview) {
-                        imagePreview.classList.add('hidden');
-                    }
-
-                    document.getElementById('displayMenuModal').classList.remove('hidden');
-                },
-
-                openDisplayMenuModal() {
-                    document.getElementById('displayMenuForm').reset();
-                    document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
-                    document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
-                    document.getElementById('displayMenuForm').action = '{{ route("caterer.display-menus.store") }}';
-                    document.getElementById('displayMenuFormMethod').innerHTML = '';
-
-                    const categorySelect = document.getElementById('display_menu_category_select');
-
-                    categorySelect.value = '';
-                    document.getElementById('newDisplayCategoryInput').classList.add('hidden');
-                    document.getElementById('newDisplayCategoryInput').value = '';
-                    document.getElementById('newDisplayCategoryInput').required = false;
-
-                    const imagePreview = document.getElementById('display_menu_image_preview');
-                    if (imagePreview) {
-                        imagePreview.classList.add('hidden');
-                    }
-
-                    document.getElementById('displayMenuModal').classList.remove('hidden');
+        fetch(`/caterer/packages/${packageId}/items`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch package items');
                 }
-            }
-        }
-
-        // Global functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        function closeDisplayMenuModal() {
-            document.getElementById('displayMenuModal').classList.add('hidden');
-            document.getElementById('displayMenuForm').reset();
-
-            const imagePreview = document.getElementById('display_menu_image_preview');
-            if (imagePreview) {
-                imagePreview.classList.add('hidden');
-            }
-        }
-
-        function toggleNewCategoryInput(select) {
-            const newCategoryInput = document.getElementById('newDisplayCategoryInput');
-            const hiddenCategoryInput = document.getElementById('newDisplayCategory');
-
-            if (select.value === '__new__') {
-                newCategoryInput.classList.remove('hidden');
-                newCategoryInput.required = true;
-                newCategoryInput.value = '';
-                hiddenCategoryInput.value = '';
-            } else {
-                newCategoryInput.classList.add('hidden');
-                newCategoryInput.required = false;
-                hiddenCategoryInput.value = select.value;
-            }
-        }
-
-        // Close modals when clicking outside
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
-                const modals = document.querySelectorAll('[id$="Modal"]');
-                modals.forEach(modal => {
-                    if (!modal.id.includes('confirm')) {
-                        modal.classList.add('hidden');
-                    }
-                });
-            }
-        });
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                const modals = document.querySelectorAll('[id$="Modal"]');
-                modals.forEach(modal => {
-                    if (!modal.id.includes('confirm')) {
-                        modal.classList.add('hidden');
-                    }
-                });
-            }
-        });
-
-        // Image preview on file select
-        (function () {
-            const imageInput = document.getElementById('display_menu_image');
-            if (imageInput) {
-                imageInput.addEventListener('change', function (e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        if (file.size > 2097152) {
-                            alert('File size must be less than 2MB');
-                            this.value = '';
-                            return;
+                return response.json();
+            })
+            .then(data => {
+                if (data.items && Array.isArray(data.items)) {
+                    data.items.forEach(itemId => {
+                        const checkbox = document.querySelector(
+                            `.edit-menu-item-checkbox[value="${itemId}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
                         }
+                    });
+                }
 
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            const previewImg = document.getElementById('display_menu_preview_img');
-                            const imagePreview = document.getElementById('display_menu_image_preview');
-                            if (previewImg && imagePreview) {
-                                previewImg.src = e.target.result;
-                                imagePreview.classList.remove('hidden');
-                            }
-                        };
-                        reader.readAsDataURL(file);
+                setTimeout(() => {
+                    const firstCheckbox = document.querySelector('.edit-menu-item-checkbox');
+                    if (firstCheckbox) {
+                        const event = new Event('change', {
+                            bubbles: true
+                        });
+                        firstCheckbox.dispatchEvent(event);
                     }
-                });
-            }
-        })();
+                    updateEditSelectedItemsDisplay();
+                }, 100);
+            })
+            .catch(error => {
+                console.error('Error fetching package items:', error);
+                container.innerHTML =
+                    '<p class="text-sm text-red-500">Error loading items. Please refresh and try again.</p>';
+            });
+    }
 
-        // Handle category selection for display menu form
-        document.addEventListener('DOMContentLoaded', function () {
-            const displayMenuForm = document.getElementById('displayMenuForm');
-            if (displayMenuForm) {
-                displayMenuForm.addEventListener('submit', function (e) {
-                    const categorySelect = document.getElementById('display_menu_category_select');
-                    const newCategoryInput = document.getElementById('newDisplayCategory');
+    function closeEditPackageModal() {
+        document.getElementById('editPackageModal').classList.add('hidden');
+    }
 
-                    if (categorySelect.value === '__new__') {
-                        newCategoryInput.value = document.getElementById('newDisplayCategoryInput')
-                            .value;
-                    } else {
-                        newCategoryInput.value = categorySelect.value;
-                    }
-                });
-            }
+    function updateEditSelectedItemsDisplay() {
+        const container = document.getElementById('editSelectedItemsContainer');
+        const checkedBoxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
+
+        if (checkedBoxes.length === 0) {
+            container.innerHTML =
+                '<p class="text-sm text-gray-500 italic">No items selected. Please select at least one menu item.</p>';
+            return;
+        }
+
+        let html = '<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2">';
+        html += '<p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Selected Items (' +
+            checkedBoxes.length + '):</p>';
+
+        checkedBoxes.forEach(checkbox => {
+            const itemName = checkbox.dataset.itemName;
+            const itemPrice = parseFloat(checkbox.dataset.itemPrice).toFixed(2);
+            const itemId = checkbox.value;
+
+            html += `
+        <div class="flex items-center justify-between bg-white dark:bg-gray-600 rounded px-3 py-2">
+            <span class="text-sm text-gray-800 dark:text-gray-200">
+                ${itemName} - ₱${itemPrice}
+            </span>
+            <button type="button" 
+                    onclick="removeEditMenuItem(${itemId})"
+                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
         });
 
-    </script>
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function removeEditMenuItem(itemId) {
+        const checkbox = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
+        if (checkbox) {
+            checkbox.checked = false;
+            const event = new Event('change', {
+                bubbles: true
+            });
+            checkbox.dispatchEvent(event);
+            updateEditSelectedItemsDisplay();
+        }
+    }
+
+    // Main Alpine.js component
+    function menuManager() {
+        return {
+            activeTab: 'packages',
+            selectedCategory: 'all',
+            loading: false,
+            bulkMode: false,
+            selectedCategories: [],
+            selectedItems: [],
+
+            confirmModal: {
+                show: false,
+                title: '',
+                message: '',
+                type: 'danger',
+                confirmText: 'Delete',
+                action: null
+            },
+
+            openModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
+            },
+
+            showDeleteConfirm(url, type, name, itemCount = 0) {
+                let title, message, confirmText;
+
+                if (type === 'category') {
+                    title = 'Delete Category?';
+                    if (itemCount > 0) {
+                        message = `Cannot delete "${name}" - This category has ${itemCount} item(s). Please delete all items first before deleting the category.`;
+                        confirmText = 'OK, Got It';
+                        this.confirmModal.type = 'warning';
+                        this.confirmModal.action = null;
+                    } else {
+                        message = `Are you sure you want to delete the category "${name}"? This action cannot be undone.`;
+                        confirmText = 'Delete Category';
+                        this.confirmModal.type = 'danger';
+                        this.confirmModal.action = url;
+                    }
+                } else if (type === 'item') {
+                    title = 'Delete Menu Item?';
+                    message = `Are you sure you want to delete "${name}"? This will remove it from all packages that include it. This action cannot be undone.`;
+                    confirmText = 'Delete Item';
+                    this.confirmModal.type = 'danger';
+                    this.confirmModal.action = url;
+                } else if (type === 'package') {
+                    title = 'Delete Package?';
+                    message = `Are you sure you want to delete the package "${name}"? This action cannot be undone.`;
+                    confirmText = 'Delete Package';
+                    this.confirmModal.type = 'danger';
+                    this.confirmModal.action = url;
+                } else if (type === 'display_menu') {
+                    title = 'Delete Display Menu?';
+                    message = `Are you sure you want to delete "${name}"? This will remove it from your customer-facing menu. This action cannot be undone.`;
+                    confirmText = 'Delete Menu';
+                    this.confirmModal.type = 'danger';
+                    this.confirmModal.action = url;
+                }
+
+                this.confirmModal.show = true;
+                this.confirmModal.title = title;
+                this.confirmModal.message = message;
+                this.confirmModal.confirmText = confirmText;
+            },
+
+            toggleBulkMode() {
+                this.bulkMode = !this.bulkMode;
+                if (!this.bulkMode) {
+                    this.clearAllSelections();
+                }
+            },
+
+            toggleCategorySelection(categoryId) {
+                const index = this.selectedCategories.indexOf(categoryId);
+                if (index > -1) {
+                    this.selectedCategories.splice(index, 1);
+                } else {
+                    this.selectedCategories.push(categoryId);
+                }
+            },
+
+            toggleItemSelection(itemId) {
+                const index = this.selectedItems.indexOf(itemId);
+                if (index > -1) {
+                    this.selectedItems.splice(index, 1);
+                } else {
+                    this.selectedItems.push(itemId);
+                }
+            },
+
+            clearAllSelections() {
+                this.selectedCategories = [];
+                this.selectedItems = [];
+            },
+
+            bulkChangeStatus(status) {
+                if (this.selectedItems.length === 0) {
+                    alert('Please select at least one item to change status');
+                    return;
+                }
+
+                this.confirmModal.show = true;
+                this.confirmModal.type = 'info';
+                this.confirmModal.title = 'Change Status';
+                this.confirmModal.message = `Set ${this.selectedItems.length} item(s) as ${status}?`;
+                this.confirmModal.confirmText = 'Change Status';
+                this.confirmModal.action = () => {
+                    this.performBulkAction('change_status', status);
+                };
+            },
+
+            bulkDelete() {
+                const totalSelected = this.selectedCategories.length + this.selectedItems.length;
+                if (totalSelected === 0) {
+                    alert('Please select items or categories to delete');
+                    return;
+                }
+
+                let message = `Are you sure you want to delete ${totalSelected} item(s)?`;
+                if (this.selectedCategories.length > 0 && this.selectedItems.length > 0) {
+                    message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies) and ${this.selectedItems.length} item(s)?`;
+                } else if (this.selectedCategories.length > 0) {
+                    message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies)?`;
+                } else {
+                    message = `Are you sure you want to delete ${this.selectedItems.length} item(s)?`;
+                }
+
+                this.confirmModal.show = true;
+                this.confirmModal.type = 'danger';
+                this.confirmModal.title = 'Delete Selected Items';
+                this.confirmModal.message = message + ' This action cannot be undone.';
+                this.confirmModal.confirmText = 'Delete All';
+                this.confirmModal.action = () => {
+                    this.performBulkAction('delete', null);
+                };
+            },
+
+            async performBulkAction(action, value = null) {
+                this.loading = true;
+
+                const formData = new FormData();
+                formData.append('category_ids', JSON.stringify(this.selectedCategories));
+                formData.append('item_ids', JSON.stringify(this.selectedItems));
+                formData.append('action', action);
+                if (value) formData.append('value', value);
+
+                try {
+                    const response = await fetch('/caterer/bulk-action', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'An error occurred');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            confirmAction() {
+                if (typeof this.confirmModal.action === 'function') {
+                    this.confirmModal.action();
+                    this.confirmModal.show = false;
+                } else if (this.confirmModal.action) {
+                    const form = document.getElementById('deleteForm');
+                    if (form) {
+                        form.action = this.confirmModal.action;
+                        form.submit();
+                    }
+                } else {
+                    this.confirmModal.show = false;
+                }
+            },
+
+            openItemModal(categoryId) {
+                document.getElementById('itemCategoryId').value = categoryId;
+                this.openModal('itemModal');
+            },
+
+            openEditItemModal(id, name, description, price, status) {
+                document.getElementById('editItemName').value = name;
+                document.getElementById('editItemDescription').value = description;
+                document.getElementById('editItemPrice').value = price;
+                document.getElementById('editItemStatus').value = status;
+                document.getElementById('editItemForm').action = `/caterer/menu-items/${id}`;
+                this.openModal('editItemModal');
+            },
+
+            openEditCategoryModal(id, name, description) {
+                document.getElementById('editCategoryName').value = name;
+                document.getElementById('editCategoryDescription').value = description;
+                document.getElementById('editCategoryForm').action = `/caterer/categories/${id}`;
+                this.openModal('editCategoryModal');
+            },
+
+            openEditDisplayMenuModal(id, name, category, description, price, status) {
+                document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
+                document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
+                
+                document.getElementById('displayMenuForm').action = `/caterer/display-menus/${id}`;
+                document.getElementById('displayMenuFormMethod').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                
+                document.getElementById('display_menu_name').value = name;
+                document.getElementById('display_menu_description').value = description || '';
+                document.getElementById('display_menu_price').value = price || '';
+                document.getElementById('display_menu_status').value = status;
+
+                const categorySelect = document.getElementById('display_menu_category_select');
+
+                let categoryExists = false;
+                for (let option of categorySelect.options) {
+                    if (option.value === category && option.value !== '__new__') {
+                        categorySelect.value = category;
+                        categoryExists = true;
+                        break;
+                    }
+                }
+
+                if (!categoryExists && category) {
+                    categorySelect.value = '__new__';
+                    document.getElementById('newDisplayCategoryInput').classList.remove('hidden');
+                    document.getElementById('newDisplayCategoryInput').value = category;
+                    document.getElementById('newDisplayCategoryInput').required = true;
+                } else {
+                    document.getElementById('newDisplayCategoryInput').classList.add('hidden');
+                    document.getElementById('newDisplayCategoryInput').required = false;
+                }
+
+                const imagePreview = document.getElementById('display_menu_image_preview');
+                if (imagePreview) {
+                    imagePreview.classList.add('hidden');
+                }
+
+                document.getElementById('displayMenuModal').classList.remove('hidden');
+            },
+
+            openDisplayMenuModal() {
+                document.getElementById('displayMenuForm').reset();
+                document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
+                document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
+                document.getElementById('displayMenuForm').action = '{{ route("caterer.display-menus.store") }}';
+                document.getElementById('displayMenuFormMethod').innerHTML = '';
+
+                const categorySelect = document.getElementById('display_menu_category_select');
+                
+                categorySelect.value = '';
+                document.getElementById('newDisplayCategoryInput').classList.add('hidden');
+                document.getElementById('newDisplayCategoryInput').value = '';
+                document.getElementById('newDisplayCategoryInput').required = false;
+
+                const imagePreview = document.getElementById('display_menu_image_preview');
+                if (imagePreview) {
+                    imagePreview.classList.add('hidden');
+                }
+
+                document.getElementById('displayMenuModal').classList.remove('hidden');
+            }
+        }
+    }
+
+    // Global functions
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function closeDisplayMenuModal() {
+        document.getElementById('displayMenuModal').classList.add('hidden');
+        document.getElementById('displayMenuForm').reset();
+
+        const imagePreview = document.getElementById('display_menu_image_preview');
+        if (imagePreview) {
+            imagePreview.classList.add('hidden');
+        }
+    }
+
+    function toggleNewCategoryInput(select) {
+        const newCategoryInput = document.getElementById('newDisplayCategoryInput');
+        const hiddenCategoryInput = document.getElementById('newDisplayCategory');
+        
+        if (select.value === '__new__') {
+            newCategoryInput.classList.remove('hidden');
+            newCategoryInput.required = true;
+            newCategoryInput.value = '';
+            hiddenCategoryInput.value = '';
+        } else {
+            newCategoryInput.classList.add('hidden');
+            newCategoryInput.required = false;
+            hiddenCategoryInput.value = select.value;
+        }
+    }
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+            const modals = document.querySelectorAll('[id$="Modal"]');
+            modals.forEach(modal => {
+                if (!modal.id.includes('confirm')) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const modals = document.querySelectorAll('[id$="Modal"]');
+            modals.forEach(modal => {
+                if (!modal.id.includes('confirm')) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+    });
+
+    // Image preview on file select
+    (function () {
+        const imageInput = document.getElementById('display_menu_image');
+        if (imageInput) {
+            imageInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 2097152) {
+                        alert('File size must be less than 2MB');
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const previewImg = document.getElementById('display_menu_preview_img');
+                        const imagePreview = document.getElementById('display_menu_image_preview');
+                        if (previewImg && imagePreview) {
+                            previewImg.src = e.target.result;
+                            imagePreview.classList.remove('hidden');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    })();
+
+    // Handle category selection for display menu form
+    document.addEventListener('DOMContentLoaded', function() {
+        const displayMenuForm = document.getElementById('displayMenuForm');
+        if (displayMenuForm) {
+            displayMenuForm.addEventListener('submit', function(e) {
+                const categorySelect = document.getElementById('display_menu_category_select');
+                const newCategoryInput = document.getElementById('newDisplayCategory');
+                
+                if (categorySelect.value === '__new__') {
+                    newCategoryInput.value = document.getElementById('newDisplayCategoryInput').value;
+                } else {
+                    newCategoryInput.value = categorySelect.value;
+                }
+            });
+        }
+    });
+
+    // ============================================================================
+    // PACKAGE FORM DATA PERSISTENCE
+    // ============================================================================
+    
+    function savePackageFormData() {
+        const form = document.getElementById('createPackageForm');
+        if (!form) {
+            console.error('Form not found');
+            return;
+        }
+
+        const formData = {
+            name: form.querySelector('[name="name"]')?.value || '',
+            description: form.querySelector('[name="description"]')?.value || '',
+            pax: form.querySelector('[name="pax"]')?.value || '1',
+            selectedItems: [],
+            selectedDietaryTags: []
+        };
+
+        // Get checked menu items
+        const checkedItems = form.querySelectorAll('.menu-item-checkbox:checked');
+        checkedItems.forEach(cb => {
+            formData.selectedItems.push(cb.value);
+        });
+
+        // Get checked dietary tags
+        const checkedTags = form.querySelectorAll('.dietary-tag-checkbox:checked');
+        checkedTags.forEach(cb => {
+            formData.selectedDietaryTags.push(cb.value);
+        });
+
+        localStorage.setItem('packageFormData', JSON.stringify(formData));
+        console.log('Saved:', formData);
+    }
+
+    function restorePackageFormData() {
+        const savedData = localStorage.getItem('packageFormData');
+        if (!savedData) {
+            console.log('No saved data');
+            return;
+        }
+
+        const formData = JSON.parse(savedData);
+        console.log('Restoring:', formData);
+        
+        const form = document.getElementById('createPackageForm');
+        if (!form) {
+            console.error('Form not found for restore');
+            return;
+        }
+
+        // Restore text fields
+        if (formData.name) {
+            form.querySelector('[name="name"]').value = formData.name;
+        }
+        if (formData.description) {
+            form.querySelector('[name="description"]').value = formData.description;
+        }
+        if (formData.pax) {
+            const paxInput = form.querySelector('[name="pax"]');
+            paxInput.value = formData.pax;
+            paxInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        // Restore menu items
+        if (formData.selectedItems && formData.selectedItems.length > 0) {
+            formData.selectedItems.forEach(itemId => {
+                const checkbox = form.querySelector(`.menu-item-checkbox[value="${itemId}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            // Trigger price update
+            setTimeout(() => {
+                const anyChecked = form.querySelector('.menu-item-checkbox:checked');
+                if (anyChecked) {
+                    anyChecked.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }, 100);
+        }
+
+        // Restore dietary tags
+        if (formData.selectedDietaryTags && formData.selectedDietaryTags.length > 0) {
+            formData.selectedDietaryTags.forEach(tagValue => {
+                const checkbox = form.querySelector(`.dietary-tag-checkbox[value="${tagValue}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    if (typeof toggleDietaryTag === 'function') {
+                        toggleDietaryTag(checkbox);
+                    }
+                }
+            });
+        }
+
+        localStorage.removeItem('packageFormData');
+        console.log('Restore complete');
+    }
+
+    // On page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldOpen = urlParams.get('open');
+        
+        if (shouldOpen === 'packageModal') {
+            document.getElementById('packageModal').classList.remove('hidden');
+            
+            setTimeout(() => {
+                restorePackageFormData();
+            }, 500);
+            
+            window.history.replaceState({}, '', '{{ route("caterer.menus") }}');
+        }
+
+        // Clear on submit
+        const form = document.getElementById('createPackageForm');
+        if (form) {
+            form.addEventListener('submit', function() {
+                localStorage.removeItem('packageFormData');
+            });
+        }
+    });
+</script>
 
     <style>
         @media (min-width: 475px) {

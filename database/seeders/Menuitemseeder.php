@@ -12,7 +12,7 @@ class MenuItemSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(): void
+    public function run(): void 
     {
         $caterers = User::where('role', 'caterer')->get();
 

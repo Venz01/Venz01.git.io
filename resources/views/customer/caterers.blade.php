@@ -5,6 +5,220 @@
         </h2>
     </x-slot>
 
+    {{-- ── Dietary Preferences Slide-Out Panel ── --}}
+    <div id="dietaryPanel"
+        class="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] transform translate-x-full transition-transform duration-300 ease-in-out">
+        {{-- Backdrop (mobile) --}}
+        <div id="dietaryBackdrop"
+            class="fixed inset-0 bg-black/50 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"
+            onclick="closeDietaryPanel()"></div>
+
+        {{-- Panel Content --}}
+        <div class="relative h-full bg-white dark:bg-gray-900 shadow-2xl flex flex-col border-l border-gray-200 dark:border-gray-700">
+
+            {{-- Panel Header --}}
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-green-600 to-green-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-white font-bold text-lg leading-tight">Dietary Preferences</h2>
+                        <p class="text-green-100 text-xs">Personalize your caterer recommendations</p>
+                    </div>
+                </div>
+                <button onclick="closeDietaryPanel()"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg text-white/70 hover:text-white hover:bg-white/20 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Scrollable Body --}}
+            <div class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+
+                {{-- Info Banner --}}
+                <div class="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 flex gap-3">
+                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 110 20A10 10 0 0112 2z" />
+                    </svg>
+                    <p class="text-sm text-blue-700 dark:text-blue-300">
+                        Select your dietary needs below. Compatible packages will be highlighted with a
+                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">✓ green badge</span>
+                        and potential conflicts with a
+                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">⚠ red badge</span>.
+                    </p>
+                </div>
+
+                {{-- Dietary Preference Tags --}}
+                <form id="dietaryPanelForm" method="POST" action="{{ route('profile.dietary.update') }}">
+                    @csrf
+                    @method('PATCH')
+                    {{-- JS populates these hidden inputs in exact check-order before submitting --}}
+                    <div id="orderedPrefsContainer"></div>
+
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                            Dietary Preferences
+                        </h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                            Select all that apply — caterers and packages will be flagged accordingly.
+                        </p>
+
+                        @php
+                            // ── Compute saved preferences ──────────────────────────────────────
+                            $savedPreferences = [];
+                            if (auth()->check() && auth()->user()->dietary_preferences) {
+                                $savedPreferences = is_array(auth()->user()->dietary_preferences)
+                                    ? auth()->user()->dietary_preferences
+                                    : [];
+                            }
+
+                            // ── Load all tags, sort: matched first (by selection order), then alpha ──
+                            $allTags = \App\Models\DietaryTag::orderBy('name')->get();
+                            if (!empty($savedPreferences)) {
+                                $allTags = $allTags->sortBy(function ($tag) use ($savedPreferences) {
+                                    $pos = array_search($tag->slug, $savedPreferences);
+                                    // matched → position index (0, 1, 2…)
+                                    // unmatched → 10000 + already alpha-sorted name keeps alpha order
+                                    return $pos !== false ? $pos : 10000 + strlen($tag->name . $tag->slug);
+                                })->values();
+                            }
+
+                            $matchedTags   = $allTags->filter(fn($t) => in_array($t->slug, $savedPreferences));
+                            $unmatchedTags = $allTags->filter(fn($t) => !in_array($t->slug, $savedPreferences));
+                        @endphp
+
+                        @if($allTags->count() > 0)
+
+                            {{-- ── GROUP 1: Customer's selected tags (pinned, green) ── --}}
+                            @if($matchedTags->count() > 0)
+                                <div class="mb-4">
+                                    <div class="flex items-center gap-2 mb-2.5">
+                                        <span class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">✓ Your selections</span>
+                                        <div class="flex-1 h-px bg-green-200 dark:bg-green-800"></div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2.5">
+                                        @foreach($matchedTags as $tag)
+                                            <label
+                                                class="dietary-panel-option relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none border-green-500 bg-green-50 dark:bg-green-900/30 shadow-sm ring-1 ring-green-400/40"
+                                                id="panel-label-{{ $tag->slug }}"
+                                            >
+                                                <input type="checkbox" name="dietary_preferences[]" value="{{ $tag->slug }}"
+                                                    checked class="panel-dietary-checkbox sr-only" onchange="togglePanelDietaryCard(this)">
+                                                <span class="text-2xl leading-none">{{ $tag->icon }}</span>
+                                                <span class="text-xs font-medium text-center text-gray-700 dark:text-gray-300 leading-tight">{{ $tag->name }}</span>
+                                                <span class="panel-dietary-check absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center opacity-100 scale-100 transition-all duration-200">
+                                                    <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- ── GROUP 2: Unselected tags (alphabetical, muted) ── --}}
+                            @if($unmatchedTags->count() > 0)
+                                @if($matchedTags->count() > 0)
+                                    <div class="flex items-center gap-2 mb-2.5">
+                                        <span class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Other options</span>
+                                        <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+                                    </div>
+                                @endif
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    @foreach($unmatchedTags as $tag)
+                                        <label
+                                            class="dietary-panel-option relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-green-300 hover:bg-green-50/50"
+                                            id="panel-label-{{ $tag->slug }}"
+                                        >
+                                            <input type="checkbox" name="dietary_preferences[]" value="{{ $tag->slug }}"
+                                                class="panel-dietary-checkbox sr-only" onchange="togglePanelDietaryCard(this)">
+                                            <span class="text-2xl leading-none">{{ $tag->icon }}</span>
+                                            <span class="text-xs font-medium text-center text-gray-700 dark:text-gray-300 leading-tight">{{ $tag->name }}</span>
+                                            <span class="panel-dietary-check absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center opacity-0 scale-0 transition-all duration-200">
+                                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                        @else
+                            <p class="text-sm text-gray-500 italic">No dietary tags are currently available.</p>
+                        @endif
+                    </div>
+
+                    {{-- Hidden submit for AJAX --}}
+                </form>
+
+                {{-- Currently Active Preferences Summary --}}
+                @if(!empty($savedPreferences))
+                    <div class="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
+                        <p class="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">
+                            Active Filters
+                        </p>
+                        <div class="flex flex-wrap gap-1.5" id="activePrefsSummary">
+                            @php $labels = \App\Models\User::dietaryLabels(); @endphp
+                            @foreach($savedPreferences as $pref)
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full text-xs font-medium border border-green-200 dark:border-green-700">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    {{ $labels[$pref] ?? ucfirst(str_replace('_', ' ', $pref)) }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+            </div>
+
+            {{-- Panel Footer --}}
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 space-y-3">
+
+                {{-- Success message (hidden by default) --}}
+                <div id="dietarySaveSuccess"
+                    class="hidden flex items-center gap-2 text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Preferences saved! Refreshing page…
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" onclick="clearDietaryPreferences()"
+                        class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                        Clear All
+                    </button>
+                    <button type="button" onclick="saveDietaryPreferences()"
+                        id="dietarySaveBtn"
+                        class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-xl transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Preferences
+                    </button>
+                </div>
+
+                <p class="text-xs text-center text-gray-500 dark:text-gray-400">
+                    You can also manage these in your
+                    <a href="{{ route('profile.edit') }}" class="text-green-600 hover:underline">profile settings</a>.
+                </p>
+            </div>
+
+        </div>
+    </div>
+    {{-- ── END Dietary Panel ── --}}
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Hero Section -->
@@ -38,6 +252,8 @@
                                 </svg>
                                 Search
                             </button>
+
+                            {{-- ── Filters Button (existing) ── --}}
                             <button 
                                 type="button"
                                 id="filterToggle"
@@ -51,10 +267,57 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
+
+                            {{-- ── NEW: Dietary Preferences Button ── --}}
+                            @auth
+                                @if(auth()->user()->isCustomer())
+                                    <button
+                                        type="button"
+                                        onclick="openDietaryPanel()"
+                                        id="dietaryToggleBtn"
+                                        class="relative bg-white/20 hover:bg-white/30 text-white px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 border border-white/30 hover:border-white/60 group"
+                                        title="Manage Dietary Preferences"
+                                    >
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                        <span class="hidden sm:inline">Dietary</span>
+                                        {{-- Active indicator dot --}}
+                                        @if(auth()->user()->hasDietaryPreferences())
+                                            <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-yellow-400 rounded-full border-2 border-green-700 flex items-center justify-center text-green-900 font-bold"
+                                                style="font-size: 8px;">
+                                                {{ count(auth()->user()->dietary_preferences) }}
+                                            </span>
+                                        @endif
+                                    </button>
+                                @endif
+                            @endauth
                         </div>
                     </form>
 
-                    <!-- Advanced Filters -->
+                    {{-- Active dietary preferences chips (shown below search when prefs are set) --}}
+                    @auth
+                        @if(auth()->user()->isCustomer() && auth()->user()->hasDietaryPreferences())
+                            @php $labels = \App\Models\User::dietaryLabels(); @endphp
+                            <div class="mt-4 flex flex-wrap items-center gap-2">
+                                <span class="text-green-100 text-sm font-medium">Active dietary filters:</span>
+                                @foreach(auth()->user()->dietary_preferences as $pref)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-xs font-medium text-white">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        {{ $labels[$pref] ?? ucfirst(str_replace('_', ' ', $pref)) }}
+                                    </span>
+                                @endforeach
+                                <button onclick="openDietaryPanel()" class="text-green-200 hover:text-white text-xs underline underline-offset-2 transition-colors">
+                                    Edit
+                                </button>
+                            </div>
+                        @endif
+                    @endauth
+
+                    <!-- Advanced Filters (existing) -->
                     <div id="advancedFilters" class="hidden mt-6 p-6 bg-white bg-opacity-10 backdrop-blur-sm rounded-xl">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
@@ -93,10 +356,22 @@
             </div>
 
             <!-- Results Section -->
-            <div class="space-y-8">
+            <div id="catererList" class="space-y-8">
                 @if($caterers->count() > 0)
                     @foreach($caterers as $caterer)
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                        @php
+                            // Gather all dietary tag slugs from this caterer's packages
+                            $catererTagSlugs = $caterer->packages
+                                ->flatMap(fn($p) => is_array($p->dietary_tags) ? $p->dietary_tags : [])
+                                ->unique()->values()->toArray();
+
+                            // Score = how many of the customer's prefs appear in this caterer's package tags
+                            $matchScore = empty($savedPreferences) ? 0
+                                : count(array_intersect($savedPreferences, $catererTagSlugs));
+                        @endphp
+                        <div class="caterer-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                             data-match-score="{{ $matchScore }}"
+                             data-caterer-tags="{{ json_encode($catererTagSlugs) }}">
                             <div class="p-6">
                                 <!-- Caterer Header with Profile Photo -->
                                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
@@ -116,9 +391,19 @@
 
                                         <!-- Business Info -->
                                         <div class="flex-1">
-                                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                                {{ $caterer->business_name ?? $caterer->name }}
-                                            </h3>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+                                                    {{ $caterer->business_name ?? $caterer->name }}
+                                                </h3>
+                                                @if($matchScore > 0)
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 text-xs font-semibold rounded-full border border-green-300 dark:border-green-700">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                        {{ $matchScore }} dietary {{ Str::plural('match', $matchScore) }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                             
                                             <div class="flex flex-wrap items-center gap-4 mt-2">
                                                 <!-- Rating -->
@@ -183,7 +468,7 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                        </div>
+                                        </div>{{-- end flex-1 --}}
                                     </div>
 
                                     <!-- View All Button -->
@@ -246,7 +531,16 @@
                                                         {{ Str::limit($package->description, 80) }}
                                                     </p>
 
-                                                    <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600">
+                                                    {{-- ── Dietary Badges for this package ── --}}
+                                                    @auth
+                                                        @if(auth()->user()->isCustomer() && auth()->user()->hasDietaryPreferences())
+                                                            @include('admin.partials.package-dietary-badges', [
+                                                                'package' => $package,
+                                                            ])
+                                                        @endif
+                                                    @endauth
+
+                                                    <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600 mt-3">
                                                         <div>
                                                             <span class="text-2xl font-bold text-gray-900 dark:text-white">₱{{ number_format($package->price, 0) }}</span>
                                                             @if($package->pax)
@@ -310,16 +604,333 @@
         </div>
     </div>
 
-    @push('scripts')
     <script>
-        // Filter toggle
-        document.getElementById('filterToggle').addEventListener('click', function() {
-            const filters = document.getElementById('advancedFilters');
-            const chevron = document.getElementById('filterChevron');
-            
-            filters.classList.toggle('hidden');
-            chevron.classList.toggle('rotate-180');
+    (function () {
+
+        // ── Customer saved prefs injected from PHP (slug array, in selection order) ──
+        var SAVED_PREFS = @json($savedPreferences ?? []);
+
+        // ── CHECK_ORDER tracks the order the user ticked boxes this session ──
+        // Seeded from saved prefs so existing selections maintain their order.
+        var CHECK_ORDER = SAVED_PREFS.slice();
+
+        // ══════════════════════════════════════════════════════════════
+        //  CATERER LIST SORTING
+        // ══════════════════════════════════════════════════════════════
+
+        /**
+         * Score and re-sort caterer cards in the DOM.
+         * Cards with score > 0 are pinned to the top (desc by score).
+         * A visual divider separates matched from unmatched groups.
+         * Runs on page load and again instantly after Save.
+         */
+        function sortCatererCards(prefs) {
+            var list = document.getElementById('catererList');
+            if (!list) return;
+
+            // Only operate on actual caterer cards (ignore pagination / injected dividers)
+            var cards = Array.prototype.slice.call(list.querySelectorAll('.caterer-card'));
+            if (!cards.length) return;
+
+            // Remove previously injected dividers & match banners
+            list.querySelectorAll('.js-dietary-divider').forEach(function (el) { el.remove(); });
+            list.querySelectorAll('.js-match-banner').forEach(function (el) { el.remove(); });
+
+            if (!prefs || !prefs.length) return; // no prefs — leave order alone
+
+            // Re-score each card from the live prefs array
+            cards.forEach(function (card) {
+                var tags  = JSON.parse(card.getAttribute('data-caterer-tags') || '[]');
+                var score = 0;
+                prefs.forEach(function (p) { if (tags.indexOf(p) !== -1) score++; });
+                card.setAttribute('data-match-score', score);
+            });
+
+            // Stable sort: highest score first (equal scores keep original DOM order)
+            cards.sort(function (a, b) {
+                return parseInt(b.getAttribute('data-match-score'), 10)
+                     - parseInt(a.getAttribute('data-match-score'), 10);
+            });
+
+            // Re-append cards in new order
+            cards.forEach(function (card) { list.appendChild(card); });
+
+            // ── Inject match banner at the very top of each matched card ──────
+            cards.forEach(function (card) {
+                var score = parseInt(card.getAttribute('data-match-score'), 10);
+                if (score > 0) {
+                    var banner = document.createElement('div');
+                    banner.className = 'js-match-banner flex items-center gap-2 px-5 py-2 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 text-xs font-semibold text-green-700 dark:text-green-400';
+                    banner.innerHTML =
+                        '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' +
+                        '</svg>' +
+                        score + ' of your dietary ' + (score === 1 ? 'preference matches' : 'preferences match') + ' this caterer\'s packages';
+                    card.insertBefore(banner, card.firstChild);
+                }
+            });
+
+            // ── Inject divider between matched and unmatched groups ───────────
+            var matchedCount = cards.filter(function (c) {
+                return parseInt(c.getAttribute('data-match-score'), 10) > 0;
+            }).length;
+
+            if (matchedCount > 0 && matchedCount < cards.length) {
+                var firstUnmatched = cards[matchedCount]; // sorted, so this is correct
+                var divider = document.createElement('div');
+                divider.className = 'js-dietary-divider flex items-center gap-4 py-1';
+                divider.innerHTML =
+                    '<div class="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>' +
+                    '<span class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">' +
+                        'Other caterers' +
+                    '</span>' +
+                    '<div class="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>';
+                list.insertBefore(divider, firstUnmatched);
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  PANEL OPEN / CLOSE
+        // ══════════════════════════════════════════════════════════════
+
+        function openDietaryPanel() {
+            // Re-seed CHECK_ORDER from current SAVED_PREFS each time panel opens
+            // so unchecking & re-opening always starts from the last saved state
+            CHECK_ORDER = SAVED_PREFS.slice();
+            document.getElementById('dietaryPanel').classList.remove('translate-x-full');
+            var bd = document.getElementById('dietaryBackdrop');
+            bd.classList.remove('opacity-0', 'pointer-events-none');
+            bd.classList.add('opacity-100');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDietaryPanel() {
+            document.getElementById('dietaryPanel').classList.add('translate-x-full');
+            var bd = document.getElementById('dietaryBackdrop');
+            bd.classList.add('opacity-0', 'pointer-events-none');
+            bd.classList.remove('opacity-100');
+            document.body.style.overflow = '';
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  DIETARY CARD TOGGLE (checkbox visual state)
+        // ══════════════════════════════════════════════════════════════
+
+        function togglePanelDietaryCard(checkbox) {
+            var label  = checkbox.closest('label');
+            var badge  = label.querySelector('.panel-dietary-check');
+            var slug   = checkbox.value;
+
+            if (checkbox.checked) {
+                // Track check order — append only if not already present
+                if (CHECK_ORDER.indexOf(slug) === -1) CHECK_ORDER.push(slug);
+                label.classList.add('border-green-500', 'bg-green-50', 'shadow-sm', 'ring-1', 'ring-green-400/40');
+                label.classList.remove('border-gray-200');
+                badge.classList.replace('opacity-0', 'opacity-100');
+                badge.classList.replace('scale-0',   'scale-100');
+            } else {
+                // Remove from order tracking
+                var idx = CHECK_ORDER.indexOf(slug);
+                if (idx !== -1) CHECK_ORDER.splice(idx, 1);
+                label.classList.remove('border-green-500', 'bg-green-50', 'shadow-sm', 'ring-1', 'ring-green-400/40');
+                label.classList.add('border-gray-200');
+                badge.classList.replace('opacity-100', 'opacity-0');
+                badge.classList.replace('scale-100',   'scale-0');
+            }
+        }
+
+        function clearDietaryPreferences() {
+            CHECK_ORDER = []; // reset order tracking
+            document.querySelectorAll('.panel-dietary-checkbox').forEach(function (cb) {
+                if (cb.checked) { cb.checked = false; togglePanelDietaryCard(cb); }
+            });
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  RE-SORT PANEL TAG CARDS after save
+        //  Moves checked labels into "Your selections" group and
+        //  unchecked labels back to "Other options" — no page reload.
+        // ══════════════════════════════════════════════════════════════
+
+        function resortPanelTags(newPrefs) {
+            var form = document.getElementById('dietaryPanelForm');
+            var tagsWrapper = form.querySelector('div'); // the outer <div> wrapping both groups
+
+            // Collect ALL label elements (regardless of which group they are in now)
+            var allLabels = Array.prototype.slice.call(
+                form.querySelectorAll('label.dietary-panel-option')
+            );
+
+            if (!allLabels.length) return;
+
+            // Separate into matched (checked) and unmatched (unchecked)
+            var matched   = allLabels.filter(function (l) { return l.querySelector('.panel-dietary-checkbox').checked; });
+            var unmatched = allLabels.filter(function (l) { return !l.querySelector('.panel-dietary-checkbox').checked; });
+
+            // Sort matched by the order they appear in newPrefs (selection order)
+            matched.sort(function (a, b) {
+                var aSlug = a.querySelector('.panel-dietary-checkbox').value;
+                var bSlug = b.querySelector('.panel-dietary-checkbox').value;
+                return newPrefs.indexOf(aSlug) - newPrefs.indexOf(bSlug);
+            });
+
+            // Sort unmatched alphabetically by their visible label text
+            unmatched.sort(function (a, b) {
+                var aName = (a.querySelector('span:not(.panel-dietary-check)') || {}).textContent || '';
+                var bName = (b.querySelector('span:not(.panel-dietary-check)') || {}).textContent || '';
+                return aName.trim().localeCompare(bName.trim());
+            });
+
+            // Rebuild the entire tags section HTML skeleton, then re-insert labels
+            tagsWrapper.innerHTML = '';
+
+            if (matched.length > 0) {
+                // "Your selections" header
+                var selHeader = document.createElement('div');
+                selHeader.className = 'mb-4';
+                selHeader.innerHTML =
+                    '<div class="flex items-center gap-2 mb-2.5">' +
+                        '<span class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">✓ Your selections</span>' +
+                        '<div class="flex-1 h-px bg-green-200 dark:bg-green-800"></div>' +
+                    '</div>';
+                var selGrid = document.createElement('div');
+                selGrid.className = 'grid grid-cols-2 gap-2.5';
+                matched.forEach(function (lbl) {
+                    // Ensure it has the checked visual state
+                    lbl.classList.add('border-green-500', 'bg-green-50', 'shadow-sm', 'ring-1', 'ring-green-400/40');
+                    lbl.classList.remove('border-gray-200');
+                    var badge = lbl.querySelector('.panel-dietary-check');
+                    if (badge) { badge.classList.replace('opacity-0','opacity-100'); badge.classList.replace('scale-0','scale-100'); }
+                    selGrid.appendChild(lbl);
+                });
+                selHeader.appendChild(selGrid);
+                tagsWrapper.appendChild(selHeader);
+            }
+
+            if (unmatched.length > 0) {
+                if (matched.length > 0) {
+                    // "Other options" divider
+                    var otherHeader = document.createElement('div');
+                    otherHeader.className = 'flex items-center gap-2 mb-2.5';
+                    otherHeader.innerHTML =
+                        '<span class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Other options</span>' +
+                        '<div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>';
+                    tagsWrapper.appendChild(otherHeader);
+                }
+                var otherGrid = document.createElement('div');
+                otherGrid.className = 'grid grid-cols-2 gap-2.5';
+                unmatched.forEach(function (lbl) {
+                    // Ensure it has the unchecked visual state
+                    lbl.classList.remove('border-green-500', 'bg-green-50', 'shadow-sm', 'ring-1', 'ring-green-400/40');
+                    lbl.classList.add('border-gray-200');
+                    var badge = lbl.querySelector('.panel-dietary-check');
+                    if (badge) { badge.classList.replace('opacity-100','opacity-0'); badge.classList.replace('scale-100','scale-0'); }
+                    otherGrid.appendChild(lbl);
+                });
+                tagsWrapper.appendChild(otherGrid);
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  SAVE VIA AJAX → instant resort panel tags + caterer list
+        // ══════════════════════════════════════════════════════════════
+
+        function saveDietaryPreferences() {
+            var btn     = document.getElementById('dietarySaveBtn');
+            var msg     = document.getElementById('dietarySaveSuccess');
+            var form    = document.getElementById('dietaryPanelForm');
+
+            btn.disabled  = true;
+            btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Saving…';
+
+            // ── Inject hidden inputs in CHECK_ORDER before submitting ──────────────
+            var container = document.getElementById('orderedPrefsContainer');
+            container.innerHTML = '';
+            CHECK_ORDER.forEach(function (slug) {
+                var inp = document.createElement('input');
+                inp.type  = 'hidden';
+                inp.name  = 'dietary_preferences[]';
+                inp.value = slug;
+                container.appendChild(inp);
+            });
+            // Disable all checkboxes so they don't double-submit alongside hidden inputs
+            form.querySelectorAll('.panel-dietary-checkbox').forEach(function (cb) { cb.disabled = true; });
+
+            fetch(form.action, {
+                method:  'POST',
+                body:    new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(function (response) {
+                if (response.ok || response.redirected || response.status === 302) {
+
+                    // CHECK_ORDER IS the authoritative ordered list
+                    SAVED_PREFS = CHECK_ORDER.slice();
+
+                    // 1. Re-group tag cards inside the panel immediately
+                    resortPanelTags(SAVED_PREFS);
+
+                    // 2. Re-sort caterer cards in the browse list
+                    sortCatererCards(SAVED_PREFS);
+
+                    // 3. Show success, then reload the page so caterer list re-renders fresh
+                    msg.classList.remove('hidden');
+                    msg.classList.add('flex');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1500);
+
+                } else {
+                    response.text().then(function (t) {
+                        console.error('Save failed:', t);
+                        alert('Failed to save preferences. Please try again.');
+                    });
+                }
+            })
+            .catch(function (err) {
+                console.error('Network error — falling back to form submit:', err);
+                form.submit();
+            })
+            .finally(function () {
+                // Re-enable checkboxes in case of error (page reloads on success anyway)
+                form.querySelectorAll('.panel-dietary-checkbox').forEach(function (cb) { cb.disabled = false; });
+                btn.disabled  = false;
+                btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save Preferences';
+            });
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  DOM READY
+        // ══════════════════════════════════════════════════════════════
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Filter toggle
+            var ft = document.getElementById('filterToggle');
+            if (ft) {
+                ft.addEventListener('click', function () {
+                    document.getElementById('advancedFilters').classList.toggle('hidden');
+                    document.getElementById('filterChevron').classList.toggle('rotate-180');
+                });
+            }
+
+            // Escape closes panel
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeDietaryPanel();
+            });
+
+            // Sort caterer list on initial page load if prefs already exist
+            if (SAVED_PREFS.length) sortCatererCards(SAVED_PREFS);
         });
+
+        // Expose to inline onclick attributes
+        window.openDietaryPanel        = openDietaryPanel;
+        window.closeDietaryPanel       = closeDietaryPanel;
+        window.togglePanelDietaryCard  = togglePanelDietaryCard;
+        window.clearDietaryPreferences = clearDietaryPreferences;
+        window.saveDietaryPreferences  = saveDietaryPreferences;
+        window.resortPanelTags         = resortPanelTags;
+
+    }());
     </script>
-    @endpush
 </x-app-layout>
