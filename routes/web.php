@@ -124,51 +124,45 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/orders/cart', [OrderController::class, 'cart'])->name('orders.cart');
     Route::get('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
     Route::post('/orders/process', [OrderController::class, 'processOrder'])->name('orders.process');
+    Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmation'])->name('orders.confirmation');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-    Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancelOrder'])->name('orders.cancel');
-    Route::get('/orders/{order}/payment', [OrderController::class, 'paymentPage'])->name('orders.payment');
-    Route::post('/orders/{order}/pay-balance', [OrderController::class, 'processBalancePayment'])->name('orders.pay-balance');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    
+    // Cart Operations
+    Route::post('/orders/cart/add/{menuItem}', [OrderController::class, 'addToCart'])->name('orders.add-to-cart');
+    Route::patch('/orders/cart/update/{menuItem}', [OrderController::class, 'updateCart'])->name('orders.update-cart');
+    Route::delete('/orders/cart/remove/{menuItem}', [OrderController::class, 'removeFromCart'])->name('orders.remove-from-cart');
+    Route::delete('/orders/cart/clear', [OrderController::class, 'clearCart'])->name('orders.clear-cart');
 });
 
-// Caterer routes
-Route::middleware(['auth', 'role:caterer'])->prefix('caterer')->name('caterer.')->group(function () {
+// Caterer routes - Apply caterer.suspended middleware
+Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approval'])->prefix('caterer')->name('caterer.')->group(function () {
+    // Main caterer pages
     Route::get('/dashboard', [CatererController::class, 'dashboard'])->name('dashboard');
-    Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
-    
-    // Calendar availability management
-    Route::post('/calendar/block', [CatererController::class, 'blockDate'])->name('calendar.block');
-    Route::delete('/calendar/unblock/{id}', [CatererController::class, 'unblockDate'])->name('calendar.unblock');
-    Route::post('/calendar/toggle-availability', [CatererController::class, 'toggleAvailability'])->name('calendar.toggle-availability');
-    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle'); // Alternative name
-    Route::post('/calendar/block-range', [CatererController::class, 'blockDateRange'])->name('calendar.block-range');
-    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range'); // Alternative name
-    Route::post('/calendar/unblock-range', [CatererController::class, 'unblockDateRange'])->name('calendar.unblock-range');
-    Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])->name('availability.unblock-range'); // Alternative name
-    Route::post('/calendar/clear-blocked', [CatererController::class, 'clearAllBlocked'])->name('calendar.clear-blocked');
-    Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])->name('availability.clear-all'); // Alternative name
-    
-    Route::get('/menus', [CatererController::class, 'menus'])->name('menus');
-    Route::get('/packages', [CatererController::class, 'packages'])->name('packages');
-    Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
-    Route::get('/bookings/{booking}', [CatererController::class, 'showBooking'])->name('bookings.show');
-    Route::get('/booking/{booking}', [CatererController::class, 'showBooking'])->name('booking.details'); // Alternative name
-    Route::patch('/bookings/{booking}/status', [CatererController::class, 'updateBookingStatus'])->name('bookings.update-status');
-    Route::post('/bookings/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('bookings.confirm');
-    Route::post('/booking/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('booking.confirm'); // Alternative name
-    Route::post('/bookings/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('bookings.reject');
-    Route::post('/booking/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('booking.reject'); // Alternative name
-    Route::post('/bookings/{booking}/complete', [CatererController::class, 'completeBooking'])->name('bookings.complete');
-    Route::post('/booking/{booking}/complete', [CatererController::class, 'completeBooking'])->name('booking.complete'); // Alternative name
-    Route::patch('/bookings/{booking}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('bookings.confirm-payment');
 
-    // Display menus - view list
-    Route::get('/display-menus', [CatererController::class, 'displayMenus'])->name('display-menus');
-
-    // Dietary tags management
+    // Dietary Tags Management
     Route::get('/dietary-tags', [DietaryTagController::class, 'index'])->name('dietary-tags.index');
     Route::post('/dietary-tags', [DietaryTagController::class, 'store'])->name('dietary-tags.store');
     Route::put('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'update'])->name('dietary-tags.update');
     Route::delete('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'destroy'])->name('dietary-tags.destroy');
+
+    Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
+    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
+    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
+    Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])->name('availability.unblock-range');
+    Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])->name('availability.clear-all');
+    
+    // Bookings
+    Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
+    Route::get('/bookings/{booking}', [CatererController::class, 'showBooking'])->name('booking.details');
+    Route::patch('/bookings/{booking}/confirm', [CatererController::class, 'confirmBooking'])->name('booking.confirm');
+    Route::patch('/bookings/{booking}/reject', [CatererController::class, 'rejectBooking'])->name('booking.reject');
+    Route::patch('/bookings/{booking}/complete', [CatererController::class, 'completeBooking'])->name('booking.complete');
+    
+    Route::get('/menus', [CatererController::class, 'menus'])->name('menus');
+    Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
+    Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
+    Route::get('/reviews', [CatererController::class, 'reviews'])->name('reviews');
 
     // Category management
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -194,24 +188,43 @@ Route::middleware(['auth', 'role:caterer'])->prefix('caterer')->name('caterer.')
     Route::get('/packages/{package}/items', [PackageController::class, 'getItems'])->name('packages.items');
     Route::get('/packages/{package}/price-breakdown', [PackageController::class, 'getPriceBreakdown'])->name('packages.price-breakdown');
 
-    // === Package Costing Routes (CONSOLIDATED - NO DUPLICATES) ===
-    // Main costing dashboard
-    Route::get('/costing', [PackageCostingController::class, 'index'])->name('costing.index');
-    
-    // Per-package costing tool
-    Route::get('/packages/{package}/costing', [PackageCostingController::class, 'show'])->name('costing.show');
-    Route::get('/packages/{package}/costing-data', [PackageCostingController::class, 'getCostingData'])->name('costing.data');
-    Route::post('/packages/{package}/costing', [PackageCostingController::class, 'store'])->name('costing.store');
-    
-    // Live AJAX calculator
-    Route::post('/costing/calculate', [PackageCostingController::class, 'calculate'])->name('costing.calculate');
-    
-    // Clone costing template
-    Route::post('/costing/clone', [PackageCostingController::class, 'cloneCosting'])->name('costing.clone');
-    
-    // Quotation PDFs
-    Route::get('/bookings/{booking}/quotation', [PackageCostingController::class, 'generateQuotation'])->name('booking.quotation');
-    Route::get('/packages/{package}/quotation', [PackageCostingController::class, 'generatePackageQuotation'])->name('package.quotation');
+    // --- Costing Dashboard ---------------------------------------------------
+    Route::get('/caterer/costing', [PackageCostingController::class, 'index'])
+        ->name('costing.index');
+
+    // --- Per-Package Costing Tool -------------------------------------------
+    Route::get('/caterer/packages/{package}/costing', [PackageCostingController::class, 'show'])
+        ->name('costing.show');
+
+    Route::post('/caterer/packages/{package}/costing', [PackageCostingController::class, 'store'])
+        ->name('costing.store');
+
+    // --- Live AJAX Calculator (no auth-write, just compute) -----------------
+    Route::post('/caterer/costing/calculate', [PackageCostingController::class, 'calculate'])
+        ->name('costing.calculate');
+
+    // --- Clone costing template between packages ----------------------------
+    Route::post('/caterer/costing/clone', [PackageCostingController::class, 'cloneCosting'])
+        ->name('costing.clone');
+
+    // --- Quotation PDF (for a confirmed booking) ----------------------------
+    Route::get('/caterer/bookings/{booking}/quotation', [PackageCostingController::class, 'generateQuotation'])
+        ->name('booking.quotation');
+
+    // --- Standalone package quotation (before booking) ----------------------
+    Route::get('/caterer/packages/{package}/quotation', [PackageCostingController::class, 'generatePackageQuotation'])
+        ->name('package.quotation');
+
+    // Costing Tool
+    Route::get('/packages/{package}/costing-data', [\App\Http\Controllers\PackageCostingController::class, 'getCostingData'])->name('costing.data');
+    Route::get('/packages/{package}/costing', [\App\Http\Controllers\PackageCostingController::class, 'show'])->name('costing.show');
+    Route::post('/packages/{package}/costing', [\App\Http\Controllers\PackageCostingController::class, 'store'])->name('costing.store');
+    Route::get('/costing', [\App\Http\Controllers\PackageCostingController::class, 'index'])->name('costing.index');
+    Route::get('/costing/calculate', [\App\Http\Controllers\PackageCostingController::class, 'calculate'])->name('costing.calculate');
+    Route::post('/costing/clone', [\App\Http\Controllers\PackageCostingController::class, 'cloneCosting'])->name('costing.clone');
+    Route::get('/bookings/{booking}/quotation', [\App\Http\Controllers\PackageCostingController::class, 'generateQuotation'])->name('costing.quotation');
+    Route::get('/packages/{package}/quotation', [\App\Http\Controllers\PackageCostingController::class, 'generatePackageQuotation'])->name('costing.package-quotation');
+
 
     // View own reviews
     Route::get('/reviews', [ReviewController::class, 'catererReviews'])->name('reviews');
@@ -230,12 +243,8 @@ Route::middleware(['auth', 'role:caterer'])->prefix('caterer')->name('caterer.')
     Route::patch('/orders/{order}/confirm-payment', [CatererController::class, 'confirmPayment'])->name('orders.confirm-payment');
     
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
-    Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
-    
-    // Reports
-    Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports');
-    Route::get('/reports/export/pdf', [App\Http\Controllers\ReportsController::class, 'exportPdf'])->name('reports.pdf');
-    Route::get('/reports/export/excel', [App\Http\Controllers\ReportsController::class, 'exportExcel'])->name('reports.excel');
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
+
 });
 
 // Admin routes
@@ -263,6 +272,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Activity Logs
     Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
     Route::get('/activity-logs/{id}', [AdminController::class, 'getActivityLogDetails'])->name('activity-log-details');
+});
+
+Route::middleware(['auth'])->prefix('caterer')->name('caterer.')->group(function () {
+    
+    // Main reports page
+    Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports');
+    
+    // Export routes
+    Route::get('/reports/export/pdf', [App\Http\Controllers\ReportsController::class, 'exportPdf'])->name('reports.pdf');
+    Route::get('/reports/export/excel', [App\Http\Controllers\ReportsController::class, 'exportExcel'])->name('reports.excel');
+    
 });
 
 // Registration pending page
