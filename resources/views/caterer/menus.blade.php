@@ -1288,6 +1288,54 @@
         const container = document.getElementById('editSelectedItemsContainer');
         container.innerHTML = '<p class="text-sm text-gray-500">Loading items...</p>';
 
+        // Fetch package costing data
+        fetch(`/caterer/packages/${packageId}/breakdown`)
+            .then(response => response.json())
+            .then(costingData => {
+                if (costingData.has_costing) {
+                    // Find the price breakdown section in the edit modal
+                    const breakdownSection = document.querySelector('#editPackageModal .bg-gray-50.dark\\:bg-gray-700\\/50');
+                    if (breakdownSection) {
+                        let html = '<h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Current Package Costing:</h4>';
+                        html += '<div class="space-y-1 text-gray-700 dark:text-gray-300 text-xs">';
+                        
+                        if (costingData.ingredient_cost > 0) {
+                            html += `<div class="flex justify-between"><span>Ingredients / Raw Food:</span><span>₱${costingData.ingredient_cost.toFixed(2)}</span></div>`;
+                        }
+                        if (costingData.labor_cost > 0) {
+                            html += `<div class="flex justify-between"><span>Labor & Staffing:</span><span>₱${costingData.labor_cost.toFixed(2)}</span></div>`;
+                        }
+                        if (costingData.equipment_cost > 0) {
+                            html += `<div class="flex justify-between"><span>Equipment & Rentals:</span><span>₱${costingData.equipment_cost.toFixed(2)}</span></div>`;
+                        }
+                        if (costingData.consumables_cost > 0) {
+                            html += `<div class="flex justify-between"><span>Consumables & Packaging:</span><span>₱${costingData.consumables_cost.toFixed(2)}</span></div>`;
+                        }
+                        if (costingData.overhead_cost > 0) {
+                            html += `<div class="flex justify-between"><span>Overhead & Utilities:</span><span>₱${costingData.overhead_cost.toFixed(2)}</span></div>`;
+                        }
+                        if (costingData.transport_cost > 0) {
+                            html += `<div class="flex justify-between"><span>Transport & Logistics:</span><span>₱${costingData.transport_cost.toFixed(2)}</span></div>`;
+                        }
+                        
+                        html += `<div class="flex justify-between"><span>Profit Margin (${costingData.profit_margin_percent.toFixed(1)}%):</span><span>₱${costingData.profit_margin.toFixed(2)}</span></div>`;
+                        html += '<div class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">';
+                        html += `<span>Total per Head:</span><span>₱${costingData.total_per_head.toFixed(2)}</span>`;
+                        html += '</div></div>';
+                        
+                        html += '<div class="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs">';
+                        html += '<p class="text-yellow-700 dark:text-yellow-400"><strong>Note:</strong> Changing menu items will recalculate price using simple formula. To update costing with new items, use the Costing Tool after saving.</p>';
+                        html += '</div>';
+                        
+                        breakdownSection.innerHTML = html;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching costing data:', error);
+                // Continue without costing data - will show simple calculation
+            });
+
         fetch(`/caterer/packages/${packageId}/items`)
             .then(response => {
                 if (!response.ok) {

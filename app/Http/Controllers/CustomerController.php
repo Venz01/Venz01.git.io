@@ -155,7 +155,7 @@ class CustomerController extends Controller
         $package = Package::where('id', $packageId)
             ->where('user_id', $catererId)
             ->where('status', 'active')
-            ->with(['items.category', 'user'])
+            ->with(['items.category', 'user', 'costing'])
             ->firstOrFail();
 
         return view('customer.package-details', compact('package'));

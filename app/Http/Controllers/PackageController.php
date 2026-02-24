@@ -193,25 +193,51 @@ class PackageController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $foodCost = $package->items()->sum('price');
-        $laborAndUtilities = $foodCost * 0.20;
-        $equipmentTransport = $foodCost * 0.10;
-        $profitMargin = $foodCost * 0.25;
+        // Check if package has costing data
+        $costing = $package->costing;
+        
+        if ($costing && $costing->total_cost > 0) {
+            // Use actual costing data
+            $breakdown = [
+                'ingredient_cost' => (float) $costing->ingredient_cost,
+                'labor_cost' => (float) $costing->labor_cost,
+                'equipment_cost' => (float) $costing->equipment_cost,
+                'consumables_cost' => (float) $costing->consumables_cost,
+                'overhead_cost' => (float) $costing->overhead_cost,
+                'transport_cost' => (float) $costing->transport_cost,
+                'total_cost' => $costing->total_cost,
+                'profit_margin' => $costing->profit_amount,
+                'profit_margin_percent' => (float) $costing->profit_margin_percent,
+                'total_per_head' => $package->price,
+                'total_package' => $package->price * $package->pax,
+                'has_costing' => true,
+            ];
+        } else {
+            // Fallback to simple calculation
+            $foodCost = $package->items()->sum('price');
+            $laborAndUtilities = $foodCost * 0.20;
+            $equipmentTransport = $foodCost * 0.10;
+            $profitMargin = $foodCost * 0.25;
+            
+            $breakdown = [
+                'food_cost' => $foodCost,
+                'labor_utilities' => $laborAndUtilities,
+                'equipment_transport' => $equipmentTransport,
+                'profit_margin' => $profitMargin,
+                'total_per_head' => $package->price,
+                'total_package' => $package->price * $package->pax,
+                'has_costing' => false,
+            ];
+        }
+        
+        $breakdown['items'] = $package->items->map(function($item) {
+            return [
+                'name' => $item->name,
+                'price' => $item->price
+            ];
+        });
 
-        return response()->json([
-            'food_cost' => $foodCost,
-            'labor_utilities' => $laborAndUtilities,
-            'equipment_transport' => $equipmentTransport,
-            'profit_margin' => $profitMargin,
-            'total_per_head' => $package->price,
-            'total_package' => $package->price * $package->pax,
-            'items' => $package->items->map(function($item) {
-                return [
-                    'name' => $item->name,
-                    'price' => $item->price
-                ];
-            })
-        ]);
+        return response()->json($breakdown);
     }
     
     /**
