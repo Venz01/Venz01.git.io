@@ -31,7 +31,7 @@
                 <div class="mt-6">
                     <a href="{{ route('customer.caterers') }}" 
                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
-                        Browse Caterers
+                        Browse Packages
                     </a>
                 </div>
             </div>

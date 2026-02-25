@@ -16,11 +16,11 @@
                             Welcome back, {{ auth()->user()->name }}!
                         </h3>
                         <p class="text-indigo-100 mt-2">
-                            Ready to plan your next event? Browse our caterers and make a booking.
+                            Ready to plan your next event? Browse our packages and make a booking.
                         </p>
                     </div>
                     <a href="{{ route('customer.caterers') }}" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition">
-                        Browse Caterers
+                        Browse Packages
                     </a>
                 </div>
             </div>
@@ -186,10 +186,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No Upcoming Events</h3>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Start planning your next event by browsing our caterers.</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Start planning your next event by browsing packages.</p>
                 <div class="mt-6">
                     <a href="{{ route('customer.caterers') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                        Browse Caterers
+                        Browse Packages
                     </a>
                 </div>
             </div>

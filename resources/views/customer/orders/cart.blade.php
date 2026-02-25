@@ -148,7 +148,7 @@
                 <p class="text-gray-600 dark:text-gray-400 mb-6">Start adding some delicious items!</p>
                 <a href="{{ route('customer.caterers') }}" 
                     class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200">
-                    Browse Caterers
+                    Browse Packages
                 </a>
             </div>
             @endif

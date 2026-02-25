@@ -59,7 +59,7 @@
                         {{ __('Home') }}
                     </x-nav-link>
                     <x-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
-                        {{ __('Caterers') }}
+                        {{ __('Packages') }}
                     </x-nav-link>
                     <x-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
                         {{ __('Bookings') }}
@@ -354,7 +354,7 @@
                 {{ __('Home') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
-                {{ __('Caterers') }}
+                {{ __('Packages') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
                 {{ __('My Bookings') }}

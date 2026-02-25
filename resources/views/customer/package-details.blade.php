@@ -2,14 +2,25 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('customer.caterer.profile', $package->user->id) }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                <a href="{{ route('customer.caterers') }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200" title="Back to packages">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </a>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    {{ $package->name }}
-                </h2>
+                {{-- Breadcrumb --}}
+                <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
+                    <a href="{{ route('customer.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <a href="{{ route('customer.caterer.profile', $package->user->id) }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-[120px]">
+                        {{ $package->user->business_name ?? $package->user->name }}
+                    </a>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <span class="text-gray-600 dark:text-gray-300 font-medium truncate max-w-[160px]">{{ $package->name }}</span>
+                </nav>
             </div>
         </div>
     </x-slot>
@@ -381,59 +392,73 @@
                         </div>
                     </div>
 
-                    <!-- Caterer Info Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">About the Caterer</h3>
-                        <div class="flex items-center space-x-4 mb-4">
-                            @if($package->user->profile_photo)
-                                <img src="{{ $package->user->profile_photo }}" 
-                                     alt="{{ $package->user->business_name ?? $package->user->name }}"
-                                     class="w-16 h-16 rounded-xl object-cover">
-                            @else
-                                <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-xl flex items-center justify-center text-white text-xl font-bold">
-                                    {{ substr($package->user->business_name ?? $package->user->name, 0, 1) }}
-                                </div>
-                            @endif
-                            <div>
-                                <h4 class="font-medium text-gray-900 dark:text-white">
-                                    {{ $package->user->business_name ?? $package->user->name }}
-                                </h4>
-                                <div class="flex items-center mt-1">
-                                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                    <span class="ml-1 text-sm text-gray-600 dark:text-gray-400">
-                                        {{ $package->user->averageRating() }} • {{ $package->user->totalReviews() }} reviews
-                                    </span>
+                    <!-- Caterer Info Card — prominent since customer found this via packages browse -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+                        {{-- Green header --}}
+                        <div class="bg-gradient-to-r from-green-600 to-emerald-500 px-5 py-4">
+                            <p class="text-green-100 text-xs font-semibold uppercase tracking-wider mb-2">Package offered by</p>
+                            <div class="flex items-center gap-3">
+                                @if($package->user->profile_photo)
+                                    <img src="{{ $package->user->profile_photo }}"
+                                         alt="{{ $package->user->business_name ?? $package->user->name }}"
+                                         class="w-12 h-12 rounded-xl object-cover ring-2 ring-white/40 shrink-0">
+                                @else
+                                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0">
+                                        {{ substr($package->user->business_name ?? $package->user->name, 0, 1) }}
+                                    </div>
+                                @endif
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-white text-base leading-tight truncate">
+                                        {{ $package->user->business_name ?? $package->user->name }}
+                                    </h4>
+                                    <div class="flex items-center gap-1 mt-0.5">
+                                        <svg class="w-3.5 h-3.5 text-yellow-300 fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <span class="text-green-100 text-xs">{{ $package->user->averageRating() }} · {{ $package->user->totalReviews() }} reviews</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        @if($package->user->business_address)
-                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
-                                <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                {{ $package->user->business_address }}
-                            </div>
-                        @endif
 
-                        <div class="space-y-3">
-                            <a 
-                                href="{{ route('customer.caterer.profile', $package->user->id) }}" 
-                                class="block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-                            >
-                                View Profile
-                            </a>
-                            @if($package->user->contact_number || $package->user->phone)
-                                <a 
-                                    href="tel:{{ $package->user->contact_number ?? $package->user->phone }}"
-                                    class="block w-full text-center bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-                                >
-                                    Contact Caterer
-                                </a>
+                        <div class="p-5 space-y-3">
+                            @if($package->user->business_address)
+                                <div class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    {{ $package->user->business_address }}
+                                </div>
                             @endif
+
+                            @if($package->user->years_of_experience)
+                                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <svg class="w-4 h-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    {{ $package->user->years_of_experience }} years of experience
+                                </div>
+                            @endif
+
+                            <div class="flex flex-col gap-2 pt-1">
+                                <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
+                                   class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    View Full Profile
+                                </a>
+                                @if($package->user->contact_number ?? $package->user->phone ?? null)
+                                    <a href="tel:{{ $package->user->contact_number ?? $package->user->phone }}"
+                                       class="flex items-center justify-center gap-2 w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                        </svg>
+                                        Call Caterer
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>

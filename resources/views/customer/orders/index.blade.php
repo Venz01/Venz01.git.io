@@ -174,10 +174,10 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">No orders found</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-6">Start ordering from your favorite caterers!</p>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">Start ordering from your favorite packages!</p>
                     <a href="{{ route('customer.caterers') }}" 
                         class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200">
-                        Browse Caterers
+                        Browse Packages
                     </a>
                 </div>
                 @endforelse
