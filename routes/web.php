@@ -160,6 +160,10 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::get('/verify-receipt', [CatererController::class, 'verifyReceipt'])->name('verifyReceipt');
     Route::get('/payments', [CatererController::class, 'payments'])->name('payments');
 
+    Route::patch('/bookings/{booking}/cancel',        [\App\Http\Controllers\BookingController::class, 'cancelByCaterer'])->name('booking.cancel');
+    Route::patch('/bookings/{booking}/refund-issued',  [\App\Http\Controllers\BookingController::class, 'markRefundIssued'])->name('booking.refund-issued');
+    Route::patch('/bookings/{booking}/refund-waived',  [\App\Http\Controllers\BookingController::class, 'markRefundWaived'])->name('booking.refund-waived');
+
     // Category management
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');

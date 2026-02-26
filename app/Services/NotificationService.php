@@ -125,8 +125,8 @@ class NotificationService
      */
     public function notifyPaymentReceived(Booking $booking, $type = 'deposit')
     {
-        $message = $type === 'deposit' 
-            ? "Deposit payment received for booking #{$booking->booking_number}" 
+        $message = $type === 'deposit'
+            ? "Deposit payment received for booking #{$booking->booking_number}"
             : "Full balance payment received for booking #{$booking->booking_number}";
 
         return $this->create(
@@ -196,18 +196,12 @@ class NotificationService
 
     /**
      * Send warning notification to caterer about flagged/removed review
-     * 
-     * This creates both an in-app notification AND sends an email
-     *
-     * @param Review $review
-     * @param string $reason
-     * @return void
      */
     public function notifyCatererWarning(Review $review, string $reason)
     {
         try {
             $caterer = $review->caterer;
-            
+
             if (!$caterer) {
                 Log::warning('Cannot send caterer warning - caterer not found', [
                     'review_id' => $review->id
@@ -215,7 +209,6 @@ class NotificationService
                 return;
             }
 
-            // Create in-app notification
             $this->create(
                 $caterer->id,
                 'review_warning',
@@ -229,7 +222,6 @@ class NotificationService
                 ]
             );
 
-            // Send email notification if caterer has email
             if ($caterer->email) {
                 try {
                     Mail::send('emails.caterer-review-warning', [
@@ -254,7 +246,6 @@ class NotificationService
                         'caterer_id' => $caterer->id,
                         'error' => $e->getMessage()
                     ]);
-                    // Don't throw - notification was created, email is secondary
                 }
             }
 
@@ -264,10 +255,59 @@ class NotificationService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
-            // Re-throw to be caught by controller
             throw $e;
         }
+    }
+
+    /**
+     * Customer cancels a booking → notify the caterer AND confirm to the customer.
+     */
+    public function notifyBookingCancelledByCustomer(Booking $booking): void
+    {
+        // Notify the caterer
+        $this->create(
+            $booking->caterer_id,
+            'booking_cancelled',
+            'Booking Cancelled by Customer',
+            "Booking #{$booking->booking_number} for {$booking->event_date->format('M d, Y')} has been cancelled by the customer.",
+            [
+                'booking_id' => $booking->id,
+                'url'        => route('caterer.booking.details', $booking->id),
+            ]
+        );
+
+        // Confirm cancellation to the customer
+        $this->create(
+            $booking->customer_id,
+            'booking_cancelled',
+            'Booking Cancelled',
+            "Your booking #{$booking->booking_number} for {$booking->event_date->format('M d, Y')} has been successfully cancelled." .
+                ($booking->deposit_paid > 0 ? ' If you are eligible for a refund, the caterer will contact you.' : ''),
+            [
+                'booking_id' => $booking->id,
+                'url'        => route('customer.bookings'),
+            ]
+        );
+    }
+
+    /**
+     * Caterer cancels a booking → notify the customer.
+     */
+    public function notifyBookingCancelledByCaterer(Booking $booking): void
+    {
+        $catererName = $booking->caterer->business_name ?? $booking->caterer->name;
+
+        $this->create(
+            $booking->customer_id,
+            'booking_cancelled',
+            'Booking Cancelled by Caterer',
+            "Unfortunately, {$catererName} has cancelled your booking #{$booking->booking_number} for {$booking->event_date->format('M d, Y')}." .
+                ($booking->deposit_paid > 0 ? ' The caterer will contact you to arrange your refund.' : ''),
+            [
+                'booking_id' => $booking->id,
+                'url'        => route('customer.booking.details', $booking->id),
+            ]
+        );
     }
 
     /**
@@ -413,7 +453,7 @@ class NotificationService
     }
 
     /**
-     * Customer cancels an order → notify the caterer.
+     * Caterer cancels an order → notify the customer.
      */
     public function notifyOrderCancelledByCaterer(Order $order): void
     {
@@ -429,5 +469,4 @@ class NotificationService
             ]
         );
     }
-
 }

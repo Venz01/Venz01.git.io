@@ -31,11 +31,10 @@ class BookingController extends Controller
             ->with(['items.category', 'user'])
             ->firstOrFail();
 
-        // Get customization from session if exists
         $customization = session('booking_customization', [
             'selected_items' => $package->items->pluck('id')->toArray(),
             'price_per_head' => $package->price,
-            'guests' => $package->pax
+            'guests'         => $package->pax,
         ]);
 
         return view('customer.booking.create', compact('package', 'customization'));
@@ -47,33 +46,29 @@ class BookingController extends Controller
     public function storeEventDetails(Request $request)
     {
         $request->validate([
-            'package_id' => 'required|exists:packages,id',
-            'caterer_id' => 'required|exists:users,id',
-            'event_type' => 'required|string',
-            'event_date' => 'required|date|after:today',
-            'time_slot' => 'required|string',
-            'guests' => 'required|integer|min:1',
-            'venue_name' => 'required|string|max:255',
-            'venue_address' => 'required|string|max:500',
+            'package_id'        => 'required|exists:packages,id',
+            'caterer_id'        => 'required|exists:users,id',
+            'event_type'        => 'required|string',
+            'event_date'        => 'required|date|after:today',
+            'time_slot'         => 'required|string',
+            'guests'            => 'required|integer|min:1',
+            'venue_name'        => 'required|string|max:255',
+            'venue_address'     => 'required|string|max:500',
             'special_instructions' => 'nullable|string|max:1000',
-            'selected_items' => 'required|array|min:1',
-            'selected_items.*' => 'exists:menu_items,id',
-            'price_per_head' => 'required|numeric|min:0',
-            'total_price' => 'required|numeric|min:0',
+            'selected_items'    => 'required|array|min:1',
+            'selected_items.*'  => 'exists:menu_items,id',
+            'price_per_head'    => 'required|numeric|min:0',
+            'total_price'       => 'required|numeric|min:0',
         ], [
-            'event_date.after' => 'Event date must be at least 1 day in advance. Please select a future date.',
+            'event_date.after' => 'Event date must be at least 1 day in advance.',
         ]);
 
-        // Additional date validation
         $eventDate = \Carbon\Carbon::parse($request->event_date);
-        $tomorrow = \Carbon\Carbon::tomorrow();
-        
-        if ($eventDate->lt($tomorrow)) {
+        if ($eventDate->lt(\Carbon\Carbon::tomorrow())) {
             return back()->withInput()
-                ->with('error', 'Event date must be at least 1 day in advance. Please select a future date.');
+                ->with('error', 'Event date must be at least 1 day in advance.');
         }
 
-        // ✅ NEW: Check if date is blocked by caterer
         $isBlocked = CatererAvailability::where('caterer_id', $request->caterer_id)
             ->where('date', $request->event_date)
             ->where('status', 'blocked')
@@ -81,10 +76,9 @@ class BookingController extends Controller
 
         if ($isBlocked) {
             return back()->withInput()
-                ->with('error', 'Sorry, this caterer is not available on the selected date. Please choose another date.');
+                ->with('error', 'Sorry, this caterer is not available on the selected date.');
         }
 
-        // ✅ NEW: Check if caterer already has a booking on this date
         $hasExistingBooking = Booking::where('caterer_id', $request->caterer_id)
             ->where('event_date', $request->event_date)
             ->whereIn('booking_status', ['pending', 'confirmed'])
@@ -92,13 +86,10 @@ class BookingController extends Controller
 
         if ($hasExistingBooking) {
             return back()->withInput()
-                ->with('error', 'Sorry, this caterer is already booked for the selected date. Please choose another date.');
+                ->with('error', 'Sorry, this caterer is already booked for the selected date.');
         }
 
-        // Store booking details in session
-        session([
-            'booking_details' => $request->all()
-        ]);
+        session(['booking_details' => $request->all()]);
 
         return redirect()->route('customer.booking.payment');
     }
@@ -109,20 +100,20 @@ class BookingController extends Controller
     public function payment()
     {
         $bookingDetails = session('booking_details');
-        
+
         if (!$bookingDetails) {
             return redirect()->route('customer.caterers')->with('error', 'No booking details found.');
         }
 
-        $package = Package::with('user')->findOrFail($bookingDetails['package_id']);
+        $package       = Package::with('user')->findOrFail($bookingDetails['package_id']);
         $selectedItems = MenuItem::whereIn('id', $bookingDetails['selected_items'])->get();
+        $deposit       = $bookingDetails['total_price'] * 0.25;
+        $serviceFee    = 500;
+        $depositDue    = $deposit + $serviceFee;
 
-        // Calculate deposit (25% of total)
-        $deposit = $bookingDetails['total_price'] * 0.25;
-        $serviceFee = 500; // Fixed service fee
-        $depositDue = $deposit + $serviceFee;
-
-        return view('customer.booking.payment', compact('bookingDetails', 'package', 'selectedItems', 'deposit', 'serviceFee', 'depositDue'));
+        return view('customer.booking.payment', compact(
+            'bookingDetails', 'package', 'selectedItems', 'deposit', 'serviceFee', 'depositDue'
+        ));
     }
 
     /**
@@ -131,20 +122,20 @@ class BookingController extends Controller
     public function processPayment(Request $request)
     {
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'full_name'      => 'required|string|max:255',
+            'email'          => 'required|email|max:255',
+            'phone'          => 'required|string|max:20',
             'payment_method' => 'required|in:gcash,paymaya,bank_transfer',
-            'receipt' => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
+            'receipt'        => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
         ]);
 
         $bookingDetails = session('booking_details');
-        
+
         if (!$bookingDetails) {
             return redirect()->route('customer.caterers')->with('error', 'Booking session expired.');
         }
 
-        // ✅ DOUBLE-CHECK: Verify availability again before creating booking
+        // Re-check availability before creating
         $isBlocked = CatererAvailability::where('caterer_id', $bookingDetails['caterer_id'])
             ->where('date', $bookingDetails['event_date'])
             ->where('status', 'blocked')
@@ -153,7 +144,7 @@ class BookingController extends Controller
         if ($isBlocked) {
             session()->forget(['booking_details', 'booking_customization']);
             return redirect()->route('customer.caterers')
-                ->with('error', 'Sorry, this date is no longer available. The caterer may have blocked it.');
+                ->with('error', 'Sorry, this date is no longer available.');
         }
 
         $hasExistingBooking = Booking::where('caterer_id', $bookingDetails['caterer_id'])
@@ -164,73 +155,59 @@ class BookingController extends Controller
         if ($hasExistingBooking) {
             session()->forget(['booking_details', 'booking_customization']);
             return redirect()->route('customer.caterers')
-                ->with('error', 'Sorry, this date is no longer available. Another customer may have booked it.');
+                ->with('error', 'Sorry, this date is no longer available.');
         }
 
         try {
             DB::beginTransaction();
 
-            // Handle receipt upload
             $receiptPath = $request->file('receipt')->store('receipts', 'public');
-
-            // Calculate amounts
-            $totalPrice = $bookingDetails['total_price'];
-            $deposit = $totalPrice * 0.25;
-            $serviceFee = 500;
+            $totalPrice  = $bookingDetails['total_price'];
+            $deposit     = $totalPrice * 0.25;
+            $serviceFee  = 500;
             $depositPaid = $deposit + $serviceFee;
-            $balance = $totalPrice - $deposit;
+            $balance     = $totalPrice - $deposit;
 
-            // Create booking
             $booking = Booking::create([
-                'customer_id' => auth()->id(),
-                'caterer_id' => $bookingDetails['caterer_id'],
-                'package_id' => $bookingDetails['package_id'],
-                'booking_number' => 'BK-' . strtoupper(uniqid()),
-                'event_type' => $bookingDetails['event_type'],
-                'event_date' => $bookingDetails['event_date'],
-                'time_slot' => $bookingDetails['time_slot'],
-                'guests' => $bookingDetails['guests'],
-                'venue_name' => $bookingDetails['venue_name'],
-                'venue_address' => $bookingDetails['venue_address'],
-                'special_instructions' => $bookingDetails['special_instructions'] ?? null,
-                'price_per_head' => $bookingDetails['price_per_head'],
-                'total_price' => $totalPrice,
-                'deposit_amount' => $deposit,
-                'service_fee' => $serviceFee,
-                'deposit_paid' => $depositPaid,
-                'balance' => $balance,
-                'customer_name' => $request->full_name,
-                'customer_email' => $request->email,
-                'customer_phone' => $request->phone,
-                'payment_method' => $request->payment_method,
-                'receipt_path' => $receiptPath,
-                'payment_status' => 'deposit_paid',
-                'booking_status' => 'pending',
+                'customer_id'         => auth()->id(),
+                'caterer_id'          => $bookingDetails['caterer_id'],
+                'package_id'          => $bookingDetails['package_id'],
+                'booking_number'      => 'BK-' . strtoupper(uniqid()),
+                'event_type'          => $bookingDetails['event_type'],
+                'event_date'          => $bookingDetails['event_date'],
+                'time_slot'           => $bookingDetails['time_slot'],
+                'guests'              => $bookingDetails['guests'],
+                'venue_name'          => $bookingDetails['venue_name'],
+                'venue_address'       => $bookingDetails['venue_address'],
+                'special_instructions'=> $bookingDetails['special_instructions'] ?? null,
+                'price_per_head'      => $bookingDetails['price_per_head'],
+                'total_price'         => $totalPrice,
+                'deposit_amount'      => $deposit,
+                'service_fee'         => $serviceFee,
+                'deposit_paid'        => $depositPaid,
+                'balance'             => $balance,
+                'customer_name'       => $request->full_name,
+                'customer_email'      => $request->email,
+                'customer_phone'      => $request->phone,
+                'payment_method'      => $request->payment_method,
+                'receipt_path'        => $receiptPath,
+                'payment_status'      => 'deposit_paid',
+                'booking_status'      => 'pending',
             ]);
 
-            // Attach selected menu items
             $booking->menuItems()->attach($bookingDetails['selected_items']);
 
-            // Send notifications
             try {
-                Log::info('Creating notifications for booking', ['booking_id' => $booking->id]);
-                
                 $this->notificationService->notifyBookingCreated($booking);
                 $this->notificationService->notifyCatererNewBooking($booking);
                 $this->notificationService->notifyPaymentReceived($booking, 'deposit');
-                
-                Log::info('Notifications created successfully', ['booking_id' => $booking->id]);
             } catch (\Exception $e) {
-                Log::error('Failed to create notifications', [
-                    'booking_id' => $booking->id,
-                    'error' => $e->getMessage()
+                Log::error('Notification failed after booking creation', [
+                    'booking_id' => $booking->id, 'error' => $e->getMessage(),
                 ]);
-                // Don't fail the booking if notifications fail
             }
 
-            // Clear session
             session()->forget(['booking_details', 'booking_customization']);
-
             DB::commit();
 
             return redirect()->route('customer.booking.confirmation', $booking->id)
@@ -239,9 +216,7 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Booking creation failed', [
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'user_id' => auth()->id(), 'error' => $e->getMessage(),
             ]);
             return back()->with('error', 'Failed to create booking. Please try again.');
         }
@@ -260,7 +235,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Cancel booking
+     * Abandon booking flow (clears session)
      */
     public function cancel()
     {
@@ -269,7 +244,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Show booking details
+     * Show booking details page
      */
     public function show($bookingId)
     {
@@ -280,8 +255,16 @@ class BookingController extends Controller
         return view('customer.booking.details', compact('booking'));
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    //  CANCELLATION LOGIC
+    // ──────────────────────────────────────────────────────────────────────────
+
     /**
-     * Cancel a confirmed booking
+     * Customer cancels their own booking.
+     *
+     * Rule: only allowed while status = 'pending' (not yet confirmed).
+     * If a deposit was paid the customer must provide their GCash / bank details
+     * so the caterer can contact them to send the refund manually.
      */
     public function cancelBooking(Request $request, $bookingId)
     {
@@ -289,19 +272,155 @@ class BookingController extends Controller
             ->where('id', $bookingId)
             ->firstOrFail();
 
-        // Only allow cancellation if booking is pending or confirmed
-        if (!in_array($booking->booking_status, ['pending', 'confirmed'])) {
-            return back()->with('error', 'This booking cannot be cancelled.');
+        // ── Gate: only pending bookings ───────────────────────────────────────
+        if (!$booking->canBeCancelledByCustomer()) {
+            return back()->with('error',
+                'This booking can no longer be cancelled. ' .
+                'Once a caterer has confirmed your booking, cancellation is not allowed. ' .
+                'Please contact the caterer directly.'
+            );
+        }
+
+        $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+            'refund_details'      => 'nullable|string|max:500',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancelling.',
+            'cancellation_reason.min'      => 'Please give a bit more detail (at least 10 characters).',
+        ]);
+
+        // Refund is only "pending" when money was paid AND the customer provided bank details.
+        // If no deposit was paid there is nothing to refund.
+        $refundStatus = 'none';
+        if ($booking->deposit_paid > 0) {
+            $refundStatus = 'pending'; // caterer must contact customer and send it back manually
         }
 
         $booking->update([
-            'booking_status' => 'cancelled',
-            'special_instructions' => $booking->special_instructions . "\n\nCancellation Reason: " . ($request->cancellation_reason ?? 'No reason provided')
+            'booking_status'      => 'cancelled',
+            'cancelled_by'        => 'customer',
+            'cancellation_reason' => $request->cancellation_reason,
+            'refund_status'       => $refundStatus,
+            'refund_details'      => $request->refund_details, // GCash / bank details
+            'cancelled_at'        => now(),
         ]);
 
-        return redirect()->route('customer.bookings')
-            ->with('success', 'Booking has been cancelled successfully.');
+        try {
+            $this->notificationService->notifyBookingCancelledByCustomer($booking);
+        } catch (\Exception $e) {
+            Log::error('Cancel notification failed', [
+                'booking_id' => $booking->id, 'error' => $e->getMessage(),
+            ]);
+        }
+
+        $successMsg = 'Your booking has been cancelled.';
+        if ($refundStatus === 'pending') {
+            $successMsg .= ' The caterer will contact you to arrange your refund using the details you provided.';
+        }
+
+        return redirect()->route('customer.bookings')->with('success', $successMsg);
     }
+
+    /**
+     * Caterer cancels a booking they can no longer fulfil.
+     *
+     * Rule: caterer must provide a reason.
+     * If a deposit was paid, refund_status → 'pending'.
+     * The caterer must contact the customer (email/phone shown in booking)
+     * to collect their GCash / bank details and send the money back manually.
+     */
+    public function cancelByCaterer(Request $request, $bookingId)
+    {
+        $booking = Booking::where('caterer_id', auth()->id())
+            ->where('id', $bookingId)
+            ->firstOrFail();
+
+        if (!$booking->canBeCancelledByCaterer()) {
+            return back()->with('error',
+                'This booking cannot be cancelled. It may already be cancelled, completed, or the event date has passed.'
+            );
+        }
+
+        $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancelling this booking.',
+            'cancellation_reason.min'      => 'Please give a bit more detail (at least 10 characters).',
+        ]);
+
+        $refundStatus = ($booking->deposit_paid > 0) ? 'pending' : 'none';
+
+        $booking->update([
+            'booking_status'      => 'cancelled',
+            'cancelled_by'        => 'caterer',
+            'cancellation_reason' => $request->cancellation_reason,
+            'refund_status'       => $refundStatus,
+            'cancelled_at'        => now(),
+        ]);
+
+        try {
+            $this->notificationService->notifyBookingCancelledByCaterer($booking);
+        } catch (\Exception $e) {
+            Log::error('Caterer cancel notification failed', [
+                'booking_id' => $booking->id, 'error' => $e->getMessage(),
+            ]);
+        }
+
+        $successMsg = 'Booking has been cancelled.';
+        if ($refundStatus === 'pending') {
+            $successMsg .= ' A deposit was paid — please contact the customer via email or phone to get their GCash / bank details and arrange the refund.';
+        }
+
+        return redirect()->route('caterer.booking.details', $booking->id)
+            ->with('success', $successMsg);
+    }
+
+    /**
+     * Caterer marks refund as issued (money already sent back manually).
+     */
+    public function markRefundIssued(Request $request, $bookingId)
+    {
+        $booking = Booking::where('caterer_id', auth()->id())
+            ->where('id', $bookingId)
+            ->where('booking_status', 'cancelled')
+            ->where('refund_status', 'pending')
+            ->firstOrFail();
+
+        $booking->update([
+            'refund_status'  => 'issued',
+            'payment_status' => 'refunded',
+        ]);
+
+        return back()->with('success', 'Refund marked as issued.');
+    }
+
+    /**
+     * Caterer marks refund as waived (customer agreed — no money to return).
+     */
+    public function markRefundWaived(Request $request, $bookingId)
+    {
+        $booking = Booking::where('caterer_id', auth()->id())
+            ->where('id', $bookingId)
+            ->where('booking_status', 'cancelled')
+            ->where('refund_status', 'pending')
+            ->firstOrFail();
+
+        $request->validate(['waiver_note' => 'nullable|string|max:500']);
+
+        $note = $booking->refund_details;
+        if ($request->waiver_note) {
+            $note .= "\n\nWaiver note: " . $request->waiver_note;
+        }
+
+        $booking->update([
+            'refund_status'  => 'waived',
+            'refund_details' => $note,
+        ]);
+
+        return back()->with('success', 'Refund marked as waived.');
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
 
     /**
      * Show pay balance page
@@ -322,7 +441,7 @@ class BookingController extends Controller
     public function processBalancePayment(Request $request, $bookingId)
     {
         $request->validate([
-            'receipt' => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
+            'receipt'        => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
             'payment_method' => 'required|in:gcash,paymaya,bank_transfer',
         ]);
 
@@ -331,37 +450,35 @@ class BookingController extends Controller
             ->findOrFail($bookingId);
 
         try {
-            // Handle receipt upload
             $receiptPath = $request->file('receipt')->store('receipts/balance', 'public');
 
             $booking->update([
                 'payment_status' => 'fully_paid',
-                'receipt_path' => $receiptPath, // Update with balance payment receipt
+                'receipt_path'   => $receiptPath,
             ]);
 
-            // Send notification
             try {
                 $this->notificationService->notifyPaymentReceived($booking, 'balance');
             } catch (\Exception $e) {
-                Log::error('Failed to create balance payment notification', [
-                    'booking_id' => $booking->id,
-                    'error' => $e->getMessage()
+                Log::error('Balance payment notification failed', [
+                    'booking_id' => $booking->id, 'error' => $e->getMessage(),
                 ]);
             }
 
             return redirect()->route('customer.booking.details', $booking->id)
-                ->with('success', 'Balance payment submitted successfully! Your booking is now fully paid.');
+                ->with('success', 'Balance payment submitted! Your booking is now fully paid.');
 
         } catch (\Exception $e) {
             Log::error('Balance payment failed', [
-                'booking_id' => $bookingId,
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage()
+                'booking_id' => $bookingId, 'user_id' => auth()->id(), 'error' => $e->getMessage(),
             ]);
             return back()->with('error', 'Failed to process payment. Please try again.');
         }
     }
 
+    /**
+     * AJAX availability check
+     */
     public function checkAvailability(Request $request)
     {
         $request->validate([
@@ -369,40 +486,24 @@ class BookingController extends Controller
             'event_date' => 'required|date|after:today',
         ]);
 
-        $catererId = $request->caterer_id;
-        $eventDate = $request->event_date;
-
-        // Check if date is blocked
-        $isBlocked = \App\Models\CatererAvailability::where('caterer_id', $catererId)
-            ->where('date', $eventDate)
+        $isBlocked = CatererAvailability::where('caterer_id', $request->caterer_id)
+            ->where('date', $request->event_date)
             ->where('status', 'blocked')
             ->exists();
 
         if ($isBlocked) {
-            return response()->json([
-                'available' => false,
-                'reason' => 'blocked',
-                'message' => 'This caterer is not available on this date.'
-            ]);
+            return response()->json(['available' => false, 'reason' => 'blocked', 'message' => 'This caterer is not available on this date.']);
         }
 
-        // Check if caterer already has a booking
-        $hasBooking = \App\Models\Booking::where('caterer_id', $catererId)
-            ->where('event_date', $eventDate)
+        $hasBooking = Booking::where('caterer_id', $request->caterer_id)
+            ->where('event_date', $request->event_date)
             ->whereIn('booking_status', ['pending', 'confirmed'])
             ->exists();
 
         if ($hasBooking) {
-            return response()->json([
-                'available' => false,
-                'reason' => 'booked',
-                'message' => 'This caterer is already booked for this date.'
-            ]);
+            return response()->json(['available' => false, 'reason' => 'booked', 'message' => 'This caterer is already booked for this date.']);
         }
 
-        return response()->json([
-            'available' => true,
-            'message' => 'This date is available!'
-        ]);
+        return response()->json(['available' => true, 'message' => 'This date is available!']);
     }
 }

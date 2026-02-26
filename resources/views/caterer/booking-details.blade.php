@@ -101,6 +101,16 @@
                         </div>
                         @endif
 
+                        @if(in_array($booking->booking_status, ['pending', 'confirmed']) && $booking->event_date->isFuture())
+                        <button type="button" onclick="openCatererCancelModal()"
+                            class="px-4 py-3 bg-red-50 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-semibold flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Cancel Booking
+                        </button>
+                        @endif
+
                         <button onclick="window.print()"
                             class="px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,6 +366,127 @@
                             </p>
                         </div>
                     </div>
+
+
+                    {{-- ══ Refund / Cancellation Panel ══ --}}
+                    @if($booking->booking_status === 'cancelled')
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                        <div class="px-5 py-4 bg-red-600 flex items-center gap-3">
+                            <svg class="w-5 h-5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <div>
+                                <p class="text-white font-bold text-sm">Booking Cancelled</p>
+                                @if($booking->cancelled_by)
+                                <p class="text-red-100 text-xs">
+                                    by {{ ucfirst($booking->cancelled_by) }}
+                                    @if($booking->cancelled_at) · {{ $booking->cancelled_at->format('M d, Y') }} @endif
+                                </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-5 space-y-4">
+                            @if($booking->cancellation_reason)
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Reason</p>
+                                <p class="text-sm text-gray-700 dark:text-gray-300">{{ $booking->cancellation_reason }}</p>
+                            </div>
+                            @endif
+
+                            @if($booking->deposit_paid > 0)
+                            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                                    Refund — ₱{{ number_format($booking->deposit_paid, 2) }} deposit
+                                </p>
+
+                                @php $refundStatus = $booking->refund_status ?? 'none'; @endphp
+
+                                @if($refundStatus === 'pending')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 rounded-full text-xs font-medium mb-3">
+                                        ⏳ Pending — action required
+                                    </span>
+
+                                    {{-- Show customer's bank details if they provided them --}}
+                                    @if($booking->refund_details)
+                                        <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg mb-3">
+                                            <p class="text-xs font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                                                Customer's refund details
+                                            </p>
+                                            <p class="text-sm text-yellow-700 dark:text-yellow-400 break-words">
+                                                {{ $booking->refund_details }}
+                                            </p>
+                                        </div>
+                                    @else
+                                        <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg mb-3">
+                                            <p class="text-xs text-yellow-800 dark:text-yellow-300 font-medium mb-2">
+                                                No bank details provided yet.
+                                            </p>
+                                            <p class="text-xs text-yellow-700 dark:text-yellow-400 mb-2">
+                                                Contact the customer to get their GCash / bank account details before sending the refund.
+                                            </p>
+                                            <div class="flex gap-3">
+                                                <a href="mailto:{{ $booking->customer_email }}"
+                                                   class="text-xs font-semibold text-yellow-700 dark:text-yellow-400 underline underline-offset-2">
+                                                    Email customer
+                                                </a>
+                                                <a href="tel:{{ $booking->customer_phone }}"
+                                                   class="text-xs font-semibold text-yellow-700 dark:text-yellow-400 underline underline-offset-2">
+                                                    Call customer
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- Action buttons --}}
+                                    <div class="space-y-2">
+                                        <form method="POST" action="{{ route('caterer.booking.refund-issued', $booking->id) }}">
+                                            @csrf @method('PATCH')
+                                            <button type="submit"
+                                                class="w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                                                ✓ Mark Refund as Sent
+                                            </button>
+                                        </form>
+
+                                        <button onclick="document.getElementById('waiverBlock').classList.toggle('hidden')"
+                                            class="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+                                            Mark as Waived (no refund)
+                                        </button>
+
+                                        <div id="waiverBlock" class="hidden space-y-2">
+                                            <form method="POST" action="{{ route('caterer.booking.refund-waived', $booking->id) }}">
+                                                @csrf @method('PATCH')
+                                                <textarea name="waiver_note" rows="2"
+                                                    placeholder="Optional note (e.g. customer agreed via chat)…"
+                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white resize-none"></textarea>
+                                                <button type="submit"
+                                                    class="w-full px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition-colors mt-1">
+                                                    Confirm Waiver
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                @elseif($refundStatus === 'issued')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full text-xs font-medium">
+                                        ✓ Refund Sent
+                                    </span>
+
+                                @elseif($refundStatus === 'waived')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium">
+                                        Waived
+                                    </span>
+
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium">
+                                        No refund
+                                    </span>
+                                @endif
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Quick Actions -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -744,4 +875,108 @@
         });
 
     </script>
+
+    {{-- ══ Caterer Cancel Modal ══ --}}
+    <div id="catererCancelModal" class="hidden fixed inset-0 bg-gray-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
+
+            {{-- Header --}}
+            <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    Cancel This Booking
+                </h3>
+                <button onclick="closeCatererCancelModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 space-y-4">
+                <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                    <p class="text-sm font-medium text-red-700 dark:text-red-400">
+                        ⚠️ The customer will be notified immediately. This cannot be undone.
+                    </p>
+                </div>
+
+                @if($booking->deposit_paid > 0)
+                <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl">
+                    <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
+                        💰 This customer paid a deposit of ₱{{ number_format($booking->deposit_paid, 2) }}
+                    </p>
+                    <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                        After cancelling, you <strong>must contact the customer</strong> via email or phone to
+                        get their GCash / bank details and send the refund manually.
+                        The app will flag a refund as pending and remind you.
+                    </p>
+                </div>
+                @endif
+
+                <form id="catererCancelForm"
+                      method="POST"
+                      action="{{ route('caterer.booking.cancel', $booking->id) }}">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                            Reason for cancellation <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="catererCancelReason"
+                                  name="cancellation_reason"
+                                  rows="4"
+                                  placeholder="Explain why you are cancelling (e.g. emergency, unavailability, capacity issue)…"
+                                  class="w-full px-3 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-400 focus:border-red-400 resize-none"></textarea>
+                        <p id="catererCancelError" class="hidden mt-1 text-xs text-red-600">
+                            Please provide at least 10 characters.
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-b-2xl flex justify-end gap-3">
+                <button onclick="closeCatererCancelModal()"
+                    class="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border-2 border-gray-300 dark:border-gray-500 rounded-xl hover:bg-gray-50 transition-colors">
+                    Go Back
+                </button>
+                <button onclick="submitCatererCancellation()"
+                    class="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Cancel Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCatererCancelModal() {
+            document.getElementById('catererCancelModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeCatererCancelModal() {
+            document.getElementById('catererCancelModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        function submitCatererCancellation() {
+            const reason = document.getElementById('catererCancelReason').value.trim();
+            const errorEl = document.getElementById('catererCancelError');
+            if (reason.length < 10) {
+                errorEl.classList.remove('hidden');
+                document.getElementById('catererCancelReason').focus();
+                return;
+            }
+            errorEl.classList.add('hidden');
+            document.getElementById('catererCancelForm').submit();
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeCatererCancelModal();
+        });
+    </script>
+
 </x-app-layout>

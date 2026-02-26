@@ -80,9 +80,20 @@
                         </button>
 
                         @if($booking->booking_status == 'pending')
-                            <button onclick="cancelBooking()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            <button onclick="openCancelModal()"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                                 Cancel Booking
                             </button>
+                        @elseif($booking->booking_status == 'confirmed')
+                            <div class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm flex items-center gap-2 cursor-not-allowed">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                Cancellation not available
+                            </div>
                         @endif
 
                         @if($booking->payment_status == 'deposit_paid' && $booking->booking_status == 'confirmed')
@@ -437,35 +448,185 @@
             document.getElementById('imageModal').classList.add('hidden');
         }
 
-        function cancelBooking() {
-            if (confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ route('customer.booking.cancel-booking', $booking->id) }}';
-                
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'PATCH';
-                
-                form.appendChild(csrfToken);
-                form.appendChild(methodField);
-                document.body.appendChild(form);
-                form.submit();
-            }
+        function openCancelModal() {
+            document.getElementById('cancelModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
+
+        function closeCancelModal() {
+            document.getElementById('cancelModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function submitCancellation() {
+            const reason = document.getElementById('cancelReason').value.trim();
+            const errorEl = document.getElementById('cancelReasonError');
+            if (reason.length < 10) {
+                errorEl.classList.remove('hidden');
+                document.getElementById('cancelReason').focus();
+                return;
+            }
+            errorEl.classList.add('hidden');
+            document.getElementById('cancelForm').submit();
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeCancelModal();
+        });
     </script>
 
     <style>
-        @media print {
+        @@media print {
             header, nav, .no-print, button {
                 display: none !important;
             }
         }
     </style>
+
+    {{-- ══ Cancellation info panel (shown after cancellation) ══ --}}
+    @if($booking->booking_status === 'cancelled')
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 pb-6">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5">
+            <h4 class="font-semibold text-red-800 dark:text-red-300 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Booking Cancelled
+                @if($booking->cancelled_by) — by {{ ucfirst($booking->cancelled_by) }} @endif
+                @if($booking->cancelled_at) on {{ $booking->cancelled_at->format('M d, Y h:i A') }} @endif
+            </h4>
+
+            @if($booking->cancellation_reason)
+                <p class="text-sm text-red-700 dark:text-red-400 mb-3">
+                    <strong>Reason:</strong> {{ $booking->cancellation_reason }}
+                </p>
+            @endif
+
+            @if($booking->deposit_paid > 0)
+                @if(($booking->refund_status ?? 'none') === 'pending')
+                    <div class="p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-xl">
+                        <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">⏳ Refund Pending</p>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-400">
+                            Your deposit of <strong>₱{{ number_format($booking->deposit_paid, 2) }}</strong> is pending.
+                            The caterer will contact you to arrange the refund.
+                        </p>
+                        @if($booking->refund_details)
+                            <p class="text-xs text-yellow-600 dark:text-yellow-500 mt-2">
+                                Refund details on record: <strong>{{ $booking->refund_details }}</strong>
+                            </p>
+                        @endif
+                    </div>
+                @elseif(($booking->refund_status ?? 'none') === 'issued')
+                    <div class="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-xl">
+                        <p class="text-sm font-semibold text-green-800 dark:text-green-300">✓ Refund Issued</p>
+                        <p class="text-sm text-green-700 dark:text-green-400 mt-1">The caterer has confirmed your refund was sent.</p>
+                    </div>
+                @elseif(($booking->refund_status ?? 'none') === 'waived')
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Refund waived.</p>
+                    </div>
+                @endif
+            @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- ══ Customer Cancel Modal ══ --}}
+    <div id="cancelModal" class="hidden fixed inset-0 bg-gray-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
+
+            {{-- Header --}}
+            <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    Cancel Booking
+                </h3>
+                <button onclick="closeCancelModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 space-y-4">
+
+                {{-- Warning --}}
+                <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                    <p class="text-sm font-medium text-red-700 dark:text-red-400">
+                        ⚠️ This action is permanent. Once cancelled you will no longer be able to manage this booking.
+                        The caterer will be notified immediately.
+                    </p>
+                </div>
+
+                <form id="cancelForm"
+                      method="POST"
+                      action="{{ route('customer.booking.cancel-booking', $booking->id) }}">
+                    @csrf
+                    @method('PATCH')
+
+                    {{-- Reason --}}
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                            Reason for cancellation <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="cancelReason"
+                                  name="cancellation_reason"
+                                  rows="3"
+                                  placeholder="Please explain why you are cancelling…"
+                                  class="w-full px-3 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-400 focus:border-red-400 resize-none"></textarea>
+                        <p id="cancelReasonError" class="hidden mt-1 text-xs text-red-600">
+                            Please provide at least 10 characters.
+                        </p>
+                    </div>
+
+                    {{-- Refund details — only when a deposit was paid --}}
+                    @if($booking->deposit_paid > 0)
+                        <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl space-y-3">
+                            <div>
+                                <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
+                                    💰 You paid a deposit of ₱{{ number_format($booking->deposit_paid, 2) }}
+                                </p>
+                                <p class="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+                                    Since payments are processed manually, the caterer will contact you to arrange
+                                    your refund. Please provide your GCash number or bank details below so they can
+                                    reach you.
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1.5">
+                                    GCash number / Bank account details
+                                </label>
+                                <input type="text"
+                                       name="refund_details"
+                                       placeholder="e.g. GCash 09XX-XXX-XXXX  or  BPI Savings XXXX-XXXX-XXXX"
+                                       class="w-full px-3 py-2.5 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
+                                <p class="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                                    The caterer will decide on the refund and contact you via email or phone.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </form>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-b-2xl flex justify-end gap-3">
+                <button onclick="closeCancelModal()"
+                    class="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border-2 border-gray-300 dark:border-gray-500 rounded-xl hover:bg-gray-50 transition-colors">
+                    Keep Booking
+                </button>
+                <button onclick="submitCancellation()"
+                    class="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Yes, Cancel Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
 </x-app-layout>

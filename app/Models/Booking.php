@@ -34,13 +34,22 @@ class Booking extends Model
         'receipt_path',
         'payment_status',
         'booking_status',
+        // Cancellation fields
+        'cancelled_by',
+        'cancellation_reason',
+        'refund_status',
+        'refund_details',
+        'cancelled_at',
     ];
 
     protected $casts = [
-        'event_date' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'event_date'   => 'date',
+        'cancelled_at' => 'datetime',
+        'created_at'   => 'datetime',
+        'updated_at'   => 'datetime',
     ];
+
+    // ── Relationships ──────────────────────────────────────────────────
 
     public function customer()
     {
@@ -63,6 +72,13 @@ class Booking extends Model
                     ->withTimestamps();
     }
 
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    // ── Accessors ──────────────────────────────────────────────────────
+
     public function getFormattedBookingNumberAttribute()
     {
         return strtoupper($this->booking_number);
@@ -71,11 +87,11 @@ class Booking extends Model
     public function getStatusColorAttribute()
     {
         return match($this->booking_status) {
-            'pending' => 'yellow',
+            'pending'   => 'yellow',
             'confirmed' => 'blue',
             'completed' => 'green',
             'cancelled' => 'red',
-            default => 'gray',
+            default     => 'gray',
         };
     }
 
@@ -83,41 +99,55 @@ class Booking extends Model
     {
         return match($this->payment_status) {
             'deposit_paid' => 'yellow',
-            'fully_paid' => 'green',
-            'refunded' => 'red',
-            default => 'gray',
+            'fully_paid'   => 'green',
+            'refunded'     => 'red',
+            default        => 'gray',
         };
     }
 
+    // ── Business logic ─────────────────────────────────────────────────
+
     /**
-     * Get the review for this booking
+     * Customer may only cancel while the booking is still PENDING
+     * (caterer has not yet confirmed it).
      */
-    public function review()
+    public function canBeCancelledByCustomer(): bool
     {
-        return $this->hasOne(Review::class);
+        return $this->booking_status === 'pending';
     }
 
     /**
-     * Check if this booking can be reviewed
+     * Caterer may cancel a pending or confirmed booking
+     * whose event date is still in the future.
      */
-    public function canBeReviewed()
+    public function canBeCancelledByCaterer(): bool
     {
-        return $this->booking_status === 'completed' 
+        return in_array($this->booking_status, ['pending', 'confirmed'])
+            && $this->event_date->isFuture();
+    }
+
+    /**
+     * True when money was paid and a refund decision is still outstanding.
+     */
+    public function needsRefundTracking(): bool
+    {
+        return $this->booking_status === 'cancelled'
+            && $this->deposit_paid > 0
+            && in_array($this->refund_status ?? 'none', ['none', 'pending']);
+    }
+
+    public function canBeReviewed(): bool
+    {
+        return $this->booking_status === 'completed'
             && !$this->review()->exists()
             && $this->customer_id === auth()->id();
     }
 
-    /**
-     * Check if this booking has been reviewed
-     */
-    public function hasReview()
+    public function hasReview(): bool
     {
         return $this->review()->exists();
     }
 
-    /**
-     * Get the review rating if exists
-     */
     public function getReviewRatingAttribute()
     {
         return $this->review ? $this->review->rating : null;

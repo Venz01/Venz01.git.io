@@ -2,18 +2,20 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('customer.caterers') }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200" title="Back to packages">
+                <a href="{{ route('customer.caterers') }}"
+                    class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                    title="Back to packages">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </a>
-                {{-- Breadcrumb --}}
                 <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
                     <a href="{{ route('customer.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    <a href="{{ route('customer.caterer.profile', $package->user->id) }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-[120px]">
+                    <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
+                        class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-[120px]">
                         {{ $package->user->business_name ?? $package->user->name }}
                     </a>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,9 +36,7 @@
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
                         <div class="relative h-96 bg-gradient-to-r from-gray-300 to-gray-400">
                             @if($package->image_path)
-                                <img src="{{ $package->image_path }}" 
-                                     alt="{{ $package->name }}" 
-                                     class="w-full h-full object-cover">
+                                <img src="{{ $package->image_path }}" alt="{{ $package->name }}" class="w-full h-full object-cover">
                             @else
                                 <div class="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
                                     <svg class="w-32 h-32 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,20 +79,8 @@
                                     <span class="text-sm text-gray-600 dark:text-gray-400">
                                         <span id="selectedCount">{{ $package->items->count() }}</span> items selected
                                     </span>
-                                    <button 
-                                        type="button"
-                                        onclick="selectAll()" 
-                                        class="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium"
-                                    >
-                                        Select All
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onclick="deselectAll()" 
-                                        class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
-                                    >
-                                        Deselect All
-                                    </button>
+                                    <button type="button" onclick="selectAll()" class="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">Select All</button>
+                                    <button type="button" onclick="deselectAll()" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">Deselect All</button>
                                 </div>
                             </div>
 
@@ -104,7 +92,7 @@
                                     Check or uncheck items to customize your package. The price will update automatically based on your selections.
                                 </p>
                             </div>
-                            
+
                             @php
                                 $itemsByCategory = $package->items->groupBy('category.name');
                             @endphp
@@ -117,36 +105,26 @@
                                                 <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                                                 {{ $categoryName ?? 'Uncategorized' }}
                                             </h3>
-                                            <button 
-                                                type="button"
-                                                onclick="toggleCategory('{{ addslashes($categoryName) }}')" 
-                                                class="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium"
-                                            >
+                                            <button type="button" onclick="toggleCategory('{{ addslashes($categoryName) }}')"
+                                                class="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium">
                                                 Toggle All
                                             </button>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             @foreach($items as $item)
                                                 <div class="menu-item relative p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent transition-all hover:border-green-300"
-                                                     data-category="{{ $categoryName }}"
-                                                     data-item-id="{{ $item->id }}"
-                                                     data-item-price="{{ $item->price }}">
+                                                    data-category="{{ $categoryName }}"
+                                                    data-item-id="{{ $item->id }}"
+                                                    data-item-price="{{ $item->price }}">
                                                     <label class="flex items-start space-x-3 cursor-pointer">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            name="menu_items[]" 
-                                                            value="{{ $item->id }}"
+                                                        <input type="checkbox" name="menu_items[]" value="{{ $item->id }}"
                                                             class="menu-item-checkbox w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-1"
-                                                            checked
-                                                            onchange="updatePrice()"
-                                                        >
+                                                            checked onchange="updatePrice()">
                                                         <div class="flex-1">
                                                             <div class="flex items-start justify-between">
                                                                 <h4 class="font-medium text-gray-900 dark:text-white">{{ $item->name }}</h4>
                                                                 @if($item->image_path)
-                                                                    <img src="{{ $item->image_path }}"  
-                                                                         alt="{{ $item->name }}"
-                                                                         class="w-16 h-16 object-cover rounded-lg ml-2">
+                                                                    <img src="{{ $item->image_path }}" alt="{{ $item->name }}" class="w-16 h-16 object-cover rounded-lg ml-2">
                                                                 @endif
                                                             </div>
                                                             @if($item->description)
@@ -167,7 +145,6 @@
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
                                 <div class="space-y-2 text-sm">
                                     @if($package->costing && $package->costing->total_cost > 0)
-                                        {{-- Use actual costing data --}}
                                         @if($package->costing->ingredient_cost > 0)
                                         <div class="flex justify-between text-gray-700 dark:text-gray-300">
                                             <span>Ingredients / Raw Food:</span>
@@ -209,7 +186,6 @@
                                             <span class="font-medium">₱<span id="profitMargin">{{ number_format($package->costing->profit_amount, 2) }}</span></span>
                                         </div>
                                     @else
-                                        {{-- Fallback to simple calculation --}}
                                         <div class="flex justify-between text-gray-700 dark:text-gray-300">
                                             <span>Food Cost:</span>
                                             <span class="font-medium">₱<span id="foodCost">0</span></span>
@@ -238,10 +214,9 @@
                     @endif
                 </div>
 
-                <!-- Sidebar - Sticky Booking Card -->
+                <!-- Sidebar -->
                 <div class="space-y-6">
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 sticky top-6">
-                        <!-- Prominent Total Price Display -->
                         <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 text-white mb-6">
                             <div class="text-center">
                                 <p class="text-sm font-medium opacity-90 mb-2">Total Package Price</p>
@@ -249,7 +224,7 @@
                                     ₱<span id="totalPriceMain">{{ number_format($package->price * $package->pax, 0) }}</span>
                                 </div>
                                 <div class="text-sm opacity-90">
-                                    <span id="perHeadPriceDisplay">₱{{ number_format($package->price, 0) }}</span> per head × 
+                                    <span id="perHeadPriceDisplay">₱{{ number_format($package->price, 0) }}</span> per head ×
                                     <span id="guestCountDisplay">{{ $package->pax }}</span> guests
                                 </div>
                             </div>
@@ -262,30 +237,20 @@
                             <input type="hidden" name="price_per_head" id="hiddenPricePerHead" value="{{ $package->price }}">
                             <input type="hidden" name="total_price" id="hiddenTotalPrice" value="{{ $package->price * $package->pax }}">
                             <input type="hidden" name="selected_items_json" id="selectedItemsJson">
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number of Guests *</label>
-                                <input 
-                                    type="number" 
-                                    name="guests"
-                                    id="guestCount"
-                                    placeholder="{{ $package->pax }}" 
-                                    value="{{ $package->pax }}"
-                                    min="1"
-                                    max="1000"
+                                <input type="number" name="guests" id="guestCount"
+                                    placeholder="{{ $package->pax }}" value="{{ $package->pax }}"
+                                    min="1" max="1000"
                                     class="w-full px-4 py-3 text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
+                                    required>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum package serves {{ $package->pax }} guests</p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Type *</label>
-                                <select 
-                                    name="event_type"
-                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
+                                <select name="event_type" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
                                     <option value="">Select event type</option>
                                     <option value="Wedding">Wedding</option>
                                     <option value="Corporate Event">Corporate Event</option>
@@ -298,22 +263,14 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Date *</label>
-                                <input 
-                                    type="date" 
-                                    name="event_date"
-                                    min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                                <input type="date" name="event_date" min="{{ date('Y-m-d', strtotime('+1 day')) }}"
                                     class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
+                                    required>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Slot *</label>
-                                <select 
-                                    name="time_slot"
-                                    class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
+                                <select name="time_slot" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
                                     <option value="">Select time slot</option>
                                     <option value="Morning (6:00 AM - 12:00 PM)">Morning (6:00 AM - 12:00 PM)</option>
                                     <option value="Afternoon (12:00 PM - 6:00 PM)">Afternoon (12:00 PM - 6:00 PM)</option>
@@ -324,52 +281,36 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Venue Name *</label>
-                                <input 
-                                    type="text" 
-                                    name="venue_name"
-                                    placeholder="e.g., Grand Ballroom, Home Address, etc."
+                                <input type="text" name="venue_name" placeholder="e.g., Grand Ballroom, Home Address, etc."
                                     class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
+                                    required>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Venue Address *</label>
-                                <textarea 
-                                    name="venue_address"
-                                    rows="2"
-                                    placeholder="Full address of the venue"
+                                <textarea name="venue_address" rows="2" placeholder="Full address of the venue"
                                     class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                ></textarea>
+                                    required></textarea>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Special Instructions (Optional)</label>
-                                <textarea 
-                                    name="special_instructions"
-                                    rows="3"
+                                <textarea name="special_instructions" rows="3"
                                     class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    placeholder="Any dietary restrictions or special requirements..."
-                                ></textarea>
+                                    placeholder="Any dietary restrictions or special requirements..."></textarea>
                             </div>
                         </form>
 
                         <div class="space-y-3">
-                            <button 
-                                type="button"
-                                onclick="submitBooking()"
-                                class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-lg"
-                            >
+                            <button type="button" id="bookNowBtn"
+                                class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-lg">
                                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 Book Now
                             </button>
-                            <a 
-                                href="{{ route('customer.caterer.profile', $package->user->id) }}"
-                                class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                            >
+                            <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
+                                class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                 Cancel
                             </a>
                         </div>
@@ -392,16 +333,15 @@
                         </div>
                     </div>
 
-                    <!-- Caterer Info Card — prominent since customer found this via packages browse -->
+                    <!-- Caterer Info Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-                        {{-- Green header --}}
                         <div class="bg-gradient-to-r from-green-600 to-emerald-500 px-5 py-4">
                             <p class="text-green-100 text-xs font-semibold uppercase tracking-wider mb-2">Package offered by</p>
                             <div class="flex items-center gap-3">
                                 @if($package->user->profile_photo)
                                     <img src="{{ $package->user->profile_photo }}"
-                                         alt="{{ $package->user->business_name ?? $package->user->name }}"
-                                         class="w-12 h-12 rounded-xl object-cover ring-2 ring-white/40 shrink-0">
+                                        alt="{{ $package->user->business_name ?? $package->user->name }}"
+                                        class="w-12 h-12 rounded-xl object-cover ring-2 ring-white/40 shrink-0">
                                 @else
                                     <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0">
                                         {{ substr($package->user->business_name ?? $package->user->name, 0, 1) }}
@@ -443,7 +383,7 @@
 
                             <div class="flex flex-col gap-2 pt-1">
                                 <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
-                                   class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors">
+                                    class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
@@ -451,7 +391,7 @@
                                 </a>
                                 @if($package->user->contact_number ?? $package->user->phone ?? null)
                                     <a href="tel:{{ $package->user->contact_number ?? $package->user->phone }}"
-                                       class="flex items-center justify-center gap-2 w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        class="flex items-center justify-center gap-2 w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                         </svg>
@@ -466,8 +406,17 @@
         </div>
     </div>
 
+    @php
+        $itemCount = $package->items->count();
+        $hasCosting = $package->costing && $package->costing->total_cost > 0;
+    @endphp
+
     <script>
-        // Cache DOM elements
+        const originalPrice = {{ $package->price }};
+        const originalPax = {{ $package->pax }};
+        const hasCosting = {{ $hasCosting ? 'true' : 'false' }};
+        const totalItemCount = {{ $itemCount }};
+
         const elements = {
             selectedCount: document.getElementById('selectedCount'),
             foodCost: document.getElementById('foodCost'),
@@ -485,238 +434,149 @@
             selectedItemsJson: document.getElementById('selectedItemsJson'),
             guestCount: document.getElementById('guestCount'),
             bookingForm: document.getElementById('bookingForm'),
-            // Costing-specific elements
-            ingredientCost: document.getElementById('ingredientCost'),
-            consumablesCost: document.getElementById('consumablesCost'),
-            overheadCost: document.getElementById('overheadCost'),
-            transportCost: document.getElementById('transportCost')
         };
 
-        // Store original package data
-        const originalPrice = {{ $package->price }};
-        const originalPax = {{ $package->pax }};
-        const hasCosting = {{ $package->costing && $package->costing->total_cost > 0 ? 'true' : 'false' }};
-        
-        // Calculate price based on selected items
         function updatePrice() {
             const checkboxes = document.querySelectorAll('.menu-item-checkbox:checked');
             let foodCost = 0;
             const selectedItems = [];
-            
-            checkboxes.forEach(checkbox => {
+
+            checkboxes.forEach(function(checkbox) {
                 const menuItem = checkbox.closest('.menu-item');
-                const price = parseFloat(menuItem.dataset.itemPrice || 0);
-                const itemId = menuItem.dataset.itemId;
-                
-                foodCost += price;
-                selectedItems.push(itemId);
+                if (menuItem) {
+                    const price = parseFloat(menuItem.dataset.itemPrice || 0);
+                    const itemId = menuItem.dataset.itemId;
+                    foodCost += price;
+                    selectedItems.push(itemId);
+                }
             });
-            
-            // If package has costing, maintain those ratios, otherwise use simple calc
+
             let pricePerHead;
-            if (hasCosting && checkboxes.length === {{ $package->items->count() }}) {
-                // All items selected - use original costed price
+            if (hasCosting && checkboxes.length === totalItemCount) {
                 pricePerHead = originalPrice;
-                
-                // Keep original costing breakdown visible (no update needed)
             } else {
-                // Custom selection or no costing - use simple calculation
                 const laborAndUtilities = foodCost * 0.20;
                 const equipmentTransport = foodCost * 0.10;
                 const profitMargin = foodCost * 0.25;
                 pricePerHead = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
-                pricePerHead = Math.ceil(pricePerHead / 5) * 5; // Round to nearest 5
-                
-                // Update breakdown displays (only if they exist for fallback mode)
+                pricePerHead = Math.ceil(pricePerHead / 5) * 5;
+
                 if (elements.foodCost) elements.foodCost.textContent = foodCost.toFixed(2);
                 if (elements.laborCost) elements.laborCost.textContent = laborAndUtilities.toFixed(2);
                 if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
                 if (elements.profitMargin) elements.profitMargin.textContent = profitMargin.toFixed(2);
             }
-            
-            // Update price displays
+
             if (elements.pricePerHead) elements.pricePerHead.textContent = pricePerHead.toLocaleString();
             if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
-            
-            // Update hidden form fields
             if (elements.hiddenPricePerHead) elements.hiddenPricePerHead.value = pricePerHead;
             if (elements.selectedItemsJson) elements.selectedItemsJson.value = JSON.stringify(selectedItems);
-            
-            // Update selected count
             if (elements.selectedCount) elements.selectedCount.textContent = checkboxes.length;
-            
-            // Update total price
+
             updateTotalPrice();
-            
-            // Visual feedback for selected items
-            document.querySelectorAll('.menu-item').forEach(item => {
+
+            document.querySelectorAll('.menu-item').forEach(function(item) {
                 const checkbox = item.querySelector('.menu-item-checkbox');
                 if (checkbox && checkbox.checked) {
-                    item.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900');
+                    item.classList.add('border-green-500', 'bg-green-50');
+                    item.classList.remove('border-transparent');
                 } else {
-                    item.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-900');
+                    item.classList.remove('border-green-500', 'bg-green-50');
+                    item.classList.add('border-transparent');
                 }
             });
         }
-                if (menuItem) {
-                    const price = parseFloat(menuItem.dataset.itemPrice);
-                    foodCost += price;
-                    selectedItems.push(checkbox.value);
-                }
-            });
-            
-            // Calculate markups
-            const laborAndUtilities = foodCost * 0.20;
-            const equipmentTransport = foodCost * 0.10;
-            const profitMargin = foodCost * 0.25;
-            
-            // Calculate total price per head
-            let pricePerHead = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
-            pricePerHead = Math.round(pricePerHead / 5) * 5; // Round to nearest 5
-            
-            // Update breakdown displays
-            if (elements.foodCost) elements.foodCost.textContent = foodCost.toFixed(2);
-            if (elements.laborCost) elements.laborCost.textContent = laborAndUtilities.toFixed(2);
-            if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
-            if (elements.profitMargin) elements.profitMargin.textContent = profitMargin.toFixed(2);
-            if (elements.pricePerHead) elements.pricePerHead.textContent = pricePerHead.toLocaleString();
-            if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
-            
-            // Update hidden form fields
-            if (elements.hiddenPricePerHead) elements.hiddenPricePerHead.value = pricePerHead;
-            if (elements.selectedItemsJson) elements.selectedItemsJson.value = JSON.stringify(selectedItems);
-            
-            // Update selected count
-            if (elements.selectedCount) elements.selectedCount.textContent = checkboxes.length;
-            
-            // Update total price
-            updateTotalPrice();
-            
-            // Visual feedback for selected items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                const checkbox = item.querySelector('.menu-item-checkbox');
-                if (checkbox && checkbox.checked) {
-                    item.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900');
-                } else {
-                    item.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-900');
-                }
-            });
-        }
-        
-        // Update total price based on guest count
+
         function updateTotalPrice() {
-            const guests = parseInt(elements.guestCount?.value) || originalPax;
-            const pricePerHead = parseFloat(elements.hiddenPricePerHead?.value || originalPrice);
+            const guests = parseInt(elements.guestCount && elements.guestCount.value) || originalPax;
+            const pricePerHead = parseFloat(elements.hiddenPricePerHead && elements.hiddenPricePerHead.value) || originalPrice;
             const totalPrice = pricePerHead * guests;
-            
-            // Update all total price displays
+
             if (elements.totalPriceMain) elements.totalPriceMain.textContent = totalPrice.toLocaleString();
             if (elements.guestCountDisplay) elements.guestCountDisplay.textContent = guests;
             if (elements.hiddenTotalPrice) elements.hiddenTotalPrice.value = totalPrice;
-            
-            // Update deposit and due now
+
             const deposit = totalPrice * 0.25;
             const dueNow = deposit + 500;
             if (elements.depositAmount) elements.depositAmount.textContent = deposit.toLocaleString();
             if (elements.dueNow) elements.dueNow.textContent = dueNow.toLocaleString();
         }
-        
-        // Select all items
+
         function selectAll() {
-            document.querySelectorAll('.menu-item-checkbox').forEach(checkbox => {
-                checkbox.checked = true;
-            });
+            document.querySelectorAll('.menu-item-checkbox').forEach(function(cb) { cb.checked = true; });
             updatePrice();
         }
-        
-        // Deselect all items
+
         function deselectAll() {
-            document.querySelectorAll('.menu-item-checkbox').forEach(checkbox => {
-                checkbox.checked = false;
-            });
+            document.querySelectorAll('.menu-item-checkbox').forEach(function(cb) { cb.checked = false; });
             updatePrice();
         }
-        
-        // Toggle category items
+
         function toggleCategory(categoryName) {
-            const categoryItems = document.querySelectorAll(`.menu-item[data-category="${categoryName}"] .menu-item-checkbox`);
-            const allChecked = Array.from(categoryItems).every(cb => cb.checked);
-            
-            categoryItems.forEach(checkbox => {
-                checkbox.checked = !allChecked;
-            });
+            const categoryItems = document.querySelectorAll('.menu-item[data-category="' + categoryName + '"] .menu-item-checkbox');
+            const allChecked = Array.from(categoryItems).every(function(cb) { return cb.checked; });
+            categoryItems.forEach(function(cb) { cb.checked = !allChecked; });
             updatePrice();
         }
-        
-        // Submit booking
+
         function submitBooking() {
             if (!elements.bookingForm) return;
-            
-            // Validate form
+
             if (!elements.bookingForm.checkValidity()) {
                 elements.bookingForm.reportValidity();
                 return;
             }
-            
-            // Get selected items
+
             const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked'))
-                .map(cb => cb.value);
-            
+                .map(function(cb) { return cb.value; });
+
             if (selectedItems.length === 0) {
                 alert('Please select at least one menu item.');
                 return;
             }
-            
-            // Update hidden field with selected items
+
             if (elements.selectedItemsJson) {
                 elements.selectedItemsJson.value = JSON.stringify(selectedItems);
             }
-            
-            // Add selected items as hidden inputs
-            selectedItems.forEach(itemId => {
+
+            // Remove previously appended inputs to avoid duplicates
+            elements.bookingForm.querySelectorAll('input[name="selected_items[]"]').forEach(function(el) { el.remove(); });
+
+            selectedItems.forEach(function(itemId) {
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'selected_items[]';
                 input.value = itemId;
                 elements.bookingForm.appendChild(input);
             });
-            
-            // Submit the form
+
             elements.bookingForm.submit();
         }
-        
-        // Initialize price calculation on page load
+
         document.addEventListener('DOMContentLoaded', function() {
             updatePrice();
-            
-            // Add input event listener for real-time guest count updates
+
             if (elements.guestCount) {
                 elements.guestCount.addEventListener('input', updateTotalPrice);
+            }
+
+            // Wire up Book Now button via event listener (avoids global scope issues)
+            const bookNowBtn = document.getElementById('bookNowBtn');
+            if (bookNowBtn) {
+                bookNowBtn.addEventListener('click', submitBooking);
             }
         });
     </script>
 
     <style>
-        .menu-item {
-            transition: all 0.3s ease;
-        }
-        
+        .menu-item { transition: all 0.3s ease; }
         .menu-item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         }
-        
-        .menu-item-checkbox:checked + div {
-            opacity: 1;
-        }
-        
-        .menu-item-checkbox:not(:checked) + div {
-            opacity: 0.7;
-        }
-
-        /* Smooth number transitions */
-        #totalPriceMain, #perHeadPriceDisplay, #guestCountDisplay,
-        #depositAmount, #dueNow {
+        .menu-item-checkbox:checked + div { opacity: 1; }
+        .menu-item-checkbox:not(:checked) + div { opacity: 0.7; }
+        #totalPriceMain, #perHeadPriceDisplay, #guestCountDisplay, #depositAmount, #dueNow {
             transition: all 0.3s ease;
         }
     </style>
