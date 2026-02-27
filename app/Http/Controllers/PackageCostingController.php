@@ -13,9 +13,6 @@ class PackageCostingController extends Controller
 {
     // ── Standalone Costing Dashboard ─────────────────────────────────────────
 
-    /**
-     * List all packages with their costing status for the authenticated caterer.
-     */
     public function index()
     {
         $catererId = auth()->id();
@@ -42,26 +39,31 @@ class PackageCostingController extends Controller
                     'margin_percent'   => $costing?->actual_margin_percent,
                     'components_count' => $costing?->filled_components_count ?? 0,
                     'image_path'       => $package->image_path,
+                    'is_default_template' => $costing?->is_default_template ?? false,
+                    'template_name'    => $costing?->template_name,
                 ];
             });
 
-        // Summary stats
+        // The caterer's current default template
+        $defaultTemplate = PackageCosting::getDefaultForCaterer($catererId);
+
+        // All available templates (costings with filled data)
+        $availableTemplates = PackageCosting::templatesForCaterer($catererId);
+
         $stats = [
-            'total_packages'    => $packages->count(),
-            'costed_packages'   => $packages->where('has_costing', true)->count(),
-            'avg_margin'        => $packages->whereNotNull('margin_percent')->avg('margin_percent'),
-            'avg_price'         => $packages->avg('current_price'),
+            'total_packages'  => $packages->count(),
+            'costed_packages' => $packages->where('has_costing', true)->count(),
+            'avg_margin'      => $packages->whereNotNull('margin_percent')->avg('margin_percent'),
+            'avg_price'       => $packages->avg('current_price'),
         ];
 
-        return view('caterer.costing.index', compact('packages', 'stats'));
+        return view('caterer.costing.index', compact(
+            'packages', 'stats', 'defaultTemplate', 'availableTemplates'
+        ));
     }
 
     // ── Show/Edit Single Package Costing ─────────────────────────────────────
 
-    /**
-     * Show the costing tool for a specific package.
-     * Accessible from: package card, booking flow, costing dashboard.
-     */
     public function show(Package $package)
     {
         $this->authorizePackage($package);
@@ -76,7 +78,6 @@ class PackageCostingController extends Controller
 
         $package->load('items.category');
 
-        // Historical booking revenue for this package
         $bookingHistory = Booking::where('caterer_id', auth()->id())
             ->where('package_id', $package->id)
             ->whereIn('booking_status', ['confirmed', 'completed'])
@@ -88,7 +89,14 @@ class PackageCostingController extends Controller
             ')
             ->first();
 
-        return view('caterer.costing.show', compact('package', 'costing', 'bookingHistory'));
+        // For the "set as default" toggle: pass all templates so the view
+        // can show which one is currently default
+        $defaultTemplate    = PackageCosting::getDefaultForCaterer(auth()->id());
+        $availableTemplates = PackageCosting::templatesForCaterer(auth()->id());
+
+        return view('caterer.costing.show', compact(
+            'package', 'costing', 'bookingHistory', 'defaultTemplate', 'availableTemplates'
+        ));
     }
 
     // ── Save / Update Costing ─────────────────────────────────────────────────
@@ -107,32 +115,37 @@ class PackageCostingController extends Controller
             'profit_margin_percent' => 'required|numeric|min:0|max:100',
             'final_price'           => 'nullable|numeric|min:0',
             'notes'                 => 'nullable|string|max:1000',
-            'apply_to_package'      => 'boolean', // sync final_price → packages.price
+            'apply_to_package'      => 'boolean',
+            'set_as_default'        => 'boolean',
+            'template_name'         => 'nullable|string|max:100',
         ]);
 
         DB::beginTransaction();
         try {
-            // Calculate suggested price
             $totalCost = collect([
                 'ingredient_cost', 'labor_cost', 'equipment_cost',
                 'consumables_cost', 'overhead_cost', 'transport_cost',
             ])->sum(fn ($key) => (float) ($validated[$key] ?? 0));
 
-            $profitAmount    = $totalCost * ($validated['profit_margin_percent'] / 100);
-            $suggestedPrice  = ceil(($totalCost + $profitAmount) / 5) * 5;
+            $profitAmount   = $totalCost * ($validated['profit_margin_percent'] / 100);
+            $suggestedPrice = ceil(($totalCost + $profitAmount) / 5) * 5;
 
             $costing = PackageCosting::updateOrCreate(
                 ['package_id' => $package->id],
                 array_merge(
                     $validated,
                     [
-                        'user_id'        => auth()->id(),
+                        'user_id'         => auth()->id(),
                         'suggested_price' => $suggestedPrice,
                     ]
                 )
             );
 
-            // Optionally push the final_price back to the package
+            // Handle "set as default template"
+            if ($request->boolean('set_as_default')) {
+                $costing->setAsDefault();
+            }
+
             if ($request->boolean('apply_to_package') && !is_null($validated['final_price'])) {
                 $package->update(['price' => $validated['final_price']]);
             }
@@ -141,14 +154,16 @@ class PackageCostingController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'success'         => true,
-                    'total_cost'      => $totalCost,
-                    'suggested_price' => $suggestedPrice,
-                    'costing'         => $costing,
+                    'success'            => true,
+                    'total_cost'         => $totalCost,
+                    'suggested_price'    => $suggestedPrice,
+                    'costing'            => $costing,
+                    'is_default'         => $costing->is_default_template,
                 ]);
             }
 
-            return back()->with('success', 'Costing saved successfully!');
+            return back()->with('success', 'Costing saved successfully!' .
+                ($costing->is_default_template ? ' This is now your default template.' : ''));
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -162,12 +177,78 @@ class PackageCostingController extends Controller
         }
     }
 
-    // ── Live Calculate (AJAX) ─────────────────────────────────────────────────
+    // ── Set Default Template (standalone AJAX/form action) ───────────────────
 
     /**
-     * Real-time calculation endpoint — called on every keystroke in the UI.
-     * No DB writes; just returns computed values.
+     * POST /caterer/costing/{costing}/set-default
+     * Marks one costing row as the default template for the authenticated caterer.
      */
+    public function setDefault(PackageCosting $costing)
+    {
+        if ($costing->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $costing->setAsDefault();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success'     => true,
+                'message'     => "Default template set to \"{$costing->package->name}\".",
+                'costing_id'  => $costing->id,
+            ]);
+        }
+
+        return back()->with('success', "Default template set to \"{$costing->package->name}\".");
+    }
+
+    /**
+     * POST /caterer/costing/clear-default
+     * Removes the default flag from all costings for the authenticated caterer.
+     */
+    public function clearDefault()
+    {
+        PackageCosting::where('user_id', auth()->id())
+            ->update(['is_default_template' => false]);
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Default template cleared.']);
+        }
+
+        return back()->with('success', 'Default costing template cleared.');
+    }
+
+    // ── Get Costing Data (used by edit-package modal) ─────────────────────────
+
+    public function getCostingData(Package $package)
+    {
+        $this->authorizePackage($package);
+
+        $costing = $package->costing;
+
+        if (!$costing) {
+            return response()->json(['has_costing' => false]);
+        }
+
+        return response()->json([
+            'has_costing'           => true,
+            'ingredient_cost'       => (float) ($costing->ingredient_cost ?? 0),
+            'labor_cost'            => (float) ($costing->labor_cost ?? 0),
+            'equipment_cost'        => (float) ($costing->equipment_cost ?? 0),
+            'consumables_cost'      => (float) ($costing->consumables_cost ?? 0),
+            'overhead_cost'         => (float) ($costing->overhead_cost ?? 0),
+            'transport_cost'        => (float) ($costing->transport_cost ?? 0),
+            'profit_margin_percent' => (float) ($costing->profit_margin_percent ?? 25),
+            'total_cost'            => $costing->total_cost,
+            'profit_margin'         => $costing->profit_amount,
+            'total_per_head'        => $package->price,
+            'is_default_template'   => $costing->is_default_template,
+            'template_name'         => $costing->template_name,
+        ]);
+    }
+
+    // ── Live Calculate (AJAX) ─────────────────────────────────────────────────
+
     public function calculate(Request $request)
     {
         $data = $request->validate([
@@ -185,11 +266,11 @@ class PackageCostingController extends Controller
             'consumables_cost', 'overhead_cost', 'transport_cost',
         ];
 
-        $breakdown   = [];
-        $totalCost   = 0;
+        $breakdown = [];
+        $totalCost = 0;
 
         foreach ($components as $key) {
-            $amount = (float) ($data[$key] ?? 0);
+            $amount     = (float) ($data[$key] ?? 0);
             $totalCost += $amount;
             $breakdown[$key] = $amount;
         }
@@ -198,7 +279,6 @@ class PackageCostingController extends Controller
         $profitAmount   = $totalCost * ($marginPercent / 100);
         $suggestedPrice = $totalCost > 0 ? ceil(($totalCost + $profitAmount) / 5) * 5 : 0;
 
-        // Percentage breakdown of each component
         foreach ($breakdown as $key => $amount) {
             $breakdown[$key] = [
                 'amount'  => $amount,
@@ -216,13 +296,8 @@ class PackageCostingController extends Controller
 
     // ── Quotation PDF ─────────────────────────────────────────────────────────
 
-    /**
-     * Generate and stream a printable quotation PDF for a booking.
-     * Route: GET /caterer/bookings/{booking}/quotation
-     */
     public function generateQuotation(Booking $booking)
     {
-        // Ensure this booking belongs to the authenticated caterer
         if ($booking->caterer_id !== auth()->id()) {
             abort(403);
         }
@@ -230,71 +305,55 @@ class PackageCostingController extends Controller
         $booking->load(['package.items.category', 'caterer', 'customer']);
         $costing = PackageCosting::where('package_id', $booking->package_id)->first();
 
-        // Build the PDF using the Blade-based approach (weasyprint / dompdf via view)
         $html = view('caterer.costing.quotation-pdf', compact('booking', 'costing'))->render();
 
-        // Use DomPDF if available, otherwise return HTML for browser print
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
-                ->setPaper('a4', 'portrait');
-
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4', 'portrait');
             return $pdf->stream("quotation-{$booking->booking_number}.pdf");
         }
 
-        // Fallback: return the HTML view (caterer can Ctrl+P)
         return view('caterer.costing.quotation-pdf', compact('booking', 'costing'));
     }
 
-    /**
-     * Generate a standalone package quotation (not tied to a booking yet).
-     * Used from the costing dashboard / package detail page.
-     */
     public function generatePackageQuotation(Request $request, Package $package)
     {
         $this->authorizePackage($package);
 
         $validated = $request->validate([
-            'guest_count'    => 'required|integer|min:1',
-            'customer_name'  => 'nullable|string|max:255',
-            'event_type'     => 'nullable|string|max:255',
-            'event_date'     => 'nullable|date',
-            'validity_days'  => 'nullable|integer|min:1|max:90',
+            'guest_count'   => 'required|integer|min:1',
+            'customer_name' => 'nullable|string|max:255',
+            'event_type'    => 'nullable|string|max:255',
+            'event_date'    => 'nullable|date',
+            'validity_days' => 'nullable|integer|min:1|max:90',
         ]);
 
         $validityDays = (int) ($validated['validity_days'] ?? 7);
 
         $package->load(['items.category', 'user', 'costing']);
-        $costing = $package->costing;
-
+        $costing     = $package->costing;
         $guestCount  = (int) $validated['guest_count'];
         $totalAmount = $package->price * $guestCount;
 
         $quoteData = [
-            'package'        => $package,
-            'costing'        => $costing,
-            'guest_count'    => $guestCount,
-            'customer_name'  => $validated['customer_name'] ?? 'Valued Customer',
-            'event_type'     => $validated['event_type'] ?? 'Special Event',
-            'event_date'     => isset($validated['event_date'])
-                                    ? Carbon::parse($validated['event_date'])
-                                    : null,
-            'valid_until'    => Carbon::now()->addDays($validityDays),
-            'total_amount'   => $totalAmount,
-            'deposit_amount' => $totalAmount * 0.25,
-            'reference_no'   => 'QT-' . strtoupper(substr(md5(uniqid()), 0, 8)),
-            'caterer'        => $package->user,
-            'generated_at'   => Carbon::now(),
+            'package'       => $package,
+            'costing'       => $costing,
+            'guest_count'   => $guestCount,
+            'customer_name' => $validated['customer_name'] ?? 'Valued Customer',
+            'event_type'    => $validated['event_type'] ?? 'Special Event',
+            'event_date'    => isset($validated['event_date']) ? Carbon::parse($validated['event_date']) : null,
+            'valid_until'   => Carbon::now()->addDays($validityDays),
+            'total_amount'  => $totalAmount,
+            'deposit_amount'=> $totalAmount * 0.25,
+            'reference_no'  => 'QT-' . strtoupper(substr(md5(uniqid()), 0, 8)),
+            'caterer'       => $package->user,
+            'generated_at'  => Carbon::now(),
         ];
 
         return view('caterer.costing.package-quotation-pdf', $quoteData);
     }
 
-
     // ── Clone Costing Template ────────────────────────────────────────────────
 
-    /**
-     * Copy costing from one package to another (useful for similar packages).
-     */
     public function cloneCosting(Request $request)
     {
         $request->validate([
@@ -321,7 +380,12 @@ class PackageCostingController extends Controller
                     'consumables_cost', 'overhead_cost', 'transport_cost',
                     'profit_margin_percent',
                 ]),
-                ['user_id' => $catererId, 'final_price' => null, 'suggested_price' => null]
+                [
+                    'user_id'          => $catererId,
+                    'final_price'      => null,
+                    'suggested_price'  => null,
+                    'is_default_template' => false, // clones are never auto-default
+                ]
             )
         );
 

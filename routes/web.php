@@ -197,6 +197,8 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::get('/bookings/{booking}/quotation', [PackageCostingController::class, 'generateQuotation'])->name('booking.quotation');
     Route::get('/packages/{package}/quotation', [PackageCostingController::class, 'generatePackageQuotation'])->name('package.quotation');
     Route::get('/packages/{package}/costing-data', [PackageCostingController::class, 'getCostingData'])->name('costing.data');
+    Route::post('/costing/{costing}/set-default',  [PackageCostingController::class, 'setDefault'])->name('costing.set-default');
+    Route::post('/costing/clear-default',           [PackageCostingController::class, 'clearDefault'])->name('costing.clear-default');
 
     // Reviews
     Route::get('/reviews', [ReviewController::class, 'catererReviews'])->name('reviews');

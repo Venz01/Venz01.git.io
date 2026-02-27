@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PackageCosting extends Model
 {
@@ -21,6 +20,8 @@ class PackageCosting extends Model
         'suggested_price',
         'final_price',
         'notes',
+        'is_default_template',
+        'template_name',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class PackageCosting extends Model
         'profit_margin_percent' => 'decimal:2',
         'suggested_price'       => 'decimal:2',
         'final_price'           => 'decimal:2',
+        'is_default_template'   => 'boolean',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -47,11 +49,65 @@ class PackageCosting extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // ── Computed Helpers ──────────────────────────────────────────────────────
+    // ── Scopes ────────────────────────────────────────────────────────────────
 
     /**
-     * Sum of all active cost components (per head).
+     * Get the default template for a given caterer.
      */
+    public static function getDefaultForCaterer(int $userId): ?self
+    {
+        return self::where('user_id', $userId)
+            ->where('is_default_template', true)
+            ->first();
+    }
+
+    /**
+     * All costings that are marked as templates for a given caterer.
+     */
+    public static function templatesForCaterer(int $userId)
+    {
+        return self::where('user_id', $userId)
+            ->whereNotNull('package_id') // must be tied to a real package
+            ->with('package:id,name')
+            ->orderByDesc('is_default_template')
+            ->orderBy('template_name')
+            ->get();
+    }
+
+    /**
+     * Set this costing as the default; clears the flag on all others for same user.
+     */
+    public function setAsDefault(): void
+    {
+        // Clear existing default for this caterer
+        self::where('user_id', $this->user_id)
+            ->where('id', '!=', $this->id)
+            ->update(['is_default_template' => false]);
+
+        $this->update(['is_default_template' => true]);
+    }
+
+    /**
+     * Apply this template's cost structure to a target PackageCosting instance
+     * (does NOT save — caller must call save/updateOrCreate).
+     */
+    public function applyTo(self $target): self
+    {
+        $target->ingredient_cost       = $this->ingredient_cost;
+        $target->labor_cost            = $this->labor_cost;
+        $target->equipment_cost        = $this->equipment_cost;
+        $target->consumables_cost      = $this->consumables_cost;
+        $target->overhead_cost         = $this->overhead_cost;
+        $target->transport_cost        = $this->transport_cost;
+        $target->profit_margin_percent = $this->profit_margin_percent;
+        // intentionally NOT copying final_price / suggested_price — those
+        // are package-specific and will be recalculated
+
+        return $target;
+    }
+
+    // ── Computed Attributes ───────────────────────────────────────────────────
+
     public function getTotalCostAttribute(): float
     {
         return (float) (
@@ -64,26 +120,17 @@ class PackageCosting extends Model
         );
     }
 
-    /**
-     * Profit amount per head based on total_cost × margin %.
-     */
     public function getProfitAmountAttribute(): float
     {
         return $this->total_cost * ($this->profit_margin_percent / 100);
     }
 
-    /**
-     * Calculated suggested price per head (total + profit), rounded to nearest 5.
-     */
     public function getCalculatedPriceAttribute(): float
     {
         $raw = $this->total_cost + $this->profit_amount;
-        return ceil($raw / 5) * 5; // round up to nearest ₱5
+        return ceil($raw / 5) * 5;
     }
 
-    /**
-     * How many of the 6 cost components the caterer has filled in.
-     */
     public function getFilledComponentsCountAttribute(): int
     {
         $components = [
@@ -94,10 +141,6 @@ class PackageCosting extends Model
         return collect($components)->filter(fn ($c) => !is_null($this->{$c}))->count();
     }
 
-    /**
-     * Percentage margin between final price and total cost.
-     * Returns null if final_price not yet set.
-     */
     public function getActualMarginPercentAttribute(): ?float
     {
         if (!$this->final_price || $this->total_cost == 0) {
@@ -107,9 +150,6 @@ class PackageCosting extends Model
         return (($this->final_price - $this->total_cost) / $this->final_price) * 100;
     }
 
-    /**
-     * Returns a human-readable array of each cost component for display.
-     */
     public function getCostBreakdownAttribute(): array
     {
         $items = [
