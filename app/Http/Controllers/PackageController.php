@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesImageUploads;
 use App\Models\Package;
 use App\Models\MenuItem;
 use App\Models\PackageCosting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class PackageController extends Controller
 {
+    use HandlesImageUploads;
+
     // ── Price Calculation ─────────────────────────────────────────────────────
 
     private function calculatePackagePrice(array $menuItemIds): float
@@ -29,11 +31,11 @@ class PackageController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'          => 'required|string|max:255',
-            'description'   => 'nullable|string|max:1000',
-            'pax'           => 'required|integer|min:1|max:1000',
-            'menu_items'    => 'required|array|min:1',
-            'menu_items.*'  => [
+            'name'           => 'required|string|max:255',
+            'description'    => 'nullable|string|max:1000',
+            'pax'            => 'required|integer|min:1|max:1000',
+            'menu_items'     => 'required|array|min:1',
+            'menu_items.*'   => [
                 'exists:menu_items,id',
                 function ($attribute, $value, $fail) {
                     $menuItem = MenuItem::find($value);
@@ -42,9 +44,9 @@ class PackageController extends Controller
                     }
                 },
             ],
-            'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'dietary_tags'  => 'nullable|array',
-            'dietary_tags.*'=> 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
+            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'dietary_tags'   => 'nullable|array',
+            'dietary_tags.*' => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
         ]);
 
         try {
@@ -66,7 +68,6 @@ class PackageController extends Controller
 
             $package->items()->attach($request->menu_items);
 
-            // ── Auto-apply default costing template if one is set ────────────
             $this->applyDefaultCostingTemplate($package);
 
             return back()->with('success',
@@ -87,11 +88,11 @@ class PackageController extends Controller
         }
 
         $request->validate([
-            'name'          => 'required|string|max:255',
-            'description'   => 'nullable|string|max:1000',
-            'pax'           => 'required|integer|min:1|max:1000',
-            'menu_items'    => 'nullable|array',
-            'menu_items.*'  => [
+            'name'           => 'required|string|max:255',
+            'description'    => 'nullable|string|max:1000',
+            'pax'            => 'required|integer|min:1|max:1000',
+            'menu_items'     => 'nullable|array',
+            'menu_items.*'   => [
                 'exists:menu_items,id',
                 function ($attribute, $value, $fail) {
                     $menuItem = MenuItem::find($value);
@@ -100,9 +101,9 @@ class PackageController extends Controller
                     }
                 },
             ],
-            'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'dietary_tags'  => 'nullable|array',
-            'dietary_tags.*'=> 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
+            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'dietary_tags'   => 'nullable|array',
+            'dietary_tags.*' => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
         ]);
 
         try {
@@ -221,13 +222,13 @@ class PackageController extends Controller
             $profitMargin       = $foodCost * 0.25;
 
             $breakdown = [
-                'food_cost'          => $foodCost,
-                'labor_utilities'    => $laborAndUtilities,
-                'equipment_transport'=> $equipmentTransport,
-                'profit_margin'      => $profitMargin,
-                'total_per_head'     => $package->price,
-                'total_package'      => $package->price * $package->pax,
-                'has_costing'        => false,
+                'food_cost'           => $foodCost,
+                'labor_utilities'     => $laborAndUtilities,
+                'equipment_transport' => $equipmentTransport,
+                'profit_margin'       => $profitMargin,
+                'total_per_head'      => $package->price,
+                'total_package'       => $package->price * $package->pax,
+                'has_costing'         => false,
             ];
         }
 
@@ -241,21 +242,15 @@ class PackageController extends Controller
 
     // ── Default Costing Template ──────────────────────────────────────────────
 
-    /**
-     * After a new package is created, check if the caterer has a default costing
-     * template set. If so, copy those cost ratios into a new PackageCosting row
-     * and recalculate the suggested price based on the new package's menu items.
-     */
     private function applyDefaultCostingTemplate(Package $package): void
     {
         $template = PackageCosting::getDefaultForCaterer(auth()->id());
 
         if (!$template) {
-            return; // no default set — nothing to do
+            return;
         }
 
         try {
-            // Build a fresh costing seeded with the template's percentages
             $newCosting = new PackageCosting([
                 'package_id' => $package->id,
                 'user_id'    => auth()->id(),
@@ -263,13 +258,12 @@ class PackageController extends Controller
 
             $template->applyTo($newCosting);
 
-            // Recalculate suggested_price for this specific package
             $totalCost      = $newCosting->total_cost;
             $profitAmount   = $totalCost * ($newCosting->profit_margin_percent / 100);
             $suggestedPrice = $totalCost > 0 ? ceil(($totalCost + $profitAmount) / 5) * 5 : 0;
 
-            $newCosting->suggested_price    = $suggestedPrice;
-            $newCosting->is_default_template = false; // the new row is NOT itself a template
+            $newCosting->suggested_price     = $suggestedPrice;
+            $newCosting->is_default_template = false;
             $newCosting->save();
 
             \Log::info('Default costing template applied to new package', [
@@ -278,179 +272,10 @@ class PackageController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            // Non-fatal — package is already saved; just log and continue
             \Log::warning('Failed to apply default costing template', [
                 'package_id' => $package->id,
                 'error'      => $e->getMessage(),
             ]);
         }
-    }
-
-    // ── Image Handling ────────────────────────────────────────────────────────
-
-    /**
-     * Upload an image: tries Cloudinary first; falls back to local public storage
-     * when Cloudinary credentials are not configured (e.g. localhost dev).
-     */
-    private function handleImageUpload($file, string $folder): string
-    {
-        // Attempt Cloudinary if credentials are present
-        if ($this->cloudinaryConfigured()) {
-            try {
-                return $this->uploadToCloudinary($file, $folder);
-            } catch (\Exception $e) {
-                \Log::warning('Cloudinary upload failed, falling back to local storage.', [
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        // Local storage fallback
-        return $this->uploadToLocal($file, $folder);
-    }
-
-    /**
-     * Delete an image — handles both Cloudinary URLs and local storage paths.
-     */
-    private function deleteImage(?string $path): void
-    {
-        if (!$path) {
-            return;
-        }
-
-        if (str_contains($path, 'cloudinary.com')) {
-            try {
-                $this->deleteFromCloudinary($path);
-            } catch (\Exception $e) {
-                \Log::warning('Cloudinary delete failed.', ['error' => $e->getMessage()]);
-            }
-            return;
-        }
-
-        // Local storage — path stored as e.g. "packages/abc123.jpg"
-        if (Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
-    }
-
-    /**
-     * Returns true when all three Cloudinary env vars are non-empty.
-     */
-    private function cloudinaryConfigured(): bool
-    {
-        return !empty(env('CLOUDINARY_CLOUD_NAME'))
-            && !empty(env('CLOUDINARY_API_KEY'))
-            && !empty(env('CLOUDINARY_API_SECRET'));
-    }
-
-    /**
-     * Save the image to public/storage/{folder}/ and return a URL-ready path.
-     * The returned string is stored in the DB as "packages/filename.ext" so
-     * `asset(Storage::url($path))` renders it correctly everywhere.
-     */
-    private function uploadToLocal($file, string $folder): string
-    {
-        // Store under storage/app/public/{folder}/
-        $storedPath = $file->store($folder, 'public');
-
-        // Return the public URL so it can be used directly in <img src="">
-        return Storage::disk('public')->url($storedPath);
-    }
-
-    /**
-     * Upload to Cloudinary via direct cURL call (no SDK required).
-     */
-    private function uploadToCloudinary($file, string $folder): string
-    {
-        $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $apiKey    = env('CLOUDINARY_API_KEY');
-        $apiSecret = env('CLOUDINARY_API_SECRET');
-
-        $timestamp  = time();
-        $publicId   = $folder . '/' . uniqid();
-        $sigString  = "folder={$folder}&public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
-        $signature  = sha1($sigString);
-
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL        => "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload",
-            CURLOPT_POST       => true,
-            CURLOPT_POSTFIELDS => [
-                'file'      => new \CURLFile($file->getRealPath()),
-                'api_key'   => $apiKey,
-                'timestamp' => $timestamp,
-                'signature' => $signature,
-                'folder'    => $folder,
-                'public_id' => $publicId,
-            ],
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode !== 200) {
-            throw new \RuntimeException('Cloudinary upload failed: ' . $response);
-        }
-
-        $result = json_decode($response, true);
-        return $result['secure_url'];
-    }
-
-    /**
-     * Delete an image from Cloudinary by its URL.
-     */
-    private function deleteFromCloudinary(string $url): void
-    {
-        $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $apiKey    = env('CLOUDINARY_API_KEY');
-        $apiSecret = env('CLOUDINARY_API_SECRET');
-
-        if (!$cloudName || !$apiKey || !$apiSecret) {
-            return;
-        }
-
-        $publicId  = $this->getPublicIdFromUrl($url);
-        if (!$publicId) {
-            return;
-        }
-
-        $timestamp = time();
-        $signature = sha1("public_id={$publicId}&timestamp={$timestamp}{$apiSecret}");
-
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL        => "https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy",
-            CURLOPT_POST       => true,
-            CURLOPT_POSTFIELDS => [
-                'public_id' => $publicId,
-                'api_key'   => $apiKey,
-                'timestamp' => $timestamp,
-                'signature' => $signature,
-            ],
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
-
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-    private function getPublicIdFromUrl(string $url): ?string
-    {
-        if (!str_contains($url, 'cloudinary.com')) {
-            return null;
-        }
-
-        $parts = explode('/upload/', $url);
-        if (count($parts) < 2) {
-            return null;
-        }
-
-        $pathParts = explode('/', $parts[1]);
-        array_shift($pathParts); // remove version segment (v1234567)
-        $publicId  = implode('/', $pathParts);
-
-        return preg_replace('/\.[^.]+$/', '', $publicId); // strip extension
     }
 }

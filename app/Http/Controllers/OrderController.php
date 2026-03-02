@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Concerns\HandlesImageUploads;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\DisplayMenu;
 use App\Services\NotificationService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
+    use HandlesImageUploads;
+
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
@@ -24,18 +27,18 @@ class OrderController extends Controller
      */
     public function cart()
     {
-        $cart = session('menu_cart', []);
+        $cart      = session('menu_cart', []);
         $cartItems = [];
-        $subtotal = 0;
+        $subtotal  = 0;
 
         foreach ($cart as $itemId => $quantity) {
             $menuItem = DisplayMenu::find($itemId);
             if ($menuItem) {
                 $itemSubtotal = $menuItem->price * $quantity;
-                $cartItems[] = [
+                $cartItems[]  = [
                     'menu_item' => $menuItem,
-                    'quantity' => $quantity,
-                    'subtotal' => $itemSubtotal
+                    'quantity'  => $quantity,
+                    'subtotal'  => $itemSubtotal,
                 ];
                 $subtotal += $itemSubtotal;
             }
@@ -51,18 +54,15 @@ class OrderController extends Controller
     {
         $menuItem = DisplayMenu::findOrFail($menuItemId);
 
-        // Check if item is active
         if ($menuItem->status !== 'active') {
             return back()->with('error', 'This item is currently unavailable.');
         }
 
         $cart = session('menu_cart', []);
-        
-        if (isset($cart[$menuItemId])) {
-            $cart[$menuItemId] += $request->input('quantity', 1);
-        } else {
-            $cart[$menuItemId] = $request->input('quantity', 1);
-        }
+
+        $cart[$menuItemId] = isset($cart[$menuItemId])
+            ? $cart[$menuItemId] + $request->input('quantity', 1)
+            : $request->input('quantity', 1);
 
         session(['menu_cart' => $cart]);
 
@@ -74,12 +74,10 @@ class OrderController extends Controller
      */
     public function updateCart(Request $request, $menuItemId)
     {
-        $request->validate([
-            'quantity' => 'required|integer|min:1|max:100'
-        ]);
+        $request->validate(['quantity' => 'required|integer|min:1|max:100']);
 
         $cart = session('menu_cart', []);
-        
+
         if (isset($cart[$menuItemId])) {
             $cart[$menuItemId] = $request->quantity;
             session(['menu_cart' => $cart]);
@@ -95,7 +93,7 @@ class OrderController extends Controller
     public function removeFromCart($menuItemId)
     {
         $cart = session('menu_cart', []);
-        
+
         if (isset($cart[$menuItemId])) {
             unset($cart[$menuItemId]);
             session(['menu_cart' => $cart]);
@@ -125,14 +123,13 @@ class OrderController extends Controller
             return redirect()->route('customer.orders.cart')->with('error', 'Your cart is empty.');
         }
 
-        $cartItems = [];
-        $subtotal = 0;
-        $catererId = null;
+        $cartItems  = [];
+        $subtotal   = 0;
+        $catererId  = null;
 
         foreach ($cart as $itemId => $quantity) {
             $menuItem = DisplayMenu::with('caterer')->find($itemId);
             if ($menuItem) {
-                // Check if all items are from the same caterer
                 if ($catererId === null) {
                     $catererId = $menuItem->user_id;
                 } elseif ($catererId !== $menuItem->user_id) {
@@ -141,17 +138,17 @@ class OrderController extends Controller
                 }
 
                 $itemSubtotal = $menuItem->price * $quantity;
-                $cartItems[] = [
+                $cartItems[]  = [
                     'menu_item' => $menuItem,
-                    'quantity' => $quantity,
-                    'subtotal' => $itemSubtotal
+                    'quantity'  => $quantity,
+                    'subtotal'  => $itemSubtotal,
                 ];
                 $subtotal += $itemSubtotal;
             }
         }
 
-        $caterer = \App\Models\User::find($catererId);
-        $deliveryFee = 100; // Fixed delivery fee, can be made dynamic
+        $caterer     = \App\Models\User::find($catererId);
+        $deliveryFee = 100;
 
         return view('customer.orders.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'caterer'));
     }
@@ -162,16 +159,16 @@ class OrderController extends Controller
     public function processOrder(Request $request)
     {
         $request->validate([
-            'fulfillment_type' => 'required|in:delivery,pickup',
-            'fulfillment_date' => 'required|date|after:today',
-            'fulfillment_time' => 'nullable',
-            'delivery_address' => 'required_if:fulfillment_type,delivery|nullable|string|max:500',
-            'special_instructions' => 'nullable|string|max:1000',
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'required|email|max:255',
-            'customer_phone' => 'required|string|max:20',
-            'payment_method' => 'required|in:gcash,paymaya,bank_transfer,cod',
-            'receipt' => 'required_unless:payment_method,cod|nullable|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
+            'fulfillment_type'      => 'required|in:delivery,pickup',
+            'fulfillment_date'      => 'required|date|after:today',
+            'fulfillment_time'      => 'nullable',
+            'delivery_address'      => 'required_if:fulfillment_type,delivery|nullable|string|max:500',
+            'special_instructions'  => 'nullable|string|max:1000',
+            'customer_name'         => 'required|string|max:255',
+            'customer_email'        => 'required|email|max:255',
+            'customer_phone'        => 'required|string|max:20',
+            'payment_method'        => 'required|in:gcash,paymaya,bank_transfer,cod',
+            'receipt'               => 'required_unless:payment_method,cod|nullable|file|mimes:jpg,jpeg,png,gif,pdf|max:10240',
         ]);
 
         $cart = session('menu_cart', []);
@@ -183,9 +180,9 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Calculate totals and get caterer
-            $subtotal = 0;
-            $catererId = null;
+            // ── Build order items & resolve caterer ───────────────────────────
+            $subtotal   = 0;
+            $catererId  = null;
             $orderItems = [];
 
             foreach ($cart as $itemId => $quantity) {
@@ -198,79 +195,69 @@ class OrderController extends Controller
                     $itemSubtotal = $menuItem->price * $quantity;
                     $orderItems[] = [
                         'display_menu_id' => $menuItem->id,
-                        'quantity' => $quantity,
-                        'price' => $menuItem->price,
-                        'subtotal' => $itemSubtotal
+                        'quantity'        => $quantity,
+                        'price'           => $menuItem->price,
+                        'subtotal'        => $itemSubtotal,
                     ];
                     $subtotal += $itemSubtotal;
                 }
             }
 
-            // Handle receipt upload
+            // ── Receipt upload (Cloudinary if configured, else local) ─────────
             $receiptPath = null;
             if ($request->hasFile('receipt')) {
-                $receiptPath = $request->file('receipt')->store('receipts/orders', 'public');
+                $receiptPath = $this->handleImageUpload($request->file('receipt'), 'receipts/orders');
             }
 
-            // Calculate fees
+            // ── Totals ────────────────────────────────────────────────────────
             $deliveryFee = $request->fulfillment_type === 'delivery' ? 100 : 0;
             $totalAmount = $subtotal + $deliveryFee;
 
-            // Create order
+            // ── Create order ──────────────────────────────────────────────────
             $order = Order::create([
-                'customer_id' => auth()->id(),
-                'caterer_id' => $catererId,
-                'order_number' => 'ORD-' . strtoupper(uniqid()),
-                'fulfillment_type' => $request->fulfillment_type,
-                'fulfillment_date' => $request->fulfillment_date,
-                'fulfillment_time' => $request->fulfillment_time,
-                'delivery_address' => $request->delivery_address,
+                'customer_id'          => auth()->id(),
+                'caterer_id'           => $catererId,
+                'order_number'         => 'ORD-' . strtoupper(uniqid()),
+                'fulfillment_type'     => $request->fulfillment_type,
+                'fulfillment_date'     => $request->fulfillment_date,
+                'fulfillment_time'     => $request->fulfillment_time,
+                'delivery_address'     => $request->delivery_address,
                 'special_instructions' => $request->special_instructions,
-                'customer_name' => $request->customer_name,
-                'customer_email' => $request->customer_email,
-                'customer_phone' => $request->customer_phone,
-                'subtotal' => $subtotal,
-                'delivery_fee' => $deliveryFee,
-                'total_amount' => $totalAmount,
-                'payment_method' => $request->payment_method,
-                'receipt_path' => $receiptPath,
-                'payment_status' => $request->payment_method === 'cod' ? 'pending' : 'paid',
-                'order_status' => 'pending',
+                'customer_name'        => $request->customer_name,
+                'customer_email'       => $request->customer_email,
+                'customer_phone'       => $request->customer_phone,
+                'subtotal'             => $subtotal,
+                'delivery_fee'         => $deliveryFee,
+                'total_amount'         => $totalAmount,
+                'payment_method'       => $request->payment_method,
+                'receipt_path'         => $receiptPath,
+                'payment_status'       => $request->payment_method === 'cod' ? 'pending' : 'paid',
+                'order_status'         => 'pending',
             ]);
 
-            // Create order items
+            // ── Create order items ────────────────────────────────────────────
             foreach ($orderItems as $item) {
                 OrderItem::create([
-                    'order_id' => $order->id,
+                    'order_id'        => $order->id,
                     'display_menu_id' => $item['display_menu_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'subtotal' => $item['subtotal'],
+                    'quantity'        => $item['quantity'],
+                    'price'           => $item['price'],
+                    'subtotal'        => $item['subtotal'],
                 ]);
             }
 
-            // Send notifications
+            // ── Notifications ─────────────────────────────────────────────────
             try {
-                Log::info('Creating notifications for order', ['order_id' => $order->id]);
-
-                // Reload order with relationships needed by the notification service
                 $order->load(['caterer', 'items']);
-
-                // Notify the caterer of the new order
                 $this->notificationService->notifyOrderCreated($order);
-
-                // Confirm to the customer their order was received
                 $this->notificationService->notifyCustomerOrderPlaced($order);
-
-                Log::info('Notifications created successfully', ['order_id' => $order->id]);
             } catch (\Exception $e) {
                 Log::error('Failed to create notifications', [
                     'order_id' => $order->id,
-                    'error' => $e->getMessage()
+                    'error'    => $e->getMessage(),
                 ]);
             }
 
-            // Clear cart
             session()->forget('menu_cart');
 
             DB::commit();
@@ -282,8 +269,8 @@ class OrderController extends Controller
             DB::rollBack();
             Log::error('Order creation failed', [
                 'user_id' => auth()->id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
             return back()->with('error', 'Failed to create order. Please try again.');
         }
@@ -310,7 +297,6 @@ class OrderController extends Controller
             ->with(['caterer', 'items.displayMenu'])
             ->orderBy('created_at', 'desc');
 
-        // Apply filters
         if ($request->filled('status')) {
             $query->where('order_status', $request->status);
         }
@@ -321,9 +307,8 @@ class OrderController extends Controller
 
         $orders = $query->paginate(10);
 
-        // Get statistics
         $stats = [
-            'pending' => Order::where('customer_id', auth()->id())->where('order_status', 'pending')->count(),
+            'pending'   => Order::where('customer_id', auth()->id())->where('order_status', 'pending')->count(),
             'confirmed' => Order::where('customer_id', auth()->id())->where('order_status', 'confirmed')->count(),
             'completed' => Order::where('customer_id', auth()->id())->where('order_status', 'completed')->count(),
             'cancelled' => Order::where('customer_id', auth()->id())->where('order_status', 'cancelled')->count(),
@@ -358,8 +343,8 @@ class OrderController extends Controller
         }
 
         $order->update([
-            'order_status' => 'cancelled',
-            'cancellation_reason' => $request->cancellation_reason ?? 'No reason provided'
+            'order_status'        => 'cancelled',
+            'cancellation_reason' => $request->cancellation_reason ?? 'No reason provided',
         ]);
 
         return redirect()->route('customer.orders.index')
