@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                {{-- Back link — works for both guests (browse routes) and logged-in customers --}}
+                {{-- Back link — goes back to packages list --}}
                 @auth
-                    <a href="{{ route('customer.caterers') }}"
+                    <a href="{{ route('customer.packages') }}"
                         class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                         title="Back to packages">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,7 +12,7 @@
                         </svg>
                     </a>
                     <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
-                        <a href="{{ route('customer.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
+                        <a href="{{ route('customer.packages') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -26,15 +26,15 @@
                         <span class="text-gray-600 dark:text-gray-300 font-medium truncate max-w-[160px]">{{ $package->name }}</span>
                     </nav>
                 @else
-                    <a href="{{ route('browse.caterer.profile', $package->user->id) }}"
+                    <a href="{{ route('browse.packages') }}"
                         class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-                        title="Back to caterer">
+                        title="Back to packages">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                         </svg>
                     </a>
                     <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
-                        <a href="{{ route('browse.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
+                        <a href="{{ route('browse.packages') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -358,14 +358,14 @@
 
                             {{-- Cancel / Back button --}}
                             @auth
-                            <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
+                            <a href="{{ route('customer.packages') }}"
                                 class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                Cancel
+                                Back to Packages
                             </a>
                             @else
-                            <a href="{{ route('browse.caterer.profile', $package->user->id) }}"
+                            <a href="{{ route('browse.packages') }}"
                                 class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                Back to Caterer
+                                Back to Packages
                             </a>
                             @endauth
                         </div>
