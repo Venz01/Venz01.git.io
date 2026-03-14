@@ -33,14 +33,21 @@
                     <span class="text-xl font-bold text-gray-800 hidden sm:block">CaterEase</span>
                 </a>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('login') }}"
-                        class="text-sm font-semibold text-gray-600 hover:text-green-700 px-4 py-2 rounded-xl transition-colors">
-                        Login
-                    </a>
-                    <a href="{{ route('register') }}"
-                        class="px-5 py-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
-                        Sign Up Free
-                    </a>
+                    @auth
+                        <a href="{{ route('dashboard') }}"
+                            class="px-5 py-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                            Go to Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="text-sm font-semibold text-gray-600 hover:text-green-700 px-4 py-2 rounded-xl transition-colors">
+                            Login
+                        </a>
+                        <a href="{{ route('register') }}"
+                            class="px-5 py-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                            Sign Up Free
+                        </a>
+                    @endauth
                 </div>
             </div>
         </div>
@@ -70,8 +77,8 @@
                 </p>
             </div>
 
-            {{-- Search bar --}}
-            <form action="{{ route('customer.caterers') }}" method="GET">
+            {{-- Search bar — goes to public browse route for guests, customer route for logged-in --}}
+            <form action="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" method="GET">
                 <div class="flex flex-col sm:flex-row gap-3 max-w-2xl">
                     <div class="flex-1 relative">
                         <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +134,8 @@
             <div class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Browse by:</span>
                 @foreach($cuisineTypes as $cuisine)
-                    <a href="{{ route('customer.caterers', ['cuisine' => $cuisine]) }}"
+                    {{-- Cuisine chips go to public browse route for guests --}}
+                    <a href="{{ auth()->check() ? route('customer.caterers', ['cuisine' => $cuisine]) : route('browse.caterers', ['cuisine' => $cuisine]) }}"
                         class="px-4 py-1.5 bg-gray-100 hover:bg-green-50 hover:text-green-700 hover:border-green-300 border border-gray-200 rounded-full text-sm text-gray-600 font-medium transition-all">
                         {{ $cuisine }}
                     </a>
@@ -149,25 +157,14 @@
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Featured Caterers</h2>
                     <p class="text-gray-500 mt-1">Top-rated catering services for your events</p>
                 </div>
-                @auth
-                    @if(auth()->user()->role === 'customer')
-                        <a href="{{ route('customer.caterers') }}"
-                            class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-                            View all caterers
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </a>
-                    @endif
-                @else
-                    <a href="{{ route('login') }}"
-                        class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-                        View all
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7"/>
-                        </svg>
-                    </a>
-                @endauth
+                {{-- "View all" link — public browse for guests, customer route for logged-in --}}
+                <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}"
+                    class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
+                    View all caterers
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -190,7 +187,6 @@
                                 </svg>
                             </div>
                         @endif
-
                         {{-- Rating badge --}}
                         <div class="absolute top-2 right-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
                             <svg class="w-3.5 h-3.5 text-yellow-400 fill-current" viewBox="0 0 20 20">
@@ -236,6 +232,7 @@
                                 <div></div>
                             @endif
 
+                            {{-- ✅ FIXED: Guests go to public browse route, NOT login --}}
                             @auth
                                 @if(auth()->user()->role === 'customer')
                                     <a href="{{ route('customer.caterer.profile', $caterer->id) }}"
@@ -246,10 +243,17 @@
                                         </svg>
                                     </a>
                                 @else
-                                    <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">Customer only</span>
+                                    <a href="{{ route('dashboard') }}"
+                                        class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm">
+                                        View
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
                                 @endif
                             @else
-                                <a href="{{ route('login') }}"
+                                {{-- ✅ Guest — goes directly to public caterer profile, no login required --}}
+                                <a href="{{ route('browse.caterer.profile', $caterer->id) }}"
                                     class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm">
                                     View
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,25 +268,14 @@
             </div>
 
             <div class="text-center mt-8">
-                @auth
-                    @if(auth()->user()->role === 'customer')
-                        <a href="{{ route('customer.caterers') }}"
-                            class="inline-flex items-center gap-2 border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-7 py-3 rounded-xl font-semibold transition-all text-sm">
-                            View All Caterers
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </a>
-                    @endif
-                @else
-                    <a href="{{ route('login') }}"
-                        class="inline-flex items-center gap-2 border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-7 py-3 rounded-xl font-semibold transition-all text-sm">
-                        Login to Browse Caterers
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                @endauth
+                {{-- ✅ FIXED: Guests go to browse route --}}
+                <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}"
+                    class="inline-flex items-center gap-2 border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-7 py-3 rounded-xl font-semibold transition-all text-sm">
+                    View All Caterers
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </div>
@@ -300,17 +293,13 @@
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Popular Packages</h2>
                     <p class="text-gray-500 mt-1">Most booked catering packages</p>
                 </div>
-                @auth
-                    @if(auth()->user()->role === 'customer')
-                        <a href="{{ route('customer.caterers') }}"
-                            class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-                            Browse all packages
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </a>
-                    @endif
-                @endauth
+                <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}"
+                    class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
+                    Browse all packages
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -389,6 +378,7 @@
                                 @endif
                             </div>
 
+                            {{-- ✅ FIXED: Guests go to public browse package route, NOT login --}}
                             @auth
                                 @if(auth()->user()->role === 'customer')
                                     <a href="{{ route('customer.package.details', [$package->user_id, $package->id]) }}"
@@ -399,10 +389,17 @@
                                         </svg>
                                     </a>
                                 @else
-                                    <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">Customer only</span>
+                                    <a href="{{ route('dashboard') }}"
+                                        class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shrink-0">
+                                        View
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
                                 @endif
                             @else
-                                <a href="{{ route('login') }}"
+                                {{-- ✅ Guest — goes directly to public package details, no login required --}}
+                                <a href="{{ route('browse.package.details', [$package->user_id, $package->id]) }}"
                                     class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shrink-0">
                                     View
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -475,9 +472,10 @@
                         </a>
                     @endif
                 @else
-                    <a href="{{ route('register') }}"
+                    {{-- ✅ FIXED: Guest "Get Started" goes to browse, not login --}}
+                    <a href="{{ route('browse.caterers') }}"
                         class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-xl font-semibold transition-colors shadow-sm">
-                        Get Started Free
+                        Browse Packages Free
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -548,13 +546,14 @@
                 @endif
             @else
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="{{ route('register') }}"
+                    {{-- ✅ FIXED: Guest CTA goes to browse first, then register --}}
+                    <a href="{{ route('browse.caterers') }}"
                         class="inline-flex items-center justify-center gap-2 bg-white text-green-700 px-8 py-4 rounded-xl font-bold text-base hover:bg-green-50 transition-colors shadow-lg">
-                        Sign Up as Customer
+                        Browse Packages Free
                     </a>
                     <a href="{{ route('register') }}"
                         class="inline-flex items-center justify-center gap-2 bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-base hover:bg-white hover:text-green-700 transition-all">
-                        Join as Caterer
+                        Create Free Account
                     </a>
                 </div>
             @endauth
@@ -581,15 +580,15 @@
                 <div>
                     <h4 class="font-semibold text-white mb-3 text-sm uppercase tracking-wider">For Customers</h4>
                     <ul class="space-y-2 text-gray-400 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">Browse Caterers</a></li>
+                        <li><a href="{{ route('browse.caterers') }}" class="hover:text-white transition-colors">Browse Caterers</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">My Bookings</a></li>
+                        <li><a href="{{ route('login') }}" class="hover:text-white transition-colors">My Bookings</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-semibold text-white mb-3 text-sm uppercase tracking-wider">For Caterers</h4>
                     <ul class="space-y-2 text-gray-400 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">Join as Caterer</a></li>
+                        <li><a href="{{ route('register') }}" class="hover:text-white transition-colors">Join as Caterer</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Resources</a></li>
                     </ul>

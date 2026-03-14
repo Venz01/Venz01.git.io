@@ -5,6 +5,7 @@
     unreadCount: 0,
     loading: false
 }" @click.away="notificationsOpen = false" x-init="
+    @auth
     // Fetch notifications on load
     fetch('/notifications/unread')
         .then(res => res.json())
@@ -24,6 +25,7 @@
             })
             .catch(error => console.error('Error fetching notifications:', error));
     }, 30000);
+    @endauth
 " class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,7 +34,7 @@
 
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center space-x-0.5">
+                    <a href="{{ route('welcome') }}" class="flex items-center space-x-0.5">
                         <img src="{{ asset('images/foodlogo.png') }}" alt="Restaurant Logo"
                             style="height: 60px; width: auto;" class="logo-dark-mode">
                         <span
@@ -46,13 +48,14 @@
                             filter: invert(1) brightness(2) !important;
                         }
                     }
-
                 </style>
 
                 <!-- Desktop Navigation Links -->
                 <div
                     class="hidden space-x-2 md:space-x-4 lg:space-x-6 sm:-my-px sm:ms-4 lg:ms-8 sm:flex sm:overflow-x-auto">
-                    @php $role = auth()->user()->role; @endphp
+
+                    {{-- ✅ FIXED: guard against null user for guests --}}
+                    @php $role = auth()->check() ? auth()->user()->role : null; @endphp
 
                     @if ($role === 'customer')
                     <x-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.dashboard')">
@@ -127,8 +130,6 @@
                     <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                         {{ __('User Management') }}
                     </x-nav-link>
-
-                    {{-- NEW: Feedback & Ratings Management --}}
                     <x-nav-link :href="route('admin.feedback-ratings')"
                         :active="request()->routeIs('admin.feedback-ratings*')">
                         <span class="flex items-center">
@@ -145,23 +146,24 @@
                             @endif
                         </span>
                     </x-nav-link>
-
                     <x-nav-link :href="route('admin.activity-logs')"
                         :active="request()->routeIs('admin.activity-logs')">
                         {{ __('Activity Logs') }}
                     </x-nav-link>
 
                     @else
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                    {{-- Guest — show public browse links --}}
+                    <x-nav-link :href="route('browse.caterers')" :active="request()->routeIs('browse.caterers')">
+                        {{ __('Browse Packages') }}
                     </x-nav-link>
                     @endif
                 </div>
             </div>
 
-            <!-- Right Side: Notifications + User Dropdown -->
+            <!-- Right Side: Notifications + User Dropdown (auth only) or Login/Register (guest) -->
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
 
+                @auth
                 <!-- Notifications Bell -->
                 <div class="relative">
                     <button @click="notificationsOpen = !notificationsOpen"
@@ -231,7 +233,6 @@
                                     class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                                     :class="{ 'bg-indigo-50 dark:bg-indigo-900/20': !notification.read_at }">
                                     <div class="flex items-start space-x-3">
-                                        <!-- Icon based on type -->
                                         <div class="flex-shrink-0 mt-0.5">
                                             <div class="h-8 w-8 rounded-full flex items-center justify-center" :class="{
                                                      'bg-green-100 text-green-600': notification.type.includes('confirmed') || notification.type.includes('completed'),
@@ -248,8 +249,6 @@
                                                 </svg>
                                             </div>
                                         </div>
-
-                                        <!-- Content -->
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100"
                                                 x-text="notification.title"></p>
@@ -258,8 +257,6 @@
                                             <p class="text-xs text-gray-500 dark:text-gray-500 mt-1"
                                                 x-text="new Date(notification.created_at).toLocaleString()"></p>
                                         </div>
-
-                                        <!-- Unread indicator -->
                                         <div x-show="!notification.read_at" class="flex-shrink-0">
                                             <div class="h-2 w-2 bg-indigo-600 rounded-full"></div>
                                         </div>
@@ -306,17 +303,13 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
-                        @php $role = auth()->user()->role; @endphp
-
-                        @if($role === 'caterer')
+                        @if(auth()->user()->role === 'caterer')
                         <x-dropdown-link :href="route('caterer.costing.index')">
                             <div class="flex items-center gap-2">
                                 <span>{{ __('Costing Tool') }}</span>
                             </div>
                         </x-dropdown-link>
                         @endif
-
-
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -328,6 +321,18 @@
                         </form>
                     </x-slot>
                 </x-dropdown>
+
+                @else
+                {{-- ✅ Guest — show Login / Sign Up buttons --}}
+                <a href="{{ route('login') }}"
+                    class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 px-4 py-2 rounded-xl transition-colors">
+                    Login
+                </a>
+                <a href="{{ route('register') }}"
+                    class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                    Sign Up
+                </a>
+                @endauth
             </div>
 
             <!-- Hamburger -->
@@ -348,7 +353,9 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        @php $role = auth()->user()->role; @endphp
+
+        {{-- ✅ FIXED: guard against null user for guests --}}
+        @php $role = auth()->check() ? auth()->user()->role : null; @endphp
 
         <div class="pt-2 pb-3 space-y-1">
             @if ($role === 'customer')
@@ -425,8 +432,6 @@
             <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                 {{ __('User Management') }}
             </x-responsive-nav-link>
-
-            {{-- NEW: Feedback & Ratings Management (Mobile) --}}
             <x-responsive-nav-link :href="route('admin.feedback-ratings')"
                 :active="request()->routeIs('admin.feedback-ratings*')">
                 <div class="flex items-center justify-between">
@@ -446,7 +451,6 @@
                     @endif
                 </div>
             </x-responsive-nav-link>
-
             <x-responsive-nav-link :href="route('admin.activity-logs')"
                 :active="request()->routeIs('admin.activity-logs')">
                 {{ __('Activity Logs') }}
@@ -462,13 +466,21 @@
             </x-responsive-nav-link>
 
             @else
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+            {{-- Guest mobile nav --}}
+            <x-responsive-nav-link :href="route('browse.caterers')" :active="request()->routeIs('browse.*')">
+                {{ __('Browse Packages') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">
+                {{ __('Login') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')">
+                {{ __('Sign Up') }}
             </x-responsive-nav-link>
             @endif
         </div>
 
-        <!-- Responsive Settings Options -->
+        <!-- Responsive Settings Options — only for logged-in users -->
+        @auth
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
@@ -490,5 +502,6 @@
                 </form>
             </div>
         </div>
+        @endauth
     </div>
 </nav>

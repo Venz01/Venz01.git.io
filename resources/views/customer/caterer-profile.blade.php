@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('customer.caterers') }}" class="text-gray-600 hover:text-gray-900">
+                <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" class="text-gray-600 hover:text-gray-900">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
                         </path>
@@ -402,7 +402,9 @@
                                 @endif
 
                                 <!-- Single View Details Button -->
-                                <a href="{{ route('customer.package.details', ['catererId' => $caterer->id, 'packageId' => $package->id]) }}"
+                                <a href="{{ auth()->check() 
+                                        ? route('customer.package.details', ['catererId' => $caterer->id, 'packageId' => $package->id]) 
+                                        : route('browse.package.details', ['catererId' => $caterer->id, 'packageId' => $package->id]) }}"
                                     class="block w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-center">
                                     View Details & Book
                                 </a>
@@ -510,7 +512,7 @@
                                             </form>
                                             @endif
                                         @else
-                                            <a href="{{ route('login') }}" 
+                                            <a href="{{ route('login') }}?redirect={{ urlencode(url()->current()) }}" 
                                                 class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 text-center">
                                                 Login to Order
                                             </a>

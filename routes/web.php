@@ -23,6 +23,16 @@ use App\Http\Controllers\DietaryTagController;
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
 // ============================================
+// 🌐 PUBLIC BROWSING ROUTES (No Login Required)
+// Guests can freely browse caterers and packages
+// ============================================
+Route::prefix('browse')->name('browse.')->group(function () {
+    Route::get('/caterers', [CustomerController::class, 'browsePackages'])->name('caterers');
+    Route::get('/caterers/{id}', [CustomerController::class, 'showCaterer'])->name('caterer.profile');
+    Route::get('/caterers/{catererId}/packages/{packageId}', [CustomerController::class, 'showPackage'])->name('package.details');
+});
+
+// ============================================
 // 🔐 AUTHENTICATED ROUTES (Login Required)
 // ============================================
 

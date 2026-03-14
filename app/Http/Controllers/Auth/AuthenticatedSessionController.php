@@ -17,8 +17,13 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
+        // Store the intended redirect URL in session if passed via ?redirect=
+        if ($request->has('redirect')) {
+            session(['url.intended' => $request->redirect]);
+        }
+
         return view('auth.login');
     }
 
@@ -28,20 +33,20 @@ class AuthenticatedSessionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         $user = \App\Models\User::where('email', $request->email)->first();
 
         if (!$user || !\Hash::check($request->password, $user->password)) {
-            // LOG FAILED LOGIN ATTEMPT
+            // Log failed login attempt
             ActivityLogger::log(
                 'authentication',
                 'login_failed',
                 "Failed login attempt for email: {$request->email}",
                 [
-                    'email' => $request->email,
+                    'email'      => $request->email,
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                 ]
@@ -53,16 +58,15 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->status === 'blocked') {
-            // LOG BLOCKED USER ATTEMPT
             ActivityLogger::log(
                 'security',
                 'blocked_login_attempt',
                 "Blocked user attempted to login: {$user->name} ({$user->email})",
                 [
-                    'user_id' => $user->id,
-                    'user_name' => $user->name,
+                    'user_id'    => $user->id,
+                    'user_name'  => $user->name,
                     'user_email' => $user->email,
-                    'user_role' => $user->role,
+                    'user_role'  => $user->role,
                 ]
             );
 
@@ -71,26 +75,24 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        // Check other statuses that should prevent login
         if (in_array($user->status, ['suspended', 'rejected', 'pending'])) {
-            // LOG UNAUTHORIZED STATUS ATTEMPT
             ActivityLogger::log(
                 'security',
                 'unauthorized_login_attempt',
                 "User with status '{$user->status}' attempted to login: {$user->name} ({$user->email})",
                 [
-                    'user_id' => $user->id,
-                    'user_name' => $user->name,
-                    'user_email' => $user->email,
-                    'user_role' => $user->role,
+                    'user_id'     => $user->id,
+                    'user_name'   => $user->name,
+                    'user_email'  => $user->email,
+                    'user_role'   => $user->role,
                     'user_status' => $user->status,
                 ]
             );
 
             $messages = [
                 'suspended' => 'Your account has been suspended. Please contact support.',
-                'rejected' => 'Your application has been rejected. Please contact support.',
-                'pending' => 'Your account is pending approval. Please wait for admin approval.',
+                'rejected'  => 'Your application has been rejected. Please contact support.',
+                'pending'   => 'Your account is pending approval. Please wait for admin approval.',
             ];
 
             throw ValidationException::withMessages([
@@ -102,13 +104,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // LOG SUCCESSFUL LOGIN
+        // Log successful login
         ActivityLogger::logAuth(
             'login',
             "{$user->name} ({$user->role}) logged in successfully",
             $user->id
         );
 
+        // ── Redirect back to the package/caterer page the guest was viewing ──
+        // redirect()->intended() automatically uses session('url.intended')
+        // which was set either by the ?redirect= param in create() above,
+        // or by Laravel's auth middleware when it intercepted a protected route.
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
@@ -117,7 +123,6 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
-        // LOG LOGOUT BEFORE DESTROYING SESSION
         if (auth()->check()) {
             $user = auth()->user();
             ActivityLogger::logAuth(

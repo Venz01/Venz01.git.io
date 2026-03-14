@@ -1,8 +1,20 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Browse Packages') }}
-        </h2>
+        <div class="flex items-center gap-4">
+            @guest
+            <a href="{{ route('welcome') }}"
+                class="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Home
+            </a>
+            <span class="text-gray-300 dark:text-gray-600">|</span>
+            @endguest
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Browse Packages') }}
+            </h2>
+        </div>
     </x-slot>
 
     {{-- ══════════════════════════════════════════════════════════════
@@ -194,7 +206,7 @@
                         <p class="text-green-100 text-base lg:text-lg">Browse {{ $packages->total() }} catering packages from verified local caterers. Filter by price, event type, or your dietary needs.</p>
                     </div>
 
-                    <form method="GET" action="{{ route('customer.caterers') }}" id="searchForm">
+                    <form method="GET" action="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" id="searchForm">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="flex-1 relative">
                                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,7 +313,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
-                                <a href="{{ route('customer.caterers') }}" class="text-sm text-green-200 hover:text-white underline underline-offset-2 transition-colors">
+                                <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" class="text-sm text-green-200 hover:text-white underline underline-offset-2 transition-colors">
                                     Clear all filters
                                 </a>
                                 <button type="submit" class="bg-white text-green-700 px-5 py-2 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors">
@@ -345,7 +357,7 @@
                         @endif
                     </p>
                     @if($activeFilterCount > 0)
-                        <a href="{{ route('customer.caterers') }}" class="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-full border border-red-200 transition-colors">
+                        <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" class="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-full border border-red-200 transition-colors">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -448,7 +460,7 @@
                                             {{ substr($caterer->business_name ?? $caterer->name, 0, 1) }}
                                         </div>
                                     @endif
-                                    <a href="{{ route('customer.caterer.profile', $caterer->id) }}"
+                                    <a href="{{ auth()->check() ? route('customer.caterer.profile', $caterer->id) : route('browse.caterer.profile', $caterer->id) }}"
                                        class="text-xs text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors truncate font-medium"
                                        onclick="event.stopPropagation()">
                                         {{ $caterer->business_name ?? $caterer->name }}
@@ -491,7 +503,7 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <a href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}"
+                                    <a href="{{ auth()->check() ? route('customer.package.details', [$caterer->id, $package->id]) : route('browse.package.details', [$caterer->id, $package->id]) }}"
                                        class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shrink-0">
                                         View
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -566,7 +578,7 @@
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{{ Str::limit($package->description, 100) }}</p>
                                 </div>
 
-                                <a href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}"
+                                <a href="{{ auth()->check() ? route('customer.package.details', [$caterer->id, $package->id]) : route('browse.package.details', [$caterer->id, $package->id]) }}"
                                    class="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
                                     View
                                 </a>
@@ -590,7 +602,7 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No packages found</h3>
                     <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">Try adjusting your filters or search query to discover more packages.</p>
-                    <a href="{{ route('customer.caterers') }}" class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors">
+                    <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>

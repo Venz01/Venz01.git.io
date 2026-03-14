@@ -2,27 +2,52 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('customer.caterers') }}"
-                    class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-                    title="Back to packages">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                </a>
-                <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
-                    <a href="{{ route('customer.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                    <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
-                        class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-[120px]">
-                        {{ $package->user->business_name ?? $package->user->name }}
+                {{-- Back link — works for both guests (browse routes) and logged-in customers --}}
+                @auth
+                    <a href="{{ route('customer.caterers') }}"
+                        class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                        title="Back to packages">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
                     </a>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                    <span class="text-gray-600 dark:text-gray-300 font-medium truncate max-w-[160px]">{{ $package->name }}</span>
-                </nav>
+                    <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
+                        <a href="{{ route('customer.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
+                            class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-[120px]">
+                            {{ $package->user->business_name ?? $package->user->name }}
+                        </a>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-gray-600 dark:text-gray-300 font-medium truncate max-w-[160px]">{{ $package->name }}</span>
+                    </nav>
+                @else
+                    <a href="{{ route('browse.caterer.profile', $package->user->id) }}"
+                        class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                        title="Back to caterer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                    <nav class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
+                        <a href="{{ route('browse.caterers') }}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Packages</a>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <a href="{{ route('browse.caterer.profile', $package->user->id) }}"
+                            class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-[120px]">
+                            {{ $package->user->business_name ?? $package->user->name }}
+                        </a>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-gray-600 dark:text-gray-300 font-medium truncate max-w-[160px]">{{ $package->name }}</span>
+                    </nav>
+                @endauth
             </div>
         </div>
     </x-slot>
@@ -230,6 +255,8 @@
                             </div>
                         </div>
 
+                        {{-- Booking form — only rendered for logged-in customers --}}
+                        @auth
                         <form id="bookingForm" action="{{ route('customer.booking.store-event') }}" method="POST" class="space-y-4 mb-6">
                             @csrf
                             <input type="hidden" name="package_id" value="{{ $package->id }}">
@@ -300,8 +327,27 @@
                                     placeholder="Any dietary restrictions or special requirements..."></textarea>
                             </div>
                         </form>
+                        @endauth
+
+                        {{-- Guest guest count display (read-only, no form) --}}
+                        @guest
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number of Guests</label>
+                                <input type="number" id="guestCount"
+                                    placeholder="{{ $package->pax }}" value="{{ $package->pax }}"
+                                    min="1" max="1000"
+                                    class="w-full px-4 py-3 text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Adjust to estimate total price</p>
+                            </div>
+                            <input type="hidden" id="hiddenPricePerHead" value="{{ $package->price }}">
+                            <input type="hidden" id="hiddenTotalPrice" value="{{ $package->price * $package->pax }}">
+                            <input type="hidden" id="selectedItemsJson">
+                        </div>
+                        @endguest
 
                         <div class="space-y-3">
+                            {{-- Book Now button — behaviour differs for guest vs logged-in --}}
                             <button type="button" id="bookNowBtn"
                                 class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-lg">
                                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,10 +355,19 @@
                                 </svg>
                                 Book Now
                             </button>
+
+                            {{-- Cancel / Back button --}}
+                            @auth
                             <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
                                 class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                 Cancel
                             </a>
+                            @else
+                            <a href="{{ route('browse.caterer.profile', $package->user->id) }}"
+                                class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                Back to Caterer
+                            </a>
+                            @endauth
                         </div>
 
                         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -382,6 +437,8 @@
                             @endif
 
                             <div class="flex flex-col gap-2 pt-1">
+                                {{-- Profile link — different route for guests vs customers --}}
+                                @auth
                                 <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
                                     class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,6 +446,16 @@
                                     </svg>
                                     View Full Profile
                                 </a>
+                                @else
+                                <a href="{{ route('browse.caterer.profile', $package->user->id) }}"
+                                    class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    View Full Profile
+                                </a>
+                                @endauth
+
                                 @if($package->user->contact_number ?? $package->user->phone ?? null)
                                     <a href="tel:{{ $package->user->contact_number ?? $package->user->phone }}"
                                         class="flex items-center justify-center gap-2 w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -406,45 +473,80 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════════
+         LOGIN PROMPT MODAL — shown to guests when they click Book Now
+    ══════════════════════════════════════════════════════════════ --}}
+    @guest
+    <div id="loginPromptModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <div class="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Sign In to Book</h3>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                You need an account to reserve this package.<br>It's free and takes less than a minute!
+            </p>
+            <div class="space-y-3">
+                {{-- Pass the current URL so the user is redirected back here after login --}}
+                <a href="{{ route('login') }}?redirect={{ urlencode(url()->current()) }}"
+                    class="block w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors">
+                    Log In
+                </a>
+                <a href="{{ route('register') }}"
+                    class="block w-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    Create Free Account
+                </a>
+                <button onclick="document.getElementById('loginPromptModal').classList.add('hidden')"
+                    class="block w-full text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition-colors">
+                    Continue Browsing
+                </button>
+            </div>
+        </div>
+    </div>
+    @endguest
+
     @php
         $itemCount = $package->items->count();
         $hasCosting = $package->costing && $package->costing->total_cost > 0;
     @endphp
 
     <script>
-        const originalPrice = {{ $package->price }};
-        const originalPax = {{ $package->pax }};
-        const hasCosting = {{ $hasCosting ? 'true' : 'false' }};
-        const totalItemCount = {{ $itemCount }};
+        const originalPrice   = {{ $package->price }};
+        const originalPax     = {{ $package->pax }};
+        const hasCosting      = {{ $hasCosting ? 'true' : 'false' }};
+        const totalItemCount  = {{ $itemCount }};
+        const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 
         const elements = {
-            selectedCount: document.getElementById('selectedCount'),
-            foodCost: document.getElementById('foodCost'),
-            laborCost: document.getElementById('laborCost'),
-            equipmentCost: document.getElementById('equipmentCost'),
-            profitMargin: document.getElementById('profitMargin'),
-            pricePerHead: document.getElementById('pricePerHead'),
-            perHeadPriceDisplay: document.getElementById('perHeadPriceDisplay'),
-            totalPriceMain: document.getElementById('totalPriceMain'),
-            guestCountDisplay: document.getElementById('guestCountDisplay'),
-            depositAmount: document.getElementById('depositAmount'),
-            dueNow: document.getElementById('dueNow'),
+            selectedCount:      document.getElementById('selectedCount'),
+            foodCost:           document.getElementById('foodCost'),
+            laborCost:          document.getElementById('laborCost'),
+            equipmentCost:      document.getElementById('equipmentCost'),
+            profitMargin:       document.getElementById('profitMargin'),
+            pricePerHead:       document.getElementById('pricePerHead'),
+            perHeadPriceDisplay:document.getElementById('perHeadPriceDisplay'),
+            totalPriceMain:     document.getElementById('totalPriceMain'),
+            guestCountDisplay:  document.getElementById('guestCountDisplay'),
+            depositAmount:      document.getElementById('depositAmount'),
+            dueNow:             document.getElementById('dueNow'),
             hiddenPricePerHead: document.getElementById('hiddenPricePerHead'),
-            hiddenTotalPrice: document.getElementById('hiddenTotalPrice'),
-            selectedItemsJson: document.getElementById('selectedItemsJson'),
-            guestCount: document.getElementById('guestCount'),
-            bookingForm: document.getElementById('bookingForm'),
+            hiddenTotalPrice:   document.getElementById('hiddenTotalPrice'),
+            selectedItemsJson:  document.getElementById('selectedItemsJson'),
+            guestCount:         document.getElementById('guestCount'),
+            bookingForm:        document.getElementById('bookingForm'),
         };
 
         function updatePrice() {
-            const checkboxes = document.querySelectorAll('.menu-item-checkbox:checked');
-            let foodCost = 0;
+            const checkboxes    = document.querySelectorAll('.menu-item-checkbox:checked');
+            let foodCost        = 0;
             const selectedItems = [];
 
             checkboxes.forEach(function(checkbox) {
                 const menuItem = checkbox.closest('.menu-item');
                 if (menuItem) {
-                    const price = parseFloat(menuItem.dataset.itemPrice || 0);
+                    const price  = parseFloat(menuItem.dataset.itemPrice || 0);
                     const itemId = menuItem.dataset.itemId;
                     foodCost += price;
                     selectedItems.push(itemId);
@@ -455,23 +557,23 @@
             if (hasCosting && checkboxes.length === totalItemCount) {
                 pricePerHead = originalPrice;
             } else {
-                const laborAndUtilities = foodCost * 0.20;
+                const laborAndUtilities  = foodCost * 0.20;
                 const equipmentTransport = foodCost * 0.10;
-                const profitMargin = foodCost * 0.25;
+                const profitMargin       = foodCost * 0.25;
                 pricePerHead = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
                 pricePerHead = Math.ceil(pricePerHead / 5) * 5;
 
-                if (elements.foodCost) elements.foodCost.textContent = foodCost.toFixed(2);
-                if (elements.laborCost) elements.laborCost.textContent = laborAndUtilities.toFixed(2);
+                if (elements.foodCost)      elements.foodCost.textContent      = foodCost.toFixed(2);
+                if (elements.laborCost)     elements.laborCost.textContent     = laborAndUtilities.toFixed(2);
                 if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
-                if (elements.profitMargin) elements.profitMargin.textContent = profitMargin.toFixed(2);
+                if (elements.profitMargin)  elements.profitMargin.textContent  = profitMargin.toFixed(2);
             }
 
-            if (elements.pricePerHead) elements.pricePerHead.textContent = pricePerHead.toLocaleString();
+            if (elements.pricePerHead)        elements.pricePerHead.textContent        = pricePerHead.toLocaleString();
             if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
-            if (elements.hiddenPricePerHead) elements.hiddenPricePerHead.value = pricePerHead;
-            if (elements.selectedItemsJson) elements.selectedItemsJson.value = JSON.stringify(selectedItems);
-            if (elements.selectedCount) elements.selectedCount.textContent = checkboxes.length;
+            if (elements.hiddenPricePerHead)  elements.hiddenPricePerHead.value        = pricePerHead;
+            if (elements.selectedItemsJson)   elements.selectedItemsJson.value         = JSON.stringify(selectedItems);
+            if (elements.selectedCount)       elements.selectedCount.textContent       = checkboxes.length;
 
             updateTotalPrice();
 
@@ -488,18 +590,18 @@
         }
 
         function updateTotalPrice() {
-            const guests = parseInt(elements.guestCount && elements.guestCount.value) || originalPax;
+            const guests      = parseInt(elements.guestCount && elements.guestCount.value) || originalPax;
             const pricePerHead = parseFloat(elements.hiddenPricePerHead && elements.hiddenPricePerHead.value) || originalPrice;
-            const totalPrice = pricePerHead * guests;
+            const totalPrice  = pricePerHead * guests;
 
-            if (elements.totalPriceMain) elements.totalPriceMain.textContent = totalPrice.toLocaleString();
+            if (elements.totalPriceMain)    elements.totalPriceMain.textContent    = totalPrice.toLocaleString();
             if (elements.guestCountDisplay) elements.guestCountDisplay.textContent = guests;
-            if (elements.hiddenTotalPrice) elements.hiddenTotalPrice.value = totalPrice;
+            if (elements.hiddenTotalPrice)  elements.hiddenTotalPrice.value        = totalPrice;
 
             const deposit = totalPrice * 0.25;
-            const dueNow = deposit + 500;
+            const dueNow  = deposit + 500;
             if (elements.depositAmount) elements.depositAmount.textContent = deposit.toLocaleString();
-            if (elements.dueNow) elements.dueNow.textContent = dueNow.toLocaleString();
+            if (elements.dueNow)        elements.dueNow.textContent        = dueNow.toLocaleString();
         }
 
         function selectAll() {
@@ -514,7 +616,7 @@
 
         function toggleCategory(categoryName) {
             const categoryItems = document.querySelectorAll('.menu-item[data-category="' + categoryName + '"] .menu-item-checkbox');
-            const allChecked = Array.from(categoryItems).every(function(cb) { return cb.checked; });
+            const allChecked    = Array.from(categoryItems).every(function(cb) { return cb.checked; });
             categoryItems.forEach(function(cb) { cb.checked = !allChecked; });
             updatePrice();
         }
@@ -539,14 +641,14 @@
                 elements.selectedItemsJson.value = JSON.stringify(selectedItems);
             }
 
-            // Remove previously appended inputs to avoid duplicates
+            // Remove previously appended hidden inputs to avoid duplicates
             elements.bookingForm.querySelectorAll('input[name="selected_items[]"]').forEach(function(el) { el.remove(); });
 
             selectedItems.forEach(function(itemId) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'selected_items[]';
-                input.value = itemId;
+                const input   = document.createElement('input');
+                input.type    = 'hidden';
+                input.name    = 'selected_items[]';
+                input.value   = itemId;
                 elements.bookingForm.appendChild(input);
             });
 
@@ -560,10 +662,28 @@
                 elements.guestCount.addEventListener('input', updateTotalPrice);
             }
 
-            // Wire up Book Now button via event listener (avoids global scope issues)
+            // ── Book Now button ────────────────────────────────────────────────
             const bookNowBtn = document.getElementById('bookNowBtn');
             if (bookNowBtn) {
-                bookNowBtn.addEventListener('click', submitBooking);
+                bookNowBtn.addEventListener('click', function () {
+                    if (isAuthenticated) {
+                        // Logged-in customer — submit the booking form
+                        submitBooking();
+                    } else {
+                        // Guest — show the login prompt modal
+                        document.getElementById('loginPromptModal').classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Close login modal when clicking the backdrop
+            const modal = document.getElementById('loginPromptModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
             }
         });
     </script>

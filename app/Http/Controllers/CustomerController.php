@@ -16,81 +16,70 @@ class CustomerController extends Controller
         return view('customer.dashboard');
     }
 
+/**
+     * Browse packages — works for both guests and logged-in customers.
+     * Used by both /browse/caterers (public) and /customer/caterers (auth).
+     */
     public function browsePackages(Request $request)
-{
-    $query = \App\Models\Package::with(['user', 'items'])
-        ->active(); // uses your scopeActive()
+    {
+        $query = Package::with(['user', 'items'])
+            ->where('status', 'active')
+            ->whereHas('user', fn($u) => $u->where('status', 'approved'));
 
-    // ── Search ──────────────────────────────────────────────────────────
-    if ($search = $request->search) {
-        $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('description', 'like', "%{$search}%")
-              ->orWhereHas('user', fn($u) =>
-                  $u->where('business_name', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%")
-              );
-        });
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) =>
+                      $u->where('business_name', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                  );
+            });
+        }
+
+        if ($eventType = $request->event_type) {
+            $query->where('name', 'like', "%{$eventType}%");
+        }
+
+        if ($cuisine = $request->cuisine) {
+            $query->whereHas('user', fn($u) =>
+                $u->whereJsonContains('cuisine_types', $cuisine)
+            );
+        }
+
+        if ($location = $request->location) {
+            $query->whereHas('user', fn($u) =>
+                $u->where('business_address', 'like', "%{$location}%")
+                  ->orWhere('city', 'like', "%{$location}%")
+            );
+        }
+
+        if ($minPrice = $request->min_price) {
+            $query->where('price', '>=', $minPrice);
+        }
+        if ($maxPrice = $request->max_price) {
+            $query->where('price', '<=', $maxPrice);
+        }
+
+        match ($request->sort) {
+            'price_asc'  => $query->orderBy('price', 'asc'),
+            'price_desc' => $query->orderBy('price', 'desc'),
+            'newest'     => $query->latest(),
+            default      => $query->latest(),
+        };
+
+        $packages = $query->paginate(16)->withQueryString();
+
+        $savedPreferences = [];
+        if (auth()->check() && auth()->user()->dietary_preferences) {
+            $savedPreferences = is_array(auth()->user()->dietary_preferences)
+                ? auth()->user()->dietary_preferences
+                : [];
+        }
+
+        return view('customer.packages', compact('packages', 'savedPreferences'));
     }
 
-    // ── Event type (keyword in name) ─────────────────────────────────────
-    if ($eventType = $request->event_type) {
-        $query->where('name', 'like', "%{$eventType}%");
-    }
-
-    // ── Cuisine (filter through caterer) ─────────────────────────────────
-    if ($cuisine = $request->cuisine) {
-        $query->whereHas('user', fn($u) =>
-            $u->whereJsonContains('cuisine_types', $cuisine)
-        );
-    }
-
-    // ── Location (filter through caterer) ────────────────────────────────
-    if ($location = $request->location) {
-        $query->whereHas('user', fn($u) =>
-            $u->where('business_address', 'like', "%{$location}%")
-              ->orWhere('city', 'like', "%{$location}%")
-        );
-    }
-
-    // ── Price range (price column = total package price) ─────────────────
-    if ($minPrice = $request->min_price) {
-        // price/pax gives per-head; filter by per-head if pax > 0
-        $query->where(function ($q) use ($minPrice) {
-            $q->whereRaw('(pax > 0 AND price / pax >= ?)', [$minPrice])
-              ->orWhere('price', '>=', $minPrice);
-        });
-    }
-    if ($maxPrice = $request->max_price) {
-        $query->where(function ($q) use ($maxPrice) {
-            $q->whereRaw('(pax > 0 AND price / pax <= ?)', [$maxPrice])
-              ->orWhere('price', '<=', $maxPrice);
-        });
-    }
-
-    // ── Sort ──────────────────────────────────────────────────────────────
-    match ($request->sort) {
-        'price_asc'  => $query->orderBy('price', 'asc'),
-        'price_desc' => $query->orderBy('price', 'desc'),
-        'newest'     => $query->latest(),
-        // 'rating' needs a join/subquery — simple fallback:
-        'rating'     => $query->withAvg('bookings as avg_rating', 'rating')
-                               ->orderByDesc('avg_rating'),
-        default      => $query->latest(),
-    };
-
-    $packages = $query->paginate(16)->withQueryString();
-
-    // Dietary prefs for the panel
-    $savedPreferences = [];
-    if (auth()->check() && auth()->user()->dietary_preferences) {
-        $savedPreferences = is_array(auth()->user()->dietary_preferences)
-            ? auth()->user()->dietary_preferences
-            : [];
-    }
-
-    return view('customer.packages', compact('packages', 'savedPreferences'));
-}
 
     public function showCaterer($id)
     {
@@ -109,11 +98,10 @@ class CustomerController extends Controller
             ])
             ->firstOrFail();
 
-        // Add review statistics
         $caterer->review_count = rand(50, 300);
         $caterer->average_rating = round(rand(35, 50) / 10, 1);
 
-        // ── Dietary preference sorting for packages ─────────────────────────
+        // Dietary preference sorting — only for logged-in customers
         $savedPreferences = [];
         if (auth()->check() && auth()->user()->isCustomer()) {
             $savedPreferences = is_array(auth()->user()->dietary_preferences)
@@ -122,33 +110,31 @@ class CustomerController extends Controller
         }
 
         if (!empty($savedPreferences)) {
-            // Score each package: count matching prefs, then sort desc
             $caterer->packages = $caterer->packages
                 ->map(function ($package) use ($savedPreferences) {
                     $packageTags = is_array($package->dietary_tags)
                         ? $package->dietary_tags
                         : [];
-
                     $package->dietary_match_score = count(
                         array_intersect($savedPreferences, $packageTags)
                     );
-
                     return $package;
                 })
                 ->sortByDesc('dietary_match_score')
                 ->values();
         } else {
-            // No prefs — add a zero score so the view can check it uniformly
             $caterer->packages = $caterer->packages->map(function ($package) {
                 $package->dietary_match_score = 0;
                 return $package;
             });
         }
-        // ───────────────────────────────────────────────────────────────────
 
         return view('customer.caterer-profile', compact('caterer', 'savedPreferences'));
     }
 
+    /**
+     * Show a single package's details — works for both guests and logged-in customers.
+     */
     public function showPackage($catererId, $packageId)
     {
         $package = Package::where('id', $packageId)
@@ -161,45 +147,43 @@ class CustomerController extends Controller
     }
 
     /**
-     * Calculate customized package price based on selected items
+     * Calculate customized package price based on selected items.
      */
     public function calculateCustomPrice(Request $request)
     {
         $request->validate([
-            'items' => 'required|array',
-            'items.*' => 'exists:menu_items,id',
-            'guests' => 'required|integer|min:1'
+            'items'    => 'required|array',
+            'items.*'  => 'exists:menu_items,id',
+            'guests'   => 'required|integer|min:1',
         ]);
 
         $menuItems = MenuItem::whereIn('id', $request->items)->get();
-        
-        $foodCost = $menuItems->sum('price');
-        $laborAndUtilities = $foodCost * 0.20;
+
+        $foodCost           = $menuItems->sum('price');
+        $laborAndUtilities  = $foodCost * 0.20;
         $equipmentTransport = $foodCost * 0.10;
-        $profitMargin = $foodCost * 0.25;
-        
+        $profitMargin       = $foodCost * 0.25;
+
         $pricePerHead = $foodCost + $laborAndUtilities + $equipmentTransport + $profitMargin;
         $pricePerHead = round($pricePerHead / 5) * 5;
-        
+
         $totalPrice = $pricePerHead * $request->guests;
 
         return response()->json([
-            'success' => true,
+            'success'        => true,
             'price_per_head' => $pricePerHead,
-            'total_price' => $totalPrice,
-            'breakdown' => [
-                'food_cost' => $foodCost,
-                'labor_utilities' => $laborAndUtilities,
+            'total_price'    => $totalPrice,
+            'breakdown'      => [
+                'food_cost'           => $foodCost,
+                'labor_utilities'     => $laborAndUtilities,
                 'equipment_transport' => $equipmentTransport,
-                'profit_margin' => $profitMargin,
+                'profit_margin'       => $profitMargin,
             ],
-            'items' => $menuItems->map(function($item) {
-                return [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'price' => $item->price
-                ];
-            })
+            'items' => $menuItems->map(fn($item) => [
+                'id'    => $item->id,
+                'name'  => $item->name,
+                'price' => $item->price,
+            ]),
         ]);
     }
 
