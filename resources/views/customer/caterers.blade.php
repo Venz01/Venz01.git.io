@@ -1,8 +1,20 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Browse Caterers') }}
-        </h2>
+        <div class="flex items-center gap-4">
+            @guest
+            <a href="{{ route('welcome') }}"
+                class="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Home
+            </a>
+            <span class="text-gray-300 dark:text-gray-600">|</span>
+            @endguest
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Browse Packages') }}
+            </h2>
+        </div>
     </x-slot>
 
     {{-- ── Dietary Preferences Slide-Out Panel ── --}}
@@ -229,7 +241,7 @@
                     <p class="text-xl mb-6 opacity-90">Browse and compare catering packages for your next event. Customize menus, get instant quotes, and book with confidence.</p>
                     
                     <!-- Search Bar -->
-                    <form method="GET" action="{{ route('customer.caterers') }}" class="flex flex-col sm:flex-row gap-4 max-w-4xl">
+                    <form method="GET" action="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" class="flex flex-col sm:flex-row gap-4 max-w-4xl">
                         <div class="flex-1 relative">
                             <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -474,7 +486,7 @@
                                     <!-- View All Button -->
                                     <div class="flex items-center space-x-2">
                                         <a 
-                                            href="{{ route('customer.caterer.profile', $caterer->id) }}" 
+                                            href="{{ auth()->check() ? route('customer.caterer.profile', $caterer->id) : route('browse.caterer.profile', $caterer->id) }}" 
                                             class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center"
                                         >
                                             View Profile
@@ -548,7 +560,7 @@
                                                             @endif
                                                         </div>
                                                         <a 
-                                                            href="{{ route('customer.package.details', [$caterer->id, $package->id]) }}" 
+                                                            href="{{ auth()->check() ? route('customer.package.details', [$caterer->id, $package->id]) : route('browse.package.details', [$caterer->id, $package->id]) }}" 
                                                             class="text-green-600 hover:text-green-700 font-medium text-sm"
                                                         >
                                                             View →
@@ -562,7 +574,7 @@
                                     @if($caterer->packages->count() > 3)
                                         <div class="mt-4 text-center">
                                             <a 
-                                                href="{{ route('customer.caterer.profile', $caterer->id) }}" 
+                                                href="{{ auth()->check() ? route('customer.caterer.profile', $caterer->id) : route('browse.caterer.profile', $caterer->id) }}" 
                                                 class="text-green-600 hover:text-green-700 font-medium text-sm inline-flex items-center"
                                             >
                                                 + {{ $caterer->packages->count() - 3 }} more packages
@@ -595,7 +607,7 @@
                         </svg>
                         <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">No caterers found</h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-6">Try adjusting your search filters or browse all caterers</p>
-                        <a href="{{ route('customer.caterers') }}" class="inline-block bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors">
+                        <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" class="inline-block bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors">
                             Clear Filters
                         </a>
                     </div>

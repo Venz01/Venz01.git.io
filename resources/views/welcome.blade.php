@@ -78,7 +78,7 @@
             </div>
 
             {{-- Search bar — goes to public browse route for guests, customer route for logged-in --}}
-            <form action="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}" method="GET">
+            <form action="{{ auth()->check() ? route('customer.packages') : route('browse.packages') }}" method="GET">
                 <div class="flex flex-col sm:flex-row gap-3 max-w-2xl">
                     <div class="flex-1 relative">
                         <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Browse by:</span>
                 @foreach($cuisineTypes as $cuisine)
                     {{-- Cuisine chips go to public browse route for guests --}}
-                    <a href="{{ auth()->check() ? route('customer.caterers', ['cuisine' => $cuisine]) : route('browse.caterers', ['cuisine' => $cuisine]) }}"
+                    <a href="{{ auth()->check() ? route('customer.packages', ['cuisine' => $cuisine]) : route('browse.packages', ['cuisine' => $cuisine]) }}"
                         class="px-4 py-1.5 bg-gray-100 hover:bg-green-50 hover:text-green-700 hover:border-green-300 border border-gray-200 rounded-full text-sm text-gray-600 font-medium transition-all">
                         {{ $cuisine }}
                     </a>
@@ -293,7 +293,7 @@
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Popular Packages</h2>
                     <p class="text-gray-500 mt-1">Most booked catering packages</p>
                 </div>
-                <a href="{{ auth()->check() ? route('customer.caterers') : route('browse.caterers') }}"
+                <a href="{{ auth()->check() ? route('customer.packages') : route('browse.packages') }}"
                     class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
                     Browse all packages
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,7 +453,7 @@
             <div class="text-center mt-12">
                 @auth
                     @if(auth()->user()->role === 'customer')
-                        <a href="{{ route('customer.caterers') }}"
+                        <a href="{{ route('customer.packages') }}"
                             class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-xl font-semibold transition-colors shadow-sm">
                             Start Browsing
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,7 +473,7 @@
                     @endif
                 @else
                     {{-- ✅ FIXED: Guest "Get Started" goes to browse, not login --}}
-                    <a href="{{ route('browse.caterers') }}"
+                    <a href="{{ route('browse.packages') }}"
                         class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-xl font-semibold transition-colors shadow-sm">
                         Browse Packages Free
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -547,7 +547,7 @@
             @else
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
                     {{-- ✅ FIXED: Guest CTA goes to browse first, then register --}}
-                    <a href="{{ route('browse.caterers') }}"
+                    <a href="{{ route('browse.packages') }}"
                         class="inline-flex items-center justify-center gap-2 bg-white text-green-700 px-8 py-4 rounded-xl font-bold text-base hover:bg-green-50 transition-colors shadow-lg">
                         Browse Packages Free
                     </a>

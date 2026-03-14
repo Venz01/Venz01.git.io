@@ -20,6 +20,73 @@ class CustomerController extends Controller
      * Browse packages — works for both guests and logged-in customers.
      * Used by both /browse/caterers (public) and /customer/caterers (auth).
      */
+    /**
+     * Browse caterers list — works for both guests and logged-in customers.
+     * Used by both /browse/caterers (public) and /customer/caterers (auth).
+     */
+    public function browseCaterers(Request $request)
+    {
+        $query = User::where('role', 'caterer')
+            ->where('status', 'approved')
+            ->with([
+                'packages' => fn($q) => $q->where('status', 'active')->with('items.category'),
+            ])
+            ->has('packages');
+
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('business_name', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhereHas('packages', fn($p) =>
+                      $p->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                  );
+            });
+        }
+
+        if ($eventType = $request->event_type) {
+            $query->whereHas('packages', fn($p) =>
+                $p->where('name', 'like', "%{$eventType}%")
+            );
+        }
+
+        if ($cuisine = $request->cuisine) {
+            $query->whereJsonContains('cuisine_types', $cuisine);
+        }
+
+        if ($location = $request->location) {
+            $query->where(function ($q) use ($location) {
+                $q->where('business_address', 'like', "%{$location}%")
+                  ->orWhere('city', 'like', "%{$location}%");
+            });
+        }
+
+        $caterers = $query->paginate(10)->withQueryString();
+
+        $savedPreferences = [];
+        if (auth()->check() && auth()->user()->dietary_preferences) {
+            $savedPreferences = is_array(auth()->user()->dietary_preferences)
+                ? auth()->user()->dietary_preferences
+                : [];
+        }
+
+        if (!empty($savedPreferences)) {
+            $caterers->getCollection()->transform(function ($caterer) use ($savedPreferences) {
+                $caterer->packages = $caterer->packages
+                    ->map(function ($package) use ($savedPreferences) {
+                        $packageTags = is_array($package->dietary_tags) ? $package->dietary_tags : [];
+                        $package->dietary_match_score = count(array_intersect($savedPreferences, $packageTags));
+                        return $package;
+                    })
+                    ->sortByDesc('dietary_match_score')
+                    ->values();
+                return $caterer;
+            });
+        }
+
+        return view('customer.caterers', compact('caterers', 'savedPreferences'));
+    }
+
     public function browsePackages(Request $request)
     {
         $query = Package::with(['user', 'items'])

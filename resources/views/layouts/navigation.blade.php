@@ -61,7 +61,7 @@
                     <x-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.dashboard')">
                         {{ __('Home') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
+                    <x-nav-link :href="route('customer.packages')" :active="request()->routeIs('customer.packages')">
                         {{ __('Packages') }}
                     </x-nav-link>
                     <x-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
@@ -153,7 +153,7 @@
 
                     @else
                     {{-- Guest — show public browse links --}}
-                    <x-nav-link :href="route('browse.caterers')" :active="request()->routeIs('browse.caterers')">
+                    <x-nav-link :href="route('browse.packages')" :active="request()->routeIs('browse.packages')">
                         {{ __('Browse Packages') }}
                     </x-nav-link>
                     @endif
@@ -363,7 +363,7 @@
                 :active="request()->routeIs('customer.dashboard')">
                 {{ __('Home') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('customer.caterers')" :active="request()->routeIs('customer.caterers')">
+            <x-responsive-nav-link :href="route('customer.packages')" :active="request()->routeIs('customer.packages')">
                 {{ __('Packages') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('customer.bookings')" :active="request()->routeIs('customer.bookings')">
@@ -467,7 +467,7 @@
 
             @else
             {{-- Guest mobile nav --}}
-            <x-responsive-nav-link :href="route('browse.caterers')" :active="request()->routeIs('browse.*')">
+            <x-responsive-nav-link :href="route('browse.packages')" :active="request()->routeIs('browse.*')">
                 {{ __('Browse Packages') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">

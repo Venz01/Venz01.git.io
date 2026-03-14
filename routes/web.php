@@ -27,7 +27,8 @@ Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 // Guests can freely browse caterers and packages
 // ============================================
 Route::prefix('browse')->name('browse.')->group(function () {
-    Route::get('/caterers', [CustomerController::class, 'browsePackages'])->name('caterers');
+    Route::get('/caterers', [CustomerController::class, 'browseCaterers'])->name('caterers');
+    Route::get('/packages', [CustomerController::class, 'browsePackages'])->name('packages');
     Route::get('/caterers/{id}', [CustomerController::class, 'showCaterer'])->name('caterer.profile');
     Route::get('/caterers/{catererId}/packages/{packageId}', [CustomerController::class, 'showPackage'])->name('package.details');
 });
@@ -82,8 +83,10 @@ Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->gr
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [CustomerController::class, 'home'])->name('dashboard');
 
-    // ✅ Single route — browsePackages() renders the new packages marketplace view
-    Route::get('/caterers', [CustomerController::class, 'browsePackages'])->name('caterers');
+    // Caterers list
+    Route::get('/caterers', [CustomerController::class, 'browseCaterers'])->name('caterers');
+    // Packages marketplace
+    Route::get('/packages', [CustomerController::class, 'browsePackages'])->name('packages');
 
     // Caterer profile & package details
     Route::get('/caterers/{id}', [CustomerController::class, 'showCaterer'])->name('caterer.profile');
