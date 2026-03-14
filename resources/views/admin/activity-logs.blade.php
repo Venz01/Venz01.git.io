@@ -13,8 +13,6 @@
                 <div class="p-6">
                     <form method="GET" action="{{ route('admin.activity-logs') }}" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            
-                            <!-- Type Filter -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
                                 <select name="type" class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -26,8 +24,6 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <!-- User Filter -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">User</label>
                                 <select name="user_id" class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -39,36 +35,30 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <!-- Date From -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
                                 <input type="date" name="date_from" value="{{ request('date_from') }}" 
                                        class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
-
-                            <!-- Date To -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
                                 <input type="date" name="date_to" value="{{ request('date_to') }}" 
                                        class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
                         </div>
-
-                        <!-- Search -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Description</label>
                             <div class="flex gap-2">
                                 <input type="text" name="search" value="{{ request('search') }}" 
                                        placeholder="Search in descriptions..." 
                                        class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                     </svg>
                                     Filter
                                 </button>
-                                <a href="{{ route('admin.activity-logs') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <a href="{{ route('admin.activity-logs') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     Clear
                                 </a>
                             </div>
@@ -83,44 +73,27 @@
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Timestamp
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    User
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Type
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Action
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Description
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    IP Address
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Details
-                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Timestamp</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">IP Address</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Details</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse($logs as $log)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    <div>{{ $log->created_at->format('M d, Y') }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $log->created_at->format('h:i A') }}</div>
+                                    {{-- ✅ Asia/Manila timezone (UTC+8) for Davao, Philippines --}}
+                                    <div>{{ $log->created_at->timezone('Asia/Manila')->format('M d, Y') }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $log->created_at->timezone('Asia/Manila')->format('h:i A') }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($log->user)
-                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $log->user->name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $log->user->email }}
-                                        </div>
+                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $log->user->name }}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $log->user->email }}</div>
                                     @else
                                         <span class="text-sm text-gray-500 dark:text-gray-400">System</span>
                                     @endif
@@ -173,7 +146,6 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 @if($logs->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                     {{ $logs->links() }}
@@ -194,8 +166,7 @@
                     </svg>
                 </button>
             </div>
-            <div id="detailsContent" class="text-sm text-gray-700 dark:text-gray-300">
-            </div>
+            <div id="detailsContent" class="text-sm text-gray-700 dark:text-gray-300"></div>
         </div>
     </div>
 
@@ -203,7 +174,6 @@
         function showDetails(properties) {
             const modal = document.getElementById('detailsModal');
             const content = document.getElementById('detailsContent');
-            
             let html = '<dl class="space-y-2">';
             for (const [key, value] of Object.entries(properties)) {
                 html += `
@@ -214,7 +184,6 @@
                 `;
             }
             html += '</dl>';
-            
             content.innerHTML = html;
             modal.classList.remove('hidden');
         }
@@ -223,11 +192,8 @@
             document.getElementById('detailsModal').classList.add('hidden');
         }
 
-        // Close modal when clicking outside
         document.getElementById('detailsModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDetails();
-            }
+            if (e.target === this) closeDetails();
         });
     </script>
 </x-app-layout>
