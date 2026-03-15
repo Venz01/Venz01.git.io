@@ -4,7 +4,7 @@
             {{ __('Dietary Preferences & Allergies') }}
         </h2>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('Let us know your dietary needs so we can highlight compatible catering packages and menus for you.') }}
+            {{ __('Let us know your dietary needs so we can highlight compatible catering packages for you.') }}
         </p>
     </header>
 
@@ -30,15 +30,12 @@
             @if($allTags->count() > 0)
                 <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     @foreach($allTags as $tag)
-                        @php
-                            $isChecked = in_array($tag->slug, (array) $savedPreferences);
-                        @endphp
+                        @php $isChecked = in_array($tag->slug, (array) $savedPreferences); @endphp
                         <label
                             class="dietary-option relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none
                                 {{ $isChecked
                                     ? 'border-green-500 bg-green-50 dark:bg-green-900/30 shadow-md'
                                     : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-green-300 hover:bg-green-50/50 dark:hover:bg-green-900/10' }}"
-                            id="label-{{ $tag->slug }}"
                         >
                             <input
                                 type="checkbox"
@@ -52,11 +49,8 @@
                             <span class="text-xs font-medium text-center text-gray-700 dark:text-gray-300 leading-tight">
                                 {{ $tag->name }}
                             </span>
-                            {{-- Checkmark badge --}}
-                            <span
-                                class="dietary-check absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center transition-all duration-200
-                                    {{ $isChecked ? 'opacity-100 scale-100' : 'opacity-0 scale-0' }}"
-                            >
+                            <span class="dietary-check absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center transition-all duration-200
+                                    {{ $isChecked ? 'opacity-100 scale-100' : 'opacity-0 scale-0' }}">
                                 <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                                 </svg>
@@ -69,24 +63,25 @@
                     No dietary tags are currently available. Please check back later.
                 </p>
             @endif
-            
+
             <x-input-error class="mt-2" :messages="$errors->get('dietary_preferences')" />
         </div>
 
         {{-- ── Food Allergies ── --}}
         <div>
-            <!-- <x-input-label for="food_allergies" :value="__('Food Allergies & Ingredients to Avoid')" /> -->
-            <!-- <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                List specific ingredients or allergens you must avoid. This helps caterers prepare safe meals for you.
-            </p> -->
+            <x-input-label for="food_allergies" :value="__('Food Allergies & Ingredients to Avoid')" />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                List specific ingredients you must avoid, separated by commas.
+                Caterers and packages will be flagged when they may contain these.
+            </p>
             <div class="mt-2 relative">
-                <!-- <div class="absolute top-3 left-3 pointer-events-none">
+                <div class="absolute top-3 left-3 pointer-events-none">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                     </svg>
-                </div> -->
-                <!-- <textarea
+                </div>
+                <textarea
                     id="food_allergies"
                     name="food_allergies"
                     rows="3"
@@ -94,17 +89,15 @@
                     class="mt-1 block w-full pl-10 border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300
                            focus:border-green-500 dark:focus:border-green-600 focus:ring-green-500 dark:focus:ring-green-600
                            rounded-xl shadow-sm resize-none"
-                    placeholder="Example: Peanuts, shrimp, eggs, shellfish, tree nuts, soy, wheat, milk..."
+                    placeholder="e.g., Peanuts, shrimp, eggs, shellfish, tree nuts, soy, wheat, milk..."
                     oninput="updateCharCount(this)"
-                >{{ old('food_allergies', $user->food_allergies) }}</textarea> -->
-                <!-- <div class="mt-1 flex justify-between text-xs text-gray-400">
+                >{{ old('food_allergies', $user->food_allergies) }}</textarea>
+                <div class="mt-1 flex justify-between text-xs text-gray-400">
                     <span>Separate items with commas</span>
-                    <span id="char-count">
-                        {{ strlen(old('food_allergies', $user->food_allergies ?? '')) }}/1000
-                    </span>
-                </div> -->
+                    <span id="char-count">{{ strlen(old('food_allergies', $user->food_allergies ?? '')) }}/1000</span>
+                </div>
             </div>
-            <!-- <x-input-error class="mt-2" :messages="$errors->get('food_allergies')" /> -->
+            <x-input-error class="mt-2" :messages="$errors->get('food_allergies')" />
         </div>
 
         {{-- ── Info Banner ── --}}
@@ -116,8 +109,8 @@
                 </svg>
             </div>
             <p class="text-sm text-blue-700 dark:text-blue-300">
-                <strong>How this is used:</strong> Your saved preferences will automatically highlight compatible
-                packages and menus when browsing caterers — and flag items that may not suit your dietary needs.
+                <strong>How this is used:</strong> Your saved preferences and allergies will automatically
+                highlight compatible packages and flag items that may not suit your dietary needs.
                 Caterers are also notified of your preferences when you make a booking.
             </p>
         </div>
@@ -153,7 +146,7 @@
 
     <script>
         function toggleDietaryCard(checkbox) {
-            const label = checkbox.closest('label');
+            const label      = checkbox.closest('label');
             const checkBadge = label.querySelector('.dietary-check');
 
             if (checkbox.checked) {

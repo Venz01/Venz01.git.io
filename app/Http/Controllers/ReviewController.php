@@ -63,12 +63,13 @@ class ReviewController extends Controller
         ]);
 
         $review = Review::create([
-            'booking_id' => $booking->id,
-            'customer_id' => auth()->id(),
-            'caterer_id' => $booking->caterer_id,
-            'rating' => $request->rating,
-            'comment' => $request->comment,
-            'is_approved' => true, // Auto-approve for now
+            'booking_id'   => $booking->id,
+            'customer_id'  => auth()->id(),
+            'caterer_id'   => $booking->caterer_id,
+            'rating'       => $request->rating,
+            'comment'      => $request->comment,
+            'is_approved'  => false,         // awaits admin moderation
+            'admin_status' => 'under_review',
         ]);
 
         
@@ -82,7 +83,7 @@ class ReviewController extends Controller
         }
 
         return redirect()->route('customer.booking.details', $booking->id)
-            ->with('success', 'Thank you for your review! Your feedback helps other customers.');
+            ->with('success', 'Thank you for your review! It will be visible once approved by our team.');
     }
 
     /**

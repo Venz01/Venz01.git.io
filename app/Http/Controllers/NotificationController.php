@@ -46,9 +46,10 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark a single notification as read
+     * Mark a single notification as read.
+     * Accepts PATCH — either via fetch (returns JSON) or a plain form POST (redirects).
      */
-    public function markAsRead($id)
+    public function markAsRead(Request $request, $id)
     {
         $notification = Notification::where('user_id', auth()->id())
             ->where('id', $id)
@@ -56,9 +57,19 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        // Redirect to the URL in the notification data if it exists
-        if (isset($notification->data['url'])) {
-            return redirect($notification->data['url']);
+        $redirectUrl = isset($notification->data['url'])
+            ? $notification->data['url']
+            : null;
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success'  => true,
+                'redirect' => $redirectUrl,
+            ]);
+        }
+
+        if ($redirectUrl) {
+            return redirect($redirectUrl);
         }
 
         return back()->with('success', 'Notification marked as read.');

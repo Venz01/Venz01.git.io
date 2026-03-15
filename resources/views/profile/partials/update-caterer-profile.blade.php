@@ -209,9 +209,9 @@
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save Business Information') }}</x-primary-button>
 
-            @if (session('success'))
+            @if (session('caterer_success'))
                 <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
-                   class="text-sm text-green-600 dark:text-green-400">{{ session('success') }}</p>
+                   class="text-sm text-green-600 dark:text-green-400">{{ session('caterer_success') }}</p>
             @endif
         </div>
     </form>

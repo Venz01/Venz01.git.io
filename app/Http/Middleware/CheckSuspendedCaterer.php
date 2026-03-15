@@ -6,76 +6,63 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\ActivityLogger;
 
 class CheckSuspendedCaterer
 {
     /**
      * Handle an incoming request.
-     * This middleware specifically handles suspended caterers after login
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Intercepts caterers whose account status is not 'approved' and
+     * forces a logout with an appropriate message.
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check()) {
-            $user = auth()->user();
-            
-            // Only check for caterers
-            if ($user->role === 'caterer') {
-                // If caterer is suspended - show specific message
-                if ($user->status === 'suspended') {
-                    Auth::logout();
-                    
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-
-                    return redirect()->route('login')->withErrors([
-                        'email' => 'Your account has been temporarily suspended. There may be an issue with your account that requires attention. Please contact the administrator for assistance and further details.',
-                    ]);
-                }
-                
-                // If caterer is blocked
-                if ($user->status === 'blocked') {
-                    Auth::logout();
-                    
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-
-                    return redirect()->route('login')->withErrors([
-                        'email' => 'Your account has been permanently blocked due to violations of our terms of service. Please contact our support team for more information.',
-                    ]);
-                }
-                
-                // If caterer is still pending
-                if ($user->status === 'pending') {
-                    Auth::logout();
-                    
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-
-                    return redirect()->route('register.pending');
-                }
-                
-                // If caterer was rejected
-                if ($user->status === 'rejected') {
-                    Auth::logout();
-                    
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-
-                    return redirect()->route('login')->withErrors([
-                        'email' => 'Your caterer application has been reviewed and unfortunately was not approved at this time. Please contact the administrator if you have questions or would like to reapply.',
-                    ]);
-                if ($user->status === 'suspended') {
-                    ActivityLogger::logAuth('login_blocked', "Suspended user attempted to login: {$user->email}", $user->id);
-                    
-                    Auth::logout();
-                    // ... rest of code
-}
-                }
-            }
+        if (! auth()->check()) {
+            return $next($request);
         }
 
-        return $next($request);
+        $user = auth()->user();
+
+        // Only apply to caterers
+        if ($user->role !== 'caterer') {
+            return $next($request);
+        }
+
+        $status = $user->status;
+
+        if ($status === 'approved') {
+            return $next($request);
+        }
+
+        // Any non-approved status: log, then logout + redirect
+        ActivityLogger::logAuth(
+            'login_blocked',
+            "Caterer access blocked due to status '{$status}': {$user->email}",
+            $user->id
+        );
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return match ($status) {
+            'suspended' => redirect()->route('login')->withErrors([
+                'email' => 'Your account has been temporarily suspended. Please contact the administrator for assistance.',
+            ]),
+
+            'blocked' => redirect()->route('login')->withErrors([
+                'email' => 'Your account has been permanently blocked due to violations of our terms of service. Please contact our support team.',
+            ]),
+
+            'pending' => redirect()->route('register.pending'),
+
+            'rejected' => redirect()->route('login')->withErrors([
+                'email' => 'Your caterer application was not approved. Please contact the administrator if you have questions or would like to reapply.',
+            ]),
+
+            default => redirect()->route('login')->withErrors([
+                'email' => 'Your account is not active. Please contact support.',
+            ]),
+        };
     }
 }

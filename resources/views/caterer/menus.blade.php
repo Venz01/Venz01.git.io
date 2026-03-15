@@ -1270,110 +1270,145 @@
     }
 
     function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
-        document.getElementById('editPackageName').value = name;
+        // ── 1. Populate text fields ──────────────────────────────────────────
+        document.getElementById('editPackageName').value        = name;
         document.getElementById('editPackageDescription').value = description;
-        document.getElementById('editPackagePax').value = pax;
-        document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
+        document.getElementById('editPackagePax').value         = pax;
+        document.getElementById('editPackageForm').action       = `/caterer/packages/${packageId}`;
 
+        // ── 2. Dietary tags ──────────────────────────────────────────────────
         document.querySelectorAll('#editPackageModal .dietary-tag-checkbox').forEach(checkbox => {
-            const tagValue = checkbox.value;
-            checkbox.checked = dietaryTags.includes(tagValue);
-            if (typeof toggleDietaryTag === 'function') {
-                toggleDietaryTag(checkbox);
-            }
+            checkbox.checked = dietaryTags.includes(checkbox.value);
+            if (typeof toggleDietaryTag === 'function') toggleDietaryTag(checkbox);
         });
 
+        // ── 3. ALWAYS uncheck every menu-item checkbox before opening ────────
+        //    This prevents stale selections from a previous edit session
+        //    bleeding into the current one.
+        document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+
+        // ── 4. Show modal & "Loading…" state ────────────────────────────────
         document.getElementById('editPackageModal').classList.remove('hidden');
-
         const container = document.getElementById('editSelectedItemsContainer');
-        container.innerHTML = '<p class="text-sm text-gray-500">Loading items...</p>';
+        container.innerHTML = `
+            <div class="flex items-center gap-2 text-sm text-gray-500 py-2">
+                <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                Loading package items…
+            </div>`;
 
-        // Fetch package costing data
-        fetch(`/caterer/packages/${packageId}/breakdown`)
-            .then(response => response.json())
-            .then(costingData => {
-                if (costingData.has_costing) {
-                    // Find the price breakdown section in the edit modal
-                    const breakdownSection = document.querySelector('#editPackageModal .bg-gray-50.dark\\:bg-gray-700\\/50');
-                    if (breakdownSection) {
-                        let html = '<h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Current Package Costing:</h4>';
-                        html += '<div class="space-y-1 text-gray-700 dark:text-gray-300 text-xs">';
-                        
-                        if (costingData.ingredient_cost > 0) {
-                            html += `<div class="flex justify-between"><span>Ingredients / Raw Food:</span><span>₱${costingData.ingredient_cost.toFixed(2)}</span></div>`;
-                        }
-                        if (costingData.labor_cost > 0) {
-                            html += `<div class="flex justify-between"><span>Labor & Staffing:</span><span>₱${costingData.labor_cost.toFixed(2)}</span></div>`;
-                        }
-                        if (costingData.equipment_cost > 0) {
-                            html += `<div class="flex justify-between"><span>Equipment & Rentals:</span><span>₱${costingData.equipment_cost.toFixed(2)}</span></div>`;
-                        }
-                        if (costingData.consumables_cost > 0) {
-                            html += `<div class="flex justify-between"><span>Consumables & Packaging:</span><span>₱${costingData.consumables_cost.toFixed(2)}</span></div>`;
-                        }
-                        if (costingData.overhead_cost > 0) {
-                            html += `<div class="flex justify-between"><span>Overhead & Utilities:</span><span>₱${costingData.overhead_cost.toFixed(2)}</span></div>`;
-                        }
-                        if (costingData.transport_cost > 0) {
-                            html += `<div class="flex justify-between"><span>Transport & Logistics:</span><span>₱${costingData.transport_cost.toFixed(2)}</span></div>`;
-                        }
-                        
-                        html += `<div class="flex justify-between"><span>Profit Margin (${costingData.profit_margin_percent.toFixed(1)}%):</span><span>₱${costingData.profit_margin.toFixed(2)}</span></div>`;
-                        html += '<div class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">';
-                        html += `<span>Total per Head:</span><span>₱${costingData.total_per_head.toFixed(2)}</span>`;
-                        html += '</div></div>';
-                        
-                        html += '<div class="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs">';
-                        html += '<p class="text-yellow-700 dark:text-yellow-400"><strong>Note:</strong> Changing menu items will recalculate price using simple formula. To update costing with new items, use the Costing Tool after saving.</p>';
-                        html += '</div>';
-                        
-                        breakdownSection.innerHTML = html;
-                    }
+        // ── 5. Sync the Alpine component to "nothing selected" immediately ───
+        //    Find the Alpine component instance that owns the edit modal.
+        const editForm = document.getElementById('editPackageForm');
+        if (editForm && editForm._x_dataStack) {
+            const alpineData = editForm._x_dataStack[0];
+            if (alpineData) {
+                alpineData.selectedEditItems = [];
+                alpineData.foodCost          = 0;
+                alpineData.calculatedPrice   = 0;
+                alpineData.pax               = parseInt(pax) || 1;
+            }
+        }
+
+        // ── 6. Fetch items & costing in parallel ─────────────────────────────
+        Promise.all([
+            fetch(`/caterer/packages/${packageId}/items`).then(r => {
+                if (!r.ok) throw new Error('Failed to fetch package items');
+                return r.json();
+            }),
+            fetch(`/caterer/packages/${packageId}/price-breakdown`).then(r => r.json()).catch(() => null)
+        ])
+        .then(([itemData, costingData]) => {
+
+            // ── 6a. Check the correct checkboxes ────────────────────────────
+            if (itemData.items && Array.isArray(itemData.items)) {
+                itemData.items.forEach(itemId => {
+                    const cb = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
+                    if (cb) cb.checked = true;
+                });
+            }
+
+            // ── 6b. Update the Alpine component's reactive state directly ────
+            //    Dispatching a single 'change' event is unreliable when Alpine
+            //    reads all checkboxes via querySelectorAll — it only re-runs
+            //    updateEditPrice() once, which is fine, but we need to make
+            //    sure the DOM is settled first (requestAnimationFrame).
+            requestAnimationFrame(() => {
+                // Trigger Alpine price recalculation via a change event on any
+                // checked checkbox (or the first checkbox if none are checked)
+                const trigger =
+                    document.querySelector('.edit-menu-item-checkbox:checked') ||
+                    document.querySelector('.edit-menu-item-checkbox');
+
+                if (trigger) {
+                    trigger.dispatchEvent(new Event('change', { bubbles: true }));
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching costing data:', error);
-                // Continue without costing data - will show simple calculation
+
+                // Rebuild the "Selected Items" summary panel
+                updateEditSelectedItemsDisplay();
             });
 
-        fetch(`/caterer/packages/${packageId}/items`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch package items');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.items && Array.isArray(data.items)) {
-                    data.items.forEach(itemId => {
-                        const checkbox = document.querySelector(
-                            `.edit-menu-item-checkbox[value="${itemId}"]`);
-                        if (checkbox) {
-                            checkbox.checked = true;
-                        }
-                    });
-                }
+            // ── 6c. Optionally show costing breakdown ────────────────────────
+            if (costingData && costingData.has_costing) {
+                const breakdownSection = document.querySelector(
+                    '#editPackageModal .bg-gray-50'
+                );
+                if (breakdownSection) {
+                    const c = costingData;
+                    const rows = [
+                        ['Ingredients / Raw Food',   c.ingredient_cost],
+                        ['Labor & Staffing',          c.labor_cost],
+                        ['Equipment & Rentals',       c.equipment_cost],
+                        ['Consumables & Packaging',   c.consumables_cost],
+                        ['Overhead & Utilities',      c.overhead_cost],
+                        ['Transport & Logistics',     c.transport_cost],
+                    ]
+                    .filter(([, v]) => v > 0)
+                    .map(([label, v]) =>
+                        `<div class="flex justify-between"><span>${label}:</span><span>₱${Number(v).toFixed(2)}</span></div>`
+                    ).join('');
 
-                setTimeout(() => {
-                    const firstCheckbox = document.querySelector('.edit-menu-item-checkbox');
-                    if (firstCheckbox) {
-                        const event = new Event('change', {
-                            bubbles: true
-                        });
-                        firstCheckbox.dispatchEvent(event);
-                    }
-                    updateEditSelectedItemsDisplay();
-                }, 100);
-            })
-            .catch(error => {
-                console.error('Error fetching package items:', error);
-                container.innerHTML =
-                    '<p class="text-sm text-red-500">Error loading items. Please refresh and try again.</p>';
-            });
+                    breakdownSection.innerHTML = `
+                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200 text-sm">Current Package Costing:</h4>
+                        <div class="space-y-1 text-gray-700 dark:text-gray-300 text-xs">
+                            ${rows}
+                            <div class="flex justify-between">
+                                <span>Profit Margin (${Number(c.profit_margin_percent).toFixed(1)}%):</span>
+                                <span>₱${Number(c.profit_margin).toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
+                                <span>Total per Head:</span>
+                                <span>₱${Number(c.total_per_head).toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs">
+                            <p class="text-yellow-700 dark:text-yellow-400">
+                                <strong>Note:</strong> Changing menu items recalculates using the simple formula.
+                                Use the Costing Tool after saving to apply detailed costing.
+                            </p>
+                        </div>`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading package data:', error);
+            container.innerHTML =
+                '<p class="text-sm text-red-500">Error loading items. Please close and try again.</p>';
+        });
     }
 
     function closeEditPackageModal() {
         document.getElementById('editPackageModal').classList.add('hidden');
+        // Clear all checkboxes so the next openEditPackageModal starts clean
+        document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        document.getElementById('editSelectedItemsContainer').innerHTML =
+            '<p class="text-sm text-gray-500 italic">No items selected.</p>';
     }
 
     function updateEditSelectedItemsDisplay() {

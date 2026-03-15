@@ -281,14 +281,70 @@
                     </div>
 
                     <!-- Payment Receipt -->
-                    @if($booking->receipt_path)
+                    @php
+                        // receipt_path may be a relative storage path (receipts/x.jpg)
+                        // or a full Cloudinary URL. Normalise to a displayable URL.
+                        $receiptUrl = $booking->receipt_path
+                            ? (str_starts_with($booking->receipt_path, 'http')
+                                ? $booking->receipt_path
+                                : Storage::disk('public')->url($booking->receipt_path))
+                            : null;
+
+                        $balanceReceiptUrl = $booking->balance_receipt_path
+                            ? (str_starts_with($booking->balance_receipt_path, 'http')
+                                ? $booking->balance_receipt_path
+                                : Storage::disk('public')->url($booking->balance_receipt_path))
+                            : null;
+                    @endphp
+
+                    @if($receiptUrl)
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Receipt</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            Deposit Receipt
+                        </h3>
                         <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                            <img src="{{ $booking->receipt_path }}" alt="Payment Receipt"
-                                class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                onclick="openImageModal(this.src)">
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Click to view full size</p>
+                            @if(str_ends_with(strtolower(parse_url($receiptUrl, PHP_URL_PATH)), '.pdf'))
+                                <a href="{{ $receiptUrl }}" target="_blank"
+                                   class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    View PDF Receipt
+                                </a>
+                            @else
+                                <img src="{{ $receiptUrl }}" alt="Deposit Receipt"
+                                    class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    onclick="openImageModal(this.src)"
+                                    onerror="this.closest('.border-2').innerHTML='<p class=\'text-sm text-red-500\'>Receipt image could not be loaded.</p>'">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Click to view full size</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($balanceReceiptUrl)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            Balance Payment Receipt
+                        </h3>
+                        <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            @if(str_ends_with(strtolower(parse_url($balanceReceiptUrl, PHP_URL_PATH)), '.pdf'))
+                                <a href="{{ $balanceReceiptUrl }}" target="_blank"
+                                   class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    View PDF Receipt
+                                </a>
+                            @else
+                                <img src="{{ $balanceReceiptUrl }}" alt="Balance Payment Receipt"
+                                    class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    onclick="openImageModal(this.src)"
+                                    onerror="this.closest('.border-2').innerHTML='<p class=\'text-sm text-red-500\'>Receipt image could not be loaded.</p>'">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Click to view full size</p>
+                            @endif
                         </div>
                     </div>
                     @endif

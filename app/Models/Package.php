@@ -67,19 +67,12 @@ class Package extends Model
     }
 
     /**
-     * Get dietary tags as human-readable labels
+     * Get dietary tags as human-readable labels.
+     * Uses DietaryTag model so labels stay in sync with the admin-managed tag list.
      */
     public function getDietaryLabelsAttribute(): array
     {
-        $labels = [
-            'no_pork'      => 'No Pork',
-            'vegetarian'   => 'Vegetarian',
-            'vegan'        => 'Vegan',
-            'halal'        => 'Halal',
-            'gluten_free'  => 'Gluten-Free',
-            'dairy_free'   => 'Dairy-Free',
-            'seafood_free' => 'Seafood-Free',
-        ];
+        $labels = \App\Models\DietaryTag::pluck('name', 'slug')->toArray();
 
         return array_values(array_map(
             fn ($key) => $labels[$key] ?? ucfirst(str_replace('_', ' ', $key)),

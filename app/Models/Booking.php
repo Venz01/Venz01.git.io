@@ -32,6 +32,7 @@ class Booking extends Model
         'customer_phone',
         'payment_method',
         'receipt_path',
+        'balance_receipt_path',
         'payment_status',
         'booking_status',
         // Cancellation fields
@@ -136,11 +137,15 @@ class Booking extends Model
             && in_array($this->refund_status ?? 'none', ['none', 'pending']);
     }
 
-    public function canBeReviewed(): bool
+    /**
+     * Returns true when the given customer is allowed to leave a review
+     * for this booking. Pass auth()->id() from the controller/view.
+     */
+    public function canBeReviewed(int $customerId): bool
     {
         return $this->booking_status === 'completed'
-            && !$this->review()->exists()
-            && $this->customer_id === auth()->id();
+            && ! $this->review()->exists()
+            && $this->customer_id === $customerId;
     }
 
     public function hasReview(): bool

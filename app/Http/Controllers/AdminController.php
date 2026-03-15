@@ -131,9 +131,12 @@ class AdminController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
 
+        // Prevent deletion of any other admin account
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Admin accounts cannot be deleted.');
+        }
+
         $userName = $user->name;
-        
-        // Delete user and all related data
         $user->delete();
 
         return back()->with('success', "User {$userName} has been deleted successfully.");
@@ -159,6 +162,10 @@ class AdminController extends Controller
         $userIds = array_filter($userIds, function($id) {
             return $id != auth()->id();
         });
+
+        // Remove any admin accounts from bulk targets (protect admin accounts)
+        $adminIds = User::whereIn('id', $userIds)->where('role', 'admin')->pluck('id')->toArray();
+        $userIds  = array_values(array_diff($userIds, $adminIds));
 
         if (empty($userIds)) {
             return back()->with('error', 'Cannot perform bulk actions on your own account.');

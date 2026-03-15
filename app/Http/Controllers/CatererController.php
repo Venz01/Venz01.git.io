@@ -36,20 +36,38 @@ class CatererController extends Controller
         $caterer = auth()->user();
         $catererId = $caterer->id;
 
-        // Get bookings statistics
+        // Get booking statistics — single query with conditional aggregation
+        $bookingAgg = Booking::where('caterer_id', $catererId)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN booking_status = 'pending'   THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN booking_status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
+                SUM(CASE WHEN booking_status = 'completed' THEN 1 ELSE 0 END) as completed
+            ")
+            ->first();
+
         $bookingStats = [
-            'pending' => Booking::where('caterer_id', $catererId)->where('booking_status', 'pending')->count(),
-            'confirmed' => Booking::where('caterer_id', $catererId)->where('booking_status', 'confirmed')->count(),
-            'completed' => Booking::where('caterer_id', $catererId)->where('booking_status', 'completed')->count(),
-            'total' => Booking::where('caterer_id', $catererId)->count(),
+            'pending'   => (int) $bookingAgg->pending,
+            'confirmed' => (int) $bookingAgg->confirmed,
+            'completed' => (int) $bookingAgg->completed,
+            'total'     => (int) $bookingAgg->total,
         ];
 
-        // ✅ NEW: Get orders statistics
+        // Get order statistics — single query
+        $orderAgg = Order::where('caterer_id', $catererId)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN order_status = 'pending'   THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN order_status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
+                SUM(CASE WHEN order_status = 'completed' THEN 1 ELSE 0 END) as completed
+            ")
+            ->first();
+
         $orderStats = [
-            'pending' => Order::where('caterer_id', $catererId)->where('order_status', 'pending')->count(),
-            'confirmed' => Order::where('caterer_id', $catererId)->where('order_status', 'confirmed')->count(),
-            'completed' => Order::where('caterer_id', $catererId)->where('order_status', 'completed')->count(),
-            'total' => Order::where('caterer_id', $catererId)->count(),
+            'pending'   => (int) $orderAgg->pending,
+            'confirmed' => (int) $orderAgg->confirmed,
+            'completed' => (int) $orderAgg->completed,
+            'total'     => (int) $orderAgg->total,
         ];
 
         // ✅ UPDATED: Revenue from BOTH bookings and orders

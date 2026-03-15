@@ -44,7 +44,10 @@
                             <li id="notif-{{ $notification->id }}"
                                 class="hover:bg-gray-50 dark:hover:bg-gray-700 transition {{ $isUnread ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
 
-                                <a href="{{ route('notifications.read', $notification->id) }}" class="block px-6 py-4">
+                                <form action="{{ route('notifications.read', $notification->id) }}" method="POST" class="block">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="block w-full text-left px-6 py-4 cursor-pointer">
                                     <div class="flex items-start space-x-3">
 
                                         {{-- Icon bubble — pure PHP partial, no Blade directives inside --}}
@@ -75,7 +78,8 @@
                                         </div>
 
                                     </div>
-                                </a>
+                                </button>
+                                </form>
                             </li>
                         @endforeach
                     </ul>

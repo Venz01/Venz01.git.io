@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesImageUploads;
 use App\Models\PortfolioImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    use HandlesImageUploads;
     /**
      * Display the user's profile form.
      */
@@ -126,8 +128,18 @@ class ProfileController extends Controller
 
         $user->save();
 
+        // Return a unique session key so each section's toast fires independently.
+        // business-hours.blade.php   listens for 'hours_success'
+        // update-caterer-profile     listens for 'caterer_success'
+        // update-customer-profile    listens for 'customer_success'
+        if ($user->isCaterer()) {
+            $flashKey = isset($isHoursUpdate) && $isHoursUpdate ? 'hours_success' : 'caterer_success';
+        } else {
+            $flashKey = 'customer_success';
+        }
+
         return Redirect::route('profile.edit')
-            ->with('success', 'Profile updated successfully!');
+            ->with($flashKey, 'Profile updated successfully!');
     }
 
     /**
@@ -172,13 +184,7 @@ class ProfileController extends Controller
         // Remove photo
         if ($request->has('remove_photo') && $request->remove_photo) {
             if ($user->profile_photo) {
-                // Delete from Cloudinary
-                try {
-                    $this->deleteFromCloudinary($user->profile_photo);
-                } catch (\Exception $e) {
-                    // Continue even if deletion fails
-                }
-                
+                $this->deleteImage($user->profile_photo);
                 $user->profile_photo = null;
                 $user->save();
             }
@@ -194,18 +200,10 @@ class ProfileController extends Controller
 
         // Upload new photo
         if ($request->hasFile('profile_photo')) {
-            // Delete old photo from Cloudinary
-            if ($user->profile_photo) {
-                try {
-                    $this->deleteFromCloudinary($user->profile_photo);
-                } catch (\Exception $e) {
-                    // Continue even if deletion fails
-                }
-            }
+            $this->deleteImage($user->profile_photo);
 
             try {
-                // Upload to Cloudinary using direct API
-                $imageUrl = $this->uploadToCloudinary($request->file('profile_photo'), 'profile-photos');
+                $imageUrl = $this->handleImageUpload($request->file('profile_photo'), 'profile-photos');
                 $user->profile_photo = $imageUrl;
                 $user->save();
 
@@ -233,8 +231,7 @@ class ProfileController extends Controller
         ]);
 
         try {
-            // Upload to Cloudinary
-            $imagePath = $this->uploadToCloudinary($request->file('image'), 'portfolio');
+            $imagePath = $this->handleImageUpload($request->file('image'), 'portfolio');
 
             $maxOrder = PortfolioImage::where('user_id', auth()->id())->max('order') ?? 0;
 
@@ -280,13 +277,7 @@ class ProfileController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        // Delete from Cloudinary
-        try {
-            $this->deleteFromCloudinary($image->image_path);
-        } catch (\Exception $e) {
-            // Continue even if deletion fails
-        }
-
+        $this->deleteImage($image->image_path);
         $image->delete();
 
         return Redirect::route('profile.edit')
@@ -332,113 +323,4 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
     
-    /**
-     * Upload image to Cloudinary using direct API call
-     */
-    private function uploadToCloudinary($file, $folder)
-    {
-        $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $apiKey = env('CLOUDINARY_API_KEY');
-        $apiSecret = env('CLOUDINARY_API_SECRET');
-        
-        if (!$cloudName || !$apiKey || !$apiSecret) {
-            throw new \Exception('Cloudinary credentials not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment variables.');
-        }
-        
-        $timestamp = time();
-        $publicId = $folder . '/' . uniqid();
-        
-        // Generate signature
-        $signatureString = "folder={$folder}&public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
-        $signature = sha1($signatureString);
-        
-        // Prepare the upload
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, [
-            'file' => new \CURLFile($file->getRealPath()),
-            'api_key' => $apiKey,
-            'timestamp' => $timestamp,
-            'signature' => $signature,
-            'folder' => $folder,
-            'public_id' => $publicId,
-        ]);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        if ($httpCode !== 200) {
-            throw new \Exception('Cloudinary upload failed: ' . $response);
-        }
-        
-        $result = json_decode($response, true);
-        return $result['secure_url'];
-    }
-    
-    /**
-     * Delete image from Cloudinary
-     */
-    private function deleteFromCloudinary($url)
-    {
-        if (strpos($url, 'cloudinary.com') === false) {
-            return;
-        }
-        
-        $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $apiKey = env('CLOUDINARY_API_KEY');
-        $apiSecret = env('CLOUDINARY_API_SECRET');
-        
-        if (!$cloudName || !$apiKey || !$apiSecret) {
-            return; // Silently fail if not configured
-        }
-        
-        // Extract public_id from URL
-        $publicId = $this->getPublicIdFromUrl($url);
-        if (!$publicId) {
-            return;
-        }
-        
-        $timestamp = time();
-        $signatureString = "public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
-        $signature = sha1($signatureString);
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, [
-            'public_id' => $publicId,
-            'api_key' => $apiKey,
-            'timestamp' => $timestamp,
-            'signature' => $signature,
-        ]);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
-        curl_exec($ch);
-        curl_close($ch);
-    }
-    
-    /**
-     * Extract Cloudinary public_id from URL
-     */
-    private function getPublicIdFromUrl($url)
-    {
-        if (strpos($url, 'cloudinary.com') === false) {
-            return null;
-        }
-        
-        $parts = explode('/upload/', $url);
-        if (count($parts) < 2) {
-            return null;
-        }
-        
-        $pathParts = explode('/', $parts[1]);
-        array_shift($pathParts); // Remove version
-        $publicId = implode('/', $pathParts);
-        $publicId = preg_replace('/\.[^.]+$/', '', $publicId);
-        
-        return $publicId;
-    }
 }

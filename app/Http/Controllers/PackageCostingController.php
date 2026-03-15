@@ -6,6 +6,7 @@ use App\Models\Package;
 use App\Models\PackageCosting;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreCostingRequest;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -101,24 +102,11 @@ class PackageCostingController extends Controller
 
     // ── Save / Update Costing ─────────────────────────────────────────────────
 
-    public function store(Request $request, Package $package)
+    public function store(StoreCostingRequest $request, Package $package)
     {
         $this->authorizePackage($package);
 
-        $validated = $request->validate([
-            'ingredient_cost'       => 'nullable|numeric|min:0',
-            'labor_cost'            => 'nullable|numeric|min:0',
-            'equipment_cost'        => 'nullable|numeric|min:0',
-            'consumables_cost'      => 'nullable|numeric|min:0',
-            'overhead_cost'         => 'nullable|numeric|min:0',
-            'transport_cost'        => 'nullable|numeric|min:0',
-            'profit_margin_percent' => 'required|numeric|min:0|max:100',
-            'final_price'           => 'nullable|numeric|min:0',
-            'notes'                 => 'nullable|string|max:1000',
-            'apply_to_package'      => 'boolean',
-            'set_as_default'        => 'boolean',
-            'template_name'         => 'nullable|string|max:100',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
         try {

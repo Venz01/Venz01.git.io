@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBookingEventRequest;
+use App\Http\Requests\ProcessPaymentRequest;
+use App\Http\Requests\ProcessBalancePaymentRequest;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\MenuItem;
@@ -43,26 +46,8 @@ class BookingController extends Controller
     /**
      * Store event details and move to payment (Step 2)
      */
-    public function storeEventDetails(Request $request)
+    public function storeEventDetails(StoreBookingEventRequest $request)
     {
-        $request->validate([
-            'package_id'        => 'required|exists:packages,id',
-            'caterer_id'        => 'required|exists:users,id',
-            'event_type'        => 'required|string',
-            'event_date'        => 'required|date|after:today',
-            'time_slot'         => 'required|string',
-            'guests'            => 'required|integer|min:1',
-            'venue_name'        => 'required|string|max:255',
-            'venue_address'     => 'required|string|max:500',
-            'special_instructions' => 'nullable|string|max:1000',
-            'selected_items'    => 'required|array|min:1',
-            'selected_items.*'  => 'exists:menu_items,id',
-            'price_per_head'    => 'required|numeric|min:0',
-            'total_price'       => 'required|numeric|min:0',
-        ], [
-            'event_date.after' => 'Event date must be at least 1 day in advance.',
-        ]);
-
         $eventDate = \Carbon\Carbon::parse($request->event_date);
         if ($eventDate->lt(\Carbon\Carbon::tomorrow())) {
             return back()->withInput()
@@ -119,47 +104,48 @@ class BookingController extends Controller
     /**
      * Process payment and create booking (Step 3)
      */
-    public function processPayment(Request $request)
+    public function processPayment(ProcessPaymentRequest $request)
     {
-        $request->validate([
-            'full_name'      => 'required|string|max:255',
-            'email'          => 'required|email|max:255',
-            'phone'          => 'required|string|max:20',
-            'payment_method' => 'required|in:gcash,paymaya,bank_transfer',
-            'receipt'        => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
-        ]);
-
         $bookingDetails = session('booking_details');
 
         if (!$bookingDetails) {
             return redirect()->route('customer.caterers')->with('error', 'Booking session expired.');
         }
 
-        // Re-check availability before creating
-        $isBlocked = CatererAvailability::where('caterer_id', $bookingDetails['caterer_id'])
-            ->where('date', $bookingDetails['event_date'])
-            ->where('status', 'blocked')
-            ->exists();
-
-        if ($isBlocked) {
-            session()->forget(['booking_details', 'booking_customization']);
-            return redirect()->route('customer.caterers')
-                ->with('error', 'Sorry, this date is no longer available.');
-        }
-
-        $hasExistingBooking = Booking::where('caterer_id', $bookingDetails['caterer_id'])
-            ->where('event_date', $bookingDetails['event_date'])
-            ->whereIn('booking_status', ['pending', 'confirmed'])
-            ->exists();
-
-        if ($hasExistingBooking) {
-            session()->forget(['booking_details', 'booking_customization']);
-            return redirect()->route('customer.caterers')
-                ->with('error', 'Sorry, this date is no longer available.');
-        }
-
         try {
             DB::beginTransaction();
+
+            // Acquire an advisory lock per caterer+date to prevent double-bookings
+            // under concurrent requests (race condition fix).
+            $lockKey = 'booking_' . $bookingDetails['caterer_id'] . '_' . $bookingDetails['event_date'];
+            DB::select("SELECT GET_LOCK(?, 5) as locked", [$lockKey]);
+
+            // Re-check availability inside the lock
+            $isBlocked = CatererAvailability::where('caterer_id', $bookingDetails['caterer_id'])
+                ->where('date', $bookingDetails['event_date'])
+                ->where('status', 'blocked')
+                ->exists();
+
+            if ($isBlocked) {
+                DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+                DB::rollBack();
+                session()->forget(['booking_details', 'booking_customization']);
+                return redirect()->route('customer.caterers')
+                    ->with('error', 'Sorry, this date is no longer available.');
+            }
+
+            $hasExistingBooking = Booking::where('caterer_id', $bookingDetails['caterer_id'])
+                ->where('event_date', $bookingDetails['event_date'])
+                ->whereIn('booking_status', ['pending', 'confirmed'])
+                ->exists();
+
+            if ($hasExistingBooking) {
+                DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+                DB::rollBack();
+                session()->forget(['booking_details', 'booking_customization']);
+                return redirect()->route('customer.caterers')
+                    ->with('error', 'Sorry, this date is no longer available.');
+            }
 
             $receiptPath = $request->file('receipt')->store('receipts', 'public');
             $totalPrice  = $bookingDetails['total_price'];
@@ -209,12 +195,16 @@ class BookingController extends Controller
 
             session()->forget(['booking_details', 'booking_customization']);
             DB::commit();
+            DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
 
             return redirect()->route('customer.booking.confirmation', $booking->id)
                 ->with('success', 'Booking created successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            if (isset($lockKey)) {
+                DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+            }
             Log::error('Booking creation failed', [
                 'user_id' => auth()->id(), 'error' => $e->getMessage(),
             ]);
@@ -438,13 +428,8 @@ class BookingController extends Controller
     /**
      * Process balance payment
      */
-    public function processBalancePayment(Request $request, $bookingId)
+    public function processBalancePayment(ProcessBalancePaymentRequest $request, $bookingId)
     {
-        $request->validate([
-            'receipt'        => 'required|image|mimes:jpg,jpeg,png,gif,pdf|max:10240',
-            'payment_method' => 'required|in:gcash,paymaya,bank_transfer',
-        ]);
-
         $booking = Booking::where('customer_id', auth()->id())
             ->where('payment_status', 'deposit_paid')
             ->findOrFail($bookingId);
@@ -453,8 +438,8 @@ class BookingController extends Controller
             $receiptPath = $request->file('receipt')->store('receipts/balance', 'public');
 
             $booking->update([
-                'payment_status' => 'fully_paid',
-                'receipt_path'   => $receiptPath,
+                'payment_status'       => 'fully_paid',
+                'balance_receipt_path' => $receiptPath,   // separate column — deposit receipt preserved
             ]);
 
             try {
