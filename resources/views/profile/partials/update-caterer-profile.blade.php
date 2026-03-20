@@ -38,6 +38,46 @@
             <x-input-error class="mt-2" :messages="$errors->get('business_address')" />
         </div>
 
+        <!-- ✅ Municipality — used for location-based package filtering by customers -->
+        <div>
+            <x-input-label for="municipality" :value="__('Municipality / City (Bukidnon)')" />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Select your primary service location in Bukidnon. Customers will use this to filter packages by area.
+            </p>
+            @php
+                $municipalities = [
+                    'Malaybalay'     => 'Malaybalay (Capital City)',
+                    'Valencia'       => 'Valencia',
+                    'Maramag'        => 'Maramag',
+                    'Manolo Fortich' => 'Manolo Fortich',
+                    'Quezon'         => 'Quezon',
+                    'Don Carlos'     => 'Don Carlos',
+                    'Kitaotao'       => 'Kitaotao',
+                    'Cabanglasan'    => 'Cabanglasan',
+                    'Dangcagan'      => 'Dangcagan',
+                    'Kibawe'         => 'Kibawe',
+                    'Pangantucan'    => 'Pangantucan',
+                    'Talakag'        => 'Talakag',
+                    'Lantapan'       => 'Lantapan',
+                    'Baungon'        => 'Baungon',
+                    'Libona'         => 'Libona',
+                    'Sumilao'        => 'Sumilao',
+                    'Impasugong'     => 'Impasugong',
+                ];
+                $selectedMunicipality = old('municipality', $user->municipality ?? '');
+            @endphp
+            <select id="municipality" name="municipality"
+                    class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                <option value="">-- Select Municipality --</option>
+                @foreach($municipalities as $value => $label)
+                    <option value="{{ $value }}" {{ $selectedMunicipality === $value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+            <x-input-error class="mt-2" :messages="$errors->get('municipality')" />
+        </div>
+
         <!-- Contact Information -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -71,7 +111,6 @@
                 @php
                     $cuisineOptions = ['Filipino', 'Chinese', 'Japanese', 'Korean', 'Italian', 'American', 'Mexican', 'Indian', 'Thai', 'Mediterranean', 'Fusion', 'International'];
                     $userCuisines = $user->cuisine_types ?? [];
-                    // Ensure it's an array
                     if (!is_array($userCuisines)) {
                         $userCuisines = is_string($userCuisines) ? json_decode($userCuisines, true) ?? [] : [];
                     }
@@ -96,7 +135,6 @@
                 @php
                     $areaOptions = ['Cagayan de Oro', 'Iligan', 'Valencia', 'Malaybalay', 'Bukidnon', 'Opol', 'Tagoloan', 'Jasaan'];
                     $userAreas = $user->service_areas ?? [];
-                    // Ensure it's an array
                     if (!is_array($userAreas)) {
                         $userAreas = is_string($userAreas) ? json_decode($userAreas, true) ?? [] : [];
                     }
@@ -118,7 +156,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <x-input-label for="years_of_experience" :value="__('Years of Experience')" />
-                <x-text-input id="years_of_experience" name="years_of_experience" type="number" 
+                <x-text-input id="years_of_experience" name="years_of_experience" type="number"
                               class="mt-1 block w-full" min="0" max="100"
                               :value="old('years_of_experience', $user->years_of_experience)" />
                 <x-input-error class="mt-2" :messages="$errors->get('years_of_experience')" />
@@ -126,9 +164,9 @@
 
             <div>
                 <x-input-label for="team_size" :value="__('Team Size')" />
-                <x-text-input id="team_size" name="team_size" type="number" 
+                <x-text-input id="team_size" name="team_size" type="number"
                               class="mt-1 block w-full" min="1"
-                              :value="old('team_size', $user->team_size)" 
+                              :value="old('team_size', $user->team_size)"
                               placeholder="Number of staff members" />
                 <x-input-error class="mt-2" :messages="$errors->get('team_size')" />
             </div>
@@ -138,7 +176,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <x-input-label for="minimum_order" :value="__('Minimum Order (₱)')" />
-                <x-text-input id="minimum_order" name="minimum_order" type="number" 
+                <x-text-input id="minimum_order" name="minimum_order" type="number"
                               class="mt-1 block w-full" min="0" step="0.01"
                               :value="old('minimum_order', $user->minimum_order)" />
                 <x-input-error class="mt-2" :messages="$errors->get('minimum_order')" />
@@ -146,7 +184,7 @@
 
             <div>
                 <x-input-label for="maximum_capacity" :value="__('Maximum Capacity (Guests)')" />
-                <x-text-input id="maximum_capacity" name="maximum_capacity" type="number" 
+                <x-text-input id="maximum_capacity" name="maximum_capacity" type="number"
                               class="mt-1 block w-full" min="0"
                               :value="old('maximum_capacity', $user->maximum_capacity)" />
                 <x-input-error class="mt-2" :messages="$errors->get('maximum_capacity')" />
@@ -175,7 +213,7 @@
             <div>
                 <x-input-label for="facebook_link" :value="__('Facebook Page')" />
                 <x-text-input id="facebook_link" name="facebook_link" type="url" class="mt-1 block w-full"
-                              :value="old('facebook_link', $user->facebook_link)" 
+                              :value="old('facebook_link', $user->facebook_link)"
                               placeholder="https://facebook.com/yourpage" />
                 <x-input-error class="mt-2" :messages="$errors->get('facebook_link')" />
             </div>
@@ -183,7 +221,7 @@
             <div>
                 <x-input-label for="instagram_link" :value="__('Instagram')" />
                 <x-text-input id="instagram_link" name="instagram_link" type="url" class="mt-1 block w-full"
-                              :value="old('instagram_link', $user->instagram_link)" 
+                              :value="old('instagram_link', $user->instagram_link)"
                               placeholder="https://instagram.com/yourprofile" />
                 <x-input-error class="mt-2" :messages="$errors->get('instagram_link')" />
             </div>
@@ -191,7 +229,7 @@
             <div>
                 <x-input-label for="website_link" :value="__('Website')" />
                 <x-text-input id="website_link" name="website_link" type="url" class="mt-1 block w-full"
-                              :value="old('website_link', $user->website_link)" 
+                              :value="old('website_link', $user->website_link)"
                               placeholder="https://yourwebsite.com" />
                 <x-input-error class="mt-2" :messages="$errors->get('website_link')" />
             </div>

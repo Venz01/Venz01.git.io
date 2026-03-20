@@ -114,9 +114,11 @@ class CustomerController extends Controller
             );
         }
 
+        // Location filter — matches municipality, business_address, or city
         if ($location = $request->location) {
             $query->whereHas('user', fn($u) =>
-                $u->where('business_address', 'like', "%{$location}%")
+                $u->where('municipality', $location)
+                  ->orWhere('business_address', 'like', "%{$location}%")
                   ->orWhere('city', 'like', "%{$location}%")
             );
         }

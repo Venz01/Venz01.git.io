@@ -39,10 +39,10 @@ class ProfileController extends Controller
 
         // Base validation
         $rules = [
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-            'bio' => 'nullable|string|max:1000',
+            'name'          => 'nullable|string|max:255',
+            'email'         => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'phone'         => 'nullable|string|max:20',
+            'bio'           => 'nullable|string|max:1000',
             'contact_number' => 'nullable|string|max:20',
             'other_contact' => 'nullable|string|max:255',
             'facebook_link' => 'nullable|url|max:255',
@@ -51,22 +51,23 @@ class ProfileController extends Controller
         // Caterer fields
         if ($user->isCaterer()) {
             $rules = array_merge($rules, [
-                'business_name' => 'nullable|string|max:255',
-                'owner_full_name' => 'nullable|string|max:255',
-                'business_address' => 'nullable|string|max:500',
-                'services_offered' => 'nullable|string|max:1000',
-                'cuisine_types' => 'nullable|array',
-                'service_areas' => 'nullable|array',
+                'business_name'       => 'nullable|string|max:255',
+                'owner_full_name'     => 'nullable|string|max:255',
+                'business_address'    => 'nullable|string|max:500',
+                'municipality'        => 'nullable|string|max:100',   // ✅ Bukidnon municipality
+                'services_offered'    => 'nullable|string|max:1000',
+                'cuisine_types'       => 'nullable|array',
+                'service_areas'       => 'nullable|array',
                 'years_of_experience' => 'nullable|integer|min:0|max:100',
-                'team_size' => 'nullable|integer|min:1',
-                'minimum_order' => 'nullable|numeric|min:0',
-                'maximum_capacity' => 'nullable|numeric|min:0',
-                'instagram_link' => 'nullable|url|max:255',
-                'website_link' => 'nullable|url|max:255',
-                'special_features' => 'nullable|string|max:1000',
+                'team_size'          => 'nullable|integer|min:1',
+                'minimum_order'      => 'nullable|numeric|min:0',
+                'maximum_capacity'   => 'nullable|numeric|min:0',
+                'instagram_link'     => 'nullable|url|max:255',
+                'website_link'       => 'nullable|url|max:255',
+                'special_features'   => 'nullable|string|max:1000',
                 'business_hours_start' => 'nullable|string',
-                'business_hours_end' => 'nullable|string',
-                'business_days' => 'nullable|array',
+                'business_hours_end'   => 'nullable|string',
+                'business_days'        => 'nullable|array',
             ]);
         }
 
@@ -74,9 +75,9 @@ class ProfileController extends Controller
         if ($user->isCustomer()) {
             $rules = array_merge($rules, [
                 'preferred_cuisine' => 'nullable|string|max:255',
-                'default_address' => 'nullable|string|max:500',
-                'city' => 'nullable|string|max:100',
-                'postal_code' => 'nullable|string|max:20',
+                'default_address'   => 'nullable|string|max:500',
+                'city'             => 'nullable|string|max:100',
+                'postal_code'      => 'nullable|string|max:20',
             ]);
         }
 
@@ -92,7 +93,7 @@ class ProfileController extends Controller
 
             if ($isBusinessUpdate) {
                 $validated['offers_delivery'] = $request->has('offers_delivery') ? 1 : 0;
-                $validated['offers_setup'] = $request->has('offers_setup') ? 1 : 0;
+                $validated['offers_setup']    = $request->has('offers_setup') ? 1 : 0;
 
                 $validated['cuisine_types'] = $request->has('cuisine_types')
                     ? $request->cuisine_types
@@ -101,6 +102,11 @@ class ProfileController extends Controller
                 $validated['service_areas'] = $request->has('service_areas')
                     ? $request->service_areas
                     : [];
+
+                // ✅ Save municipality (empty string → null for clean DB storage)
+                $validated['municipality'] = $request->filled('municipality')
+                    ? $request->municipality
+                    : null;
             }
 
             if ($isHoursUpdate) {
@@ -128,10 +134,6 @@ class ProfileController extends Controller
 
         $user->save();
 
-        // Return a unique session key so each section's toast fires independently.
-        // business-hours.blade.php   listens for 'hours_success'
-        // update-caterer-profile     listens for 'caterer_success'
-        // update-customer-profile    listens for 'customer_success'
         if ($user->isCaterer()) {
             $flashKey = isset($isHoursUpdate) && $isHoursUpdate ? 'hours_success' : 'caterer_success';
         } else {
@@ -149,7 +151,6 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Only customers can update dietary preferences
         if (! $user->isCustomer()) {
             abort(403);
         }
@@ -181,7 +182,6 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Remove photo
         if ($request->has('remove_photo') && $request->remove_photo) {
             if ($user->profile_photo) {
                 $this->deleteImage($user->profile_photo);
@@ -193,12 +193,10 @@ class ProfileController extends Controller
                 ->with('photo_success', 'Profile photo removed successfully.');
         }
 
-        // Validate upload
         $request->validate([
             'profile_photo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
         ]);
 
-        // Upload new photo
         if ($request->hasFile('profile_photo')) {
             $this->deleteImage($user->profile_photo);
 
@@ -224,8 +222,8 @@ class ProfileController extends Controller
     public function uploadPortfolio(Request $request): RedirectResponse
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-            'title' => 'nullable|string|max:255',
+            'image'       => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            'title'       => 'nullable|string|max:255',
             'description' => 'nullable|string|max:500',
             'is_featured' => 'nullable|boolean',
         ]);
@@ -236,12 +234,12 @@ class ProfileController extends Controller
             $maxOrder = PortfolioImage::where('user_id', auth()->id())->max('order') ?? 0;
 
             PortfolioImage::create([
-                'user_id' => auth()->id(),
-                'image_path' => $imagePath,
-                'title' => $request->title,
+                'user_id'     => auth()->id(),
+                'image_path'  => $imagePath,
+                'title'       => $request->title,
                 'description' => $request->description,
                 'is_featured' => $request->has('is_featured') ? 1 : 0,
-                'order' => $maxOrder + 1,
+                'order'       => $maxOrder + 1,
             ]);
 
             return Redirect::route('profile.edit')
@@ -252,9 +250,6 @@ class ProfileController extends Controller
         }
     }
 
-    /**
-     * Toggle featured image
-     */
     public function toggleFeatured($id): RedirectResponse
     {
         $image = PortfolioImage::where('user_id', auth()->id())
@@ -268,9 +263,6 @@ class ProfileController extends Controller
             ->with('success', 'Featured status updated!');
     }
 
-    /**
-     * Delete portfolio image
-     */
     public function deletePortfolio($id): RedirectResponse
     {
         $image = PortfolioImage::where('user_id', auth()->id())
@@ -284,13 +276,10 @@ class ProfileController extends Controller
             ->with('success', 'Portfolio image deleted successfully!');
     }
 
-    /**
-     * Update portfolio order
-     */
     public function updatePortfolioOrder(Request $request): RedirectResponse
     {
         $request->validate([
-            'order' => 'required|array',
+            'order'   => 'required|array',
             'order.*' => 'integer|exists:portfolio_images,id',
         ]);
 
@@ -304,9 +293,6 @@ class ProfileController extends Controller
             ->with('success', 'Portfolio order updated successfully!');
     }
 
-    /**
-     * Delete user account
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
@@ -322,5 +308,4 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
-    
 }
