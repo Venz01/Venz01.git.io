@@ -153,7 +153,7 @@
 
                     @else
                     {{-- Guest — show public browse links --}}
-                    <x-nav-link :href="route('browse.packages')" :active="request()->routeIs('browse.packages')">
+                    <x-nav-link :href="route('browse.caterers')" :active="request()->routeIs('browse.caterers')">
                         {{ __('Browse Packages') }}
                     </x-nav-link>
                     @endif
@@ -229,7 +229,16 @@
                             </template>
 
                             <template x-for="notification in notifications" :key="notification.id">
-                                <a :href="'/notifications/' + notification.id + '/read'"
+                                <a href="#"
+                                    @click.prevent="
+                                        fetch('/notifications/' + notification.id + '/read', {
+                                            method: 'PATCH',
+                                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' }
+                                        }).then(r => r.json()).then(data => {
+                                            if (data.redirect) window.location.href = data.redirect;
+                                            else notification.read_at = new Date().toISOString();
+                                        });
+                                    "
                                     class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                                     :class="{ 'bg-indigo-50 dark:bg-indigo-900/20': !notification.read_at }">
                                     <div class="flex items-start space-x-3">
@@ -467,7 +476,7 @@
 
             @else
             {{-- Guest mobile nav --}}
-            <x-responsive-nav-link :href="route('browse.packages')" :active="request()->routeIs('browse.*')">
+            <x-responsive-nav-link :href="route('browse.caterers')" :active="request()->routeIs('browse.*')">
                 {{ __('Browse Packages') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">
