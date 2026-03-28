@@ -85,7 +85,8 @@
         <!-- TAB NAVIGATION -->
         <div class="border-b border-gray-200 dark:border-gray-700">
             <nav class="flex space-x-8" aria-label="Tabs">
-                <button @click="activeTab = 'packages'"
+                {{-- CHANGE 1: was @click="activeTab = 'packages'" --}}
+                <button @click="setTab('packages')"
                     :class="activeTab === 'packages' ? 
                         'border-purple-500 text-purple-600 dark:text-purple-400' : 
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
@@ -93,7 +94,8 @@
                     Packages & Menu Items
                 </button>
 
-                <button @click="activeTab = 'display'"
+                {{-- CHANGE 2: was @click="activeTab = 'display'" --}}
+                <button @click="setTab('display')"
                     :class="activeTab === 'display' ? 
                         'border-purple-500 text-purple-600 dark:text-purple-400' : 
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
@@ -239,7 +241,7 @@
                             <!-- CATEGORY CHECKBOX (bulk mode) -->
                             <div x-show="bulkMode" x-transition class="flex items-center flex-shrink-0">
                                 <input type="checkbox" :checked="selectedCategories.includes({{ $category->id }})"
-                                    @change="toggleCategorySelection({{ $category->id }})"
+                                    @change="toggleCategorySelection({{ $category->id }}, {{ json_encode($category->items->pluck('id')->toArray()) }})"
                                     class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 cursor-pointer">
                             </div>
 
@@ -905,7 +907,6 @@
 
                     
                     <!-- Dietary Preferences & Allergy Tags -->
-                    <!-- Dietary Preferences & Allergy Tags -->
                     <div class="mt-4">
                         @include('admin.partials.package-dietary-tags', ['selectedTags' => []])
                     </div>
@@ -1209,6 +1210,9 @@
     </div>
 
    <script>
+    // ── TAB PERSISTENCE KEY ───────────────────────────────────────────────────
+    var TAB_KEY = 'menuManagerActiveTab';
+
     // Package Price Calculator for Create Modal
     function packagePriceCalculator() {
         return {
@@ -1283,8 +1287,6 @@
         });
 
         // ── 3. ALWAYS uncheck every menu-item checkbox before opening ────────
-        //    This prevents stale selections from a previous edit session
-        //    bleeding into the current one.
         document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => {
             cb.checked = false;
         });
@@ -1302,7 +1304,6 @@
             </div>`;
 
         // ── 5. Sync the Alpine component to "nothing selected" immediately ───
-        //    Find the Alpine component instance that owns the edit modal.
         const editForm = document.getElementById('editPackageForm');
         if (editForm && editForm._x_dataStack) {
             const alpineData = editForm._x_dataStack[0];
@@ -1332,14 +1333,7 @@
                 });
             }
 
-            // ── 6b. Update the Alpine component's reactive state directly ────
-            //    Dispatching a single 'change' event is unreliable when Alpine
-            //    reads all checkboxes via querySelectorAll — it only re-runs
-            //    updateEditPrice() once, which is fine, but we need to make
-            //    sure the DOM is settled first (requestAnimationFrame).
             requestAnimationFrame(() => {
-                // Trigger Alpine price recalculation via a change event on any
-                // checked checkbox (or the first checkbox if none are checked)
                 const trigger =
                     document.querySelector('.edit-menu-item-checkbox:checked') ||
                     document.querySelector('.edit-menu-item-checkbox');
@@ -1348,7 +1342,6 @@
                     trigger.dispatchEvent(new Event('change', { bubbles: true }));
                 }
 
-                // Rebuild the "Selected Items" summary panel
                 updateEditSelectedItemsDisplay();
             });
 
@@ -1403,7 +1396,6 @@
 
     function closeEditPackageModal() {
         document.getElementById('editPackageModal').classList.add('hidden');
-        // Clear all checkboxes so the next openEditPackageModal starts clean
         document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => {
             cb.checked = false;
         });
@@ -1465,7 +1457,8 @@
     // Main Alpine.js component
     function menuManager() {
         return {
-            activeTab: 'packages',
+            // CHANGE 3: read persisted tab from localStorage on init
+            activeTab: localStorage.getItem(TAB_KEY) || 'packages',
             selectedCategory: 'all',
             loading: false,
             bulkMode: false,
@@ -1479,6 +1472,12 @@
                 type: 'danger',
                 confirmText: 'Delete',
                 action: null
+            },
+
+            // CHANGE 4: new setTab() method that persists to localStorage
+            setTab(tab) {
+                this.activeTab = tab;
+                localStorage.setItem(TAB_KEY, tab);
             },
 
             openModal(modalId) {
@@ -1534,12 +1533,27 @@
                 }
             },
 
-            toggleCategorySelection(categoryId) {
+           toggleCategorySelection(categoryId, itemIds) {
                 const index = this.selectedCategories.indexOf(categoryId);
                 if (index > -1) {
+                    // Deselect category — also deselect all its items
                     this.selectedCategories.splice(index, 1);
+                    if (itemIds && itemIds.length) {
+                        itemIds.forEach(itemId => {
+                            const i = this.selectedItems.indexOf(itemId);
+                            if (i > -1) this.selectedItems.splice(i, 1);
+                        });
+                    }
                 } else {
+                    // Select category — also select all its items
                     this.selectedCategories.push(categoryId);
+                    if (itemIds && itemIds.length) {
+                        itemIds.forEach(itemId => {
+                            if (!this.selectedItems.includes(itemId)) {
+                                this.selectedItems.push(itemId);
+                            }
+                        });
+                    }
                 }
             },
 
@@ -1670,6 +1684,9 @@
             },
 
             openEditDisplayMenuModal(id, name, category, description, price, status) {
+                // Persist the display tab before opening modal
+                this.setTab('display');
+
                 document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
                 document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
                 
@@ -1711,6 +1728,9 @@
             },
 
             openDisplayMenuModal() {
+                // Persist the display tab before opening modal
+                this.setTab('display');
+
                 document.getElementById('displayMenuForm').reset();
                 document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
                 document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
