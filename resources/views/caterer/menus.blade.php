@@ -1556,7 +1556,6 @@
                     }
                 }
             },
-
             toggleItemSelection(itemId) {
                 const index = this.selectedItems.indexOf(itemId);
                 if (index > -1) {
