@@ -10,26 +10,27 @@
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <!-- FIX 6: hide text on very small screens, keep icon visible -->
                 <button onclick="toggleBlockModal()" 
-                        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="inline-flex items-center px-3 sm:px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
+                    <svg class="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                     </svg>
-                    Block Date
+                    <span class="hidden sm:inline">Block Date</span>
                 </button>
                 <button onclick="toggleRangeModal()" 
-                        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="inline-flex items-center px-3 sm:px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
+                    <svg class="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
-                    Manage Ranges
+                    <span class="hidden sm:inline">Manage Ranges</span>
                 </button>
                 <button onclick="confirmClearAll()" 
-                        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="inline-flex items-center px-3 sm:px-4 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
+                    <svg class="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
-                    Clear All Blocks
+                    <span class="hidden sm:inline">Clear All Blocks</span>
                 </button>
             </div>
         </div>
@@ -39,6 +40,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <!-- Stats Cards -->
+            <!-- FIX 4: removed col-span-2 from 5th card; grid balances naturally -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <div class="flex items-center justify-between">
@@ -112,7 +114,8 @@
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-br from-red-500 to-red-600 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 col-span-2 sm:col-span-1">
+                <!-- FIX 4: removed col-span-2 sm:col-span-1 — grid handles it naturally -->
+                <div class="bg-gradient-to-br from-red-500 to-red-600 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs sm:text-sm font-medium text-red-100 mb-1">Blocked Days</p>
@@ -186,10 +189,11 @@
             </div>
 
             <!-- Tips Card -->
+            <!-- FIX 7: flex-col on mobile, flex-row from sm -->
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-gray-600">
-                <div class="flex gap-4">
+                <div class="flex flex-col sm:flex-row gap-4">
                     <div class="flex-shrink-0">
-                        <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
+                        <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg w-fit">
                             <svg class="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
@@ -243,7 +247,8 @@
                 <p class="text-red-100 text-sm mt-2">Mark a date when you're unavailable for new bookings</p>
             </div>
             
-            <form id="blockDateForm" class="p-6">
+            <!-- FIX 5: p-4 sm:p-6 instead of p-6 -->
+            <form id="blockDateForm" class="p-4 sm:p-6">
                 @csrf
                 <div class="space-y-5">
                     <div>
@@ -302,7 +307,8 @@
 
     <!-- Manage Date Ranges Modal -->
     <div id="rangeModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full">
+        <!-- FIX 2: added max-h-[90vh] overflow-y-auto so the modal scrolls on short screens -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-5 rounded-t-2xl">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-3">
@@ -403,24 +409,19 @@
         .fc-theme-standard td,
         .fc-theme-standard th { border-color: #e5e7eb; }
 
-        /* Day number & day-of-week header text — light mode */
         .fc .fc-daygrid-day-number,
         .fc .fc-col-header-cell-cushion { color: #374151; text-decoration: none; }
 
-        /* Today highlight — light */
         .fc-day-today { background-color: #EFF6FF !important; }
 
-        /* Toolbar title — light */
         .fc .fc-toolbar-title { color: #111827; }
 
-        /* List view text — light */
         .fc .fc-list-event-title a,
         .fc .fc-list-day-text,
         .fc .fc-list-day-side-text { color: #374151; }
 
         .fc .fc-list-empty { color: #6b7280; }
 
-        /* More-link (+N more) */
         .fc .fc-daygrid-more-link { color: #4F46E5; }
 
         /* ── NAVIGATION BUTTONS ───────────────────────────────────────────────── */
@@ -438,7 +439,6 @@
             background-color: #818CF8 !important;
             border-color:     #818CF8 !important;
         }
-        /* Active (pressed) view button */
         .fc-button-primary.fc-button-active {
             background-color: #3730A3 !important;
             border-color:     #3730A3 !important;
@@ -461,7 +461,6 @@
         /* ── BLOCKED DATE CURSOR ──────────────────────────────────────────────── */
         .fc-daygrid-day.blocked-date          { cursor: pointer !important; }
         .fc-daygrid-day.blocked-date:hover    { opacity: 0.8 !important; }
-
     </style>
 
     {{-- Injected dark-mode stylesheet — toggled by applyCalendarTheme() --}}
@@ -469,63 +468,42 @@
 
     <script>
 
-        /* ══════════════════════════════════════════════════════════════════
-           DARK MODE ENGINE
-           We write CSS directly into a <style> tag instead of relying on
-           Tailwind's .dark prefix, because FullCalendar renders many
-           elements AFTER the stylesheet is parsed and its own styles have
-           high specificity. Writing into a stylesheet that is appended LAST
-           in the <head> wins the specificity war.
-        ══════════════════════════════════════════════════════════════════ */
-
         var FC_DARK_CSS = `
-            /* borders */
             #calendar .fc-theme-standard td,
             #calendar .fc-theme-standard th,
             #calendar .fc-theme-standard .fc-scrollgrid { border-color: #374151 !important; }
 
-            /* outer wrapper & scroll containers */
             #calendar .fc-theme-standard,
             #calendar .fc-scrollgrid,
             #calendar .fc-view,
             #calendar .fc-daygrid-body table,
             #calendar .fc-timegrid-body { background-color: #1f2937 !important; }
 
-            /* every day cell */
             #calendar .fc-daygrid-day { background-color: #1f2937 !important; }
             #calendar .fc-daygrid-day:hover { background-color: #263244 !important; }
 
-            /* today cell — deep blue, NOT pink */
             #calendar .fc-day-today { background-color: #1e3a5f !important; }
             #calendar .fc-day-today .fc-daygrid-day-number { color: #93c5fd !important; font-weight: 700; }
 
-            /* day-number links */
             #calendar .fc-daygrid-day-number { color: #d1d5db !important; text-decoration: none !important; }
 
-            /* column header row (Sun Mon Tue…) */
             #calendar .fc-col-header-cell { background-color: #111827 !important; border-color: #374151 !important; }
             #calendar .fc-col-header-cell-cushion { color: #a5b4fc !important; text-decoration: none !important; }
 
-            /* toolbar title text */
             #calendar .fc-toolbar-title { color: #f3f4f6 !important; }
 
-            /* navigation buttons */
             #calendar .fc-button-primary { background-color: #4F46E5 !important; border-color: #4F46E5 !important; color: #fff !important; }
             #calendar .fc-button-primary:hover { background-color: #4338CA !important; border-color: #4338CA !important; }
             #calendar .fc-button-primary.fc-button-active { background-color: #3730A3 !important; border-color: #3730A3 !important; }
             #calendar .fc-button-primary:disabled { background-color: #6366f1 !important; border-color: #6366f1 !important; opacity:.6; }
 
-            /* week/time slot labels */
             #calendar .fc-timegrid-slot-label,
             #calendar .fc-timegrid-axis { color: #9ca3af !important; background-color: #111827 !important; }
 
-            /* all-day label cell */
             #calendar .fc-timegrid-axis-cushion { color: #9ca3af !important; }
 
-            /* more-link */
             #calendar .fc-daygrid-more-link { color: #818cf8 !important; }
 
-            /* list view */
             #calendar .fc-list { background-color: #1f2937 !important; border-color: #374151 !important; }
             #calendar .fc-list-day-cushion { background-color: #111827 !important; color: #a5b4fc !important; }
             #calendar .fc-list-event td { background-color: #1f2937 !important; border-color: #374151 !important; color: #f3f4f6 !important; }
@@ -536,16 +514,13 @@
             #calendar .fc-list-day-side-text { color: #a5b4fc !important; }
             #calendar .fc-list-empty { background-color: #1f2937 !important; color: #9ca3af !important; }
 
-            /* popover */
             #calendar .fc-popover { background-color: #1f2937 !important; border-color: #374151 !important; }
             #calendar .fc-popover-header { background-color: #111827 !important; color: #f3f4f6 !important; border-color: #374151 !important; }
             #calendar .fc-popover-body { background-color: #1f2937 !important; }
 
-            /* now indicator */
             #calendar .fc-timegrid-now-indicator-line { border-color: #f87171 !important; }
             #calendar .fc-timegrid-now-indicator-arrow { border-color: #f87171 !important; }
 
-            /* blocked event pill — proper dark red */
             #calendar .fc-event[style*="background: rgb(220"] ,
             #calendar .fc-event[style*="background-color: rgb(220"] { background-color: #7f1d1d !important; border-color: #7f1d1d !important; opacity: 1 !important; }
         `;
@@ -562,27 +537,27 @@
             }
         }
 
-        // Run once immediately (before DOMContentLoaded so the style is ready)
         applyCalendarTheme();
 
-        // Watch for Tailwind's .dark class toggle on <html>
         new MutationObserver(applyCalendarTheme)
             .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-        // Watch OS-level preference
         window.matchMedia('(prefers-color-scheme: dark)')
               .addEventListener('change', applyCalendarTheme);
 
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var events = @json($allEvents);
-            
+
+            // FIX 3: show only listMonth on narrow screens to avoid toolbar overflow
+            var isMobile = window.innerWidth < 540;
+
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
+                initialView: isMobile ? 'listMonth' : 'dayGridMonth',
                 headerToolbar: {
                     left:   'prev,next today',
                     center: 'title',
-                    right:  'dayGridMonth,timeGridWeek,listMonth'
+                    right:  isMobile ? 'listMonth' : 'dayGridMonth,timeGridWeek,listMonth'
                 },
                 events: events,
                 eventClick: function(info) {
@@ -611,8 +586,6 @@
             });
             
             calendar.render();
-
-            // Re-apply theme after calendar renders (it may reset some styles)
             applyCalendarTheme();
         });
 
@@ -850,7 +823,8 @@
                 html: details,
                 showCloseButton: true,
                 showConfirmButton: false,
-                width: '600px',
+                // FIX 1: responsive width — never exceeds viewport on mobile
+                width: 'min(600px, 95vw)',
                 background: isDarkNow ? '#1f2937' : '#fff',
                 color:      isDarkNow ? '#f3f4f6' : '#111827',
                 customClass: { popup: 'rounded-2xl' }
