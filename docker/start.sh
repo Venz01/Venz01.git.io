@@ -3,15 +3,14 @@ set -e
 
 echo "Starting Laravel application..."
 
-# Check if APP_KEY is set
 if [ -z "$APP_KEY" ]; then
-    echo "ERROR: APP_KEY is not set!"
-    echo "Generating APP_KEY..."
-    php artisan key:generate --force
+    echo "ERROR: APP_KEY is not set. Refusing to start."
+    echo "Please set APP_KEY in the environment (or .env) before running this container."
+    exit 1
 fi
 
-# Clear all caches
-echo "Clearing caches..."
+# Clear and warm caches
+echo "Refreshing caches..."
 php artisan config:clear || true
 php artisan cache:clear || true
 php artisan view:clear || true
@@ -21,15 +20,6 @@ php artisan route:clear || true
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Run migrations
-echo "Running migrations..."
-php artisan migrate --force || echo "Migration failed or no migrations to run"
-
-# Seed admin user
-echo "Seeding admin user..."
-php artisan db:seed --class=AdminUserSeeder --force || echo "Seeder failed or admin already exists"
-
-# Cache configuration
 echo "Caching configuration..."
 php artisan config:cache
 php artisan route:cache

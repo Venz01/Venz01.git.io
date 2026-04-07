@@ -1,66 +1,54 @@
 <x-guest-layout>
-    <!-- Logo Section -->
-    <div class="flex justify-center mb-0">
-    <img src="{{ asset('images/foodlogo.png') }}" 
-         alt="Restaurant Logo" 
-         style="height: 200px; width: auto;"
-         class="logo-dark-mode">
-    </div>
-    
-    <style>
-        @media (prefers-color-scheme: dark) {
-            .logo-dark-mode {
-                filter: invert(1) brightness(2) !important;
-            }
-        }
-    </style>
-    
-    <!-- Optional: Add site name/tagline below logo -->
-    <div class="text-center mb-0">
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">CaterEase</h2>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0">Catering Management System</p>
+    <div class="flex items-center justify-center gap-3 mb-6">
+        <div class="h-12 w-12 rounded-2xl bg-emerald-600/10 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-600/20 dark:border-emerald-400/20">
+            <img src="{{ asset('images/foodlogo.png') }}" alt="CaterEase" class="h-9 w-9 object-contain dark:invert" />
+        </div>
+        <div class="text-left">
+            <h1 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">Create your account</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Join CaterEase in under a minute</p>
+        </div>
     </div>
 
     <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" x-data="{ role: '{{ old('role', 'customer') }}' }">
         @csrf
 
         <!-- Name -->
-        <div>
+        <div class="space-y-1.5">
             <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required
+            <x-text-input id="name" class="block w-full" type="text" name="name" :value="old('name')" required
                 autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
         <!-- Email Address -->
-        <div class="mt-4">
+        <div class="mt-4 space-y-1.5">
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required
+            <x-text-input id="email" class="block w-full" type="email" name="email" :value="old('email')" required
                 autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
+        <div class="mt-4 space-y-1.5">
             <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required
+            <x-text-input id="password" class="block w-full" type="password" name="password" required
                 autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
+        <div class="mt-4 space-y-1.5">
             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password"
+            <x-text-input id="password_confirmation" class="block w-full" type="password"
                 name="password_confirmation" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
         <!-- Role Selection -->
-        <div class="mt-4">
+        <div class="mt-4 space-y-1.5">
             <x-input-label for="role" :value="__('Register As')" />
             <select id="role" name="role" x-model="role"
-                class="block mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 focus:border-emerald-500 focus:ring-emerald-500">
                 <option value="customer">{{ __('Customer') }}</option>
                 <option value="caterer">{{ __('Caterer') }}</option>
             </select>
@@ -70,9 +58,9 @@
         <!-- Caterer Additional Fields -->
         <template x-if="role === 'caterer'">
             <div class="mt-4 space-y-4">
-                <p class="text-sm text-yellow-600 dark:text-yellow-400 font-semibold">
+                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
                     {{ __("All caterer applications require admin approval before activation.") }}
-                </p>
+                </div>
 
                 <div>
                     <x-input-label for="business_name" :value="__('Business Name (Registered Name)')" />
@@ -144,15 +132,18 @@
             <x-input-error :messages="$errors->get('terms_accepted')" class="mt-2" />
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-3">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="w-full sm:w-auto justify-center">
+        <div class="mt-6">
+            <x-primary-button class="w-full justify-center">
                 {{ __('Register') }}
             </x-primary-button>
         </div>
+
+        <p class="mt-5 text-center text-sm text-gray-600 dark:text-gray-400">
+            {{ __('Already registered?') }}
+            <a href="{{ route('login') }}"
+               class="font-semibold text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300">
+                {{ __('Sign in') }}
+            </a>
+        </p>
     </form>
 </x-guest-layout>

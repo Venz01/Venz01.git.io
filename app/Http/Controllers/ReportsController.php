@@ -19,6 +19,11 @@ class ReportsController extends Controller
     {
         $caterer_id = Auth::id();
         $period = $request->get('period', 'monthly'); // weekly, monthly, yearly
+
+        // Clamp period to allowed values to avoid unexpected behavior
+        if (! in_array($period, ['weekly', 'monthly', 'yearly'], true)) {
+            $period = 'monthly';
+        }
         
         // Calculate date ranges
         $dates = $this->getDateRange($period);
@@ -310,6 +315,10 @@ class ReportsController extends Controller
     {
         $caterer_id = Auth::id();
         $period = $request->get('period', 'monthly');
+
+        if (! in_array($period, ['weekly', 'monthly', 'yearly'], true)) {
+            $period = 'monthly';
+        }
         
         $dates = $this->getDateRange($period);
         
@@ -359,6 +368,10 @@ class ReportsController extends Controller
     public function exportExcel(Request $request)
     {
         $period = $request->get('period', 'monthly');
+
+        if (! in_array($period, ['weekly', 'monthly', 'yearly'], true)) {
+            $period = 'monthly';
+        }
         $filename = 'report_' . $period . '_' . date('Y-m-d') . '.xlsx';
         
         return Excel::download(new ReportsExport($period), $filename);

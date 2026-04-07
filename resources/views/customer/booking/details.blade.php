@@ -912,7 +912,7 @@
         }
 
         // Close modal when clicking outside
-        document.getElementById('bookingModal') ? .addEventListener('click', function (e) {
+        document.getElementById('bookingModal')?.addEventListener('click', function (e) {
             if (e.target === this) {
                 closeBookingModal();
             }

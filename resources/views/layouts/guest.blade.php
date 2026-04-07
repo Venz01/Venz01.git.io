@@ -15,10 +15,22 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+        <div class="min-h-screen flex flex-col justify-center items-center px-4 py-10 sm:py-12 bg-gray-50 dark:bg-gray-950">
+            <!-- Background decoration -->
+            <div aria-hidden="true" class="pointer-events-none fixed inset-0 overflow-hidden">
+                <div class="absolute -top-32 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-emerald-200/60 via-teal-200/50 to-indigo-200/50 blur-3xl dark:from-emerald-900/30 dark:via-teal-900/20 dark:to-indigo-900/20"></div>
+                <div class="absolute -bottom-40 right-[-8rem] h-80 w-80 rounded-full bg-gradient-to-tr from-amber-200/50 to-rose-200/40 blur-3xl dark:from-amber-900/20 dark:to-rose-900/20"></div>
+            </div>
+
+            <div class="relative w-full max-w-lg">
+                <div class="rounded-2xl bg-white/90 dark:bg-gray-900/70 backdrop-blur border border-gray-200/70 dark:border-gray-800 shadow-xl shadow-gray-200/60 dark:shadow-black/40 overflow-hidden">
+                    <div class="px-6 py-6 sm:px-10 sm:py-8">
+                        {{ $slot }}
+                    </div>
+                </div>
+                <p class="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+                    © {{ date('Y') }} {{ config('app.name', 'CaterEase') }}. All rights reserved.
+                </p>
             </div>
         </div>
     </body>

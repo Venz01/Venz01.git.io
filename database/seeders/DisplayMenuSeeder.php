@@ -97,7 +97,7 @@ class DisplayMenuSeeder extends Seeder
                 'price'       => $item['price'],
                 'unit_type'   => $item['unit_type'],
                 'image_path'  => null,
-        x           'status'      => 'active',
+                'status'      => 'active',
                 'created_at'  => $now,
                 'updated_at'  => $now,
             ];

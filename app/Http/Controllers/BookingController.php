@@ -48,6 +48,8 @@ class BookingController extends Controller
      */
     public function storeEventDetails(StoreBookingEventRequest $request)
     {
+        $validated = $request->validated();
+
         $eventDate = \Carbon\Carbon::parse($request->event_date);
         if ($eventDate->lt(\Carbon\Carbon::tomorrow())) {
             return back()->withInput()
@@ -74,7 +76,49 @@ class BookingController extends Controller
                 ->with('error', 'Sorry, this caterer is already booked for the selected date.');
         }
 
-        session(['booking_details' => $request->all()]);
+        // Ensure the selected package really belongs to the caterer and is active
+        $package = Package::where('id', $validated['package_id'] ?? null)
+            ->where('user_id', $validated['caterer_id'] ?? null)
+            ->where('status', 'active')
+            ->first();
+
+        if (! $package) {
+            return back()->withInput()
+                ->with('error', 'Invalid package / caterer selection. Please try again.');
+        }
+
+        // Ensure selected menu items belong to this caterer
+        $validItemIds = MenuItem::where('user_id', $package->user_id)
+            ->whereIn('id', $validated['selected_items'] ?? [])
+            ->pluck('id')
+            ->all();
+
+        if (empty($validItemIds)) {
+            return back()->withInput()
+                ->with('error', 'Please select at least one valid menu item.');
+        }
+
+        // Recompute pricing server-side from authoritative data
+        $guests       = (int) ($validated['guests'] ?? 0);
+        $pricePerHead = (float) $package->price;
+        $totalPrice   = $pricePerHead * max($guests, 0);
+
+        $bookingDetails = [
+            'package_id'           => $package->id,
+            'caterer_id'           => $package->user_id,
+            'event_type'           => $validated['event_type'],
+            'event_date'           => $validated['event_date'],
+            'time_slot'            => $validated['time_slot'],
+            'guests'               => $guests,
+            'venue_name'           => $validated['venue_name'],
+            'venue_address'        => $validated['venue_address'],
+            'special_instructions' => $validated['special_instructions'] ?? null,
+            'selected_items'       => $validItemIds,
+            'price_per_head'       => $pricePerHead,
+            'total_price'          => $totalPrice,
+        ];
+
+        session(['booking_details' => $bookingDetails]);
 
         return redirect()->route('customer.booking.payment');
     }
@@ -147,17 +191,26 @@ class BookingController extends Controller
                     ->with('error', 'Sorry, this date is no longer available.');
             }
 
-            $receiptPath = $request->file('receipt')->store('receipts', 'public');
-            $totalPrice  = $bookingDetails['total_price'];
+            // Re-fetch package to ensure it is still valid and belongs to the same caterer
+            $package = Package::where('id', $bookingDetails['package_id'] ?? null)
+                ->where('user_id', $bookingDetails['caterer_id'] ?? null)
+                ->where('status', 'active')
+                ->firstOrFail();
+
+            // Recompute financials from authoritative data (ignore any tampered session totals)
+            $guests      = (int) ($bookingDetails['guests'] ?? 0);
+            $totalPrice  = (float) $package->price * max($guests, 0);
             $deposit     = $totalPrice * 0.25;
             $serviceFee  = 500;
             $depositPaid = $deposit + $serviceFee;
             $balance     = $totalPrice - $deposit;
 
+            $receiptPath = $request->file('receipt')->store('receipts', 'public');
+
             $booking = Booking::create([
                 'customer_id'         => auth()->id(),
-                'caterer_id'          => $bookingDetails['caterer_id'],
-                'package_id'          => $bookingDetails['package_id'],
+                'caterer_id'          => $package->user_id,
+                'package_id'          => $package->id,
                 'booking_number'      => 'BK-' . strtoupper(uniqid()),
                 'event_type'          => $bookingDetails['event_type'],
                 'event_date'          => $bookingDetails['event_date'],

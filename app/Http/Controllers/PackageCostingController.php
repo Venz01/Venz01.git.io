@@ -293,14 +293,36 @@ class PackageCostingController extends Controller
         $booking->load(['package.items.category', 'caterer', 'customer']);
         $costing = PackageCosting::where('package_id', $booking->package_id)->first();
 
-        $html = view('caterer.costing.quotation-pdf', compact('booking', 'costing'))->render();
+        // Reuse the existing package quotation template to avoid duplication
+        $guestCount  = (int) ($booking->guests ?? $booking->number_of_guests ?? 0);
+        $totalAmount = (float) $booking->total_price;
+        $generatedAt = Carbon::now();
+        $validUntil  = $generatedAt->copy()->addDays(7);
+
+        $data = [
+            'package'        => $booking->package,
+            'costing'        => $costing,
+            'guest_count'    => $guestCount,
+            'customer_name'  => $booking->customer_name ?? $booking->customer->name ?? 'Valued Customer',
+            'event_type'     => $booking->event_type ?? 'Special Event',
+            'event_date'     => $booking->event_date ? Carbon::parse($booking->event_date) : null,
+            'valid_until'    => $validUntil,
+            'total_amount'   => $totalAmount,
+            'deposit_amount' => (float) ($booking->deposit_amount ?? ($totalAmount * 0.25)),
+            'reference_no'   => 'QT-' . ($booking->booking_number ?? strtoupper(substr(md5($booking->id), 0, 8))),
+            'caterer'        => $booking->caterer,
+            'generated_at'   => $generatedAt,
+            'is_pdf'         => true,
+        ];
+
+        $html = view('caterer.costing.package-quotation-pdf', $data)->render();
 
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4', 'portrait');
             return $pdf->stream("quotation-{$booking->booking_number}.pdf");
         }
 
-        return view('caterer.costing.quotation-pdf', compact('booking', 'costing'));
+        return view('caterer.costing.package-quotation-pdf', $data);
     }
 
     public function generatePackageQuotation(Request $request, Package $package)
@@ -335,6 +357,7 @@ class PackageCostingController extends Controller
             'reference_no'  => 'QT-' . strtoupper(substr(md5(uniqid()), 0, 8)),
             'caterer'       => $package->user,
             'generated_at'  => Carbon::now(),
+            'is_pdf'        => false,
         ];
 
         return view('caterer.costing.package-quotation-pdf', $quoteData);

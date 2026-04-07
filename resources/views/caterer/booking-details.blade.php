@@ -88,7 +88,7 @@
                         </button>
                         @endif
 
-                        @if($booking->booking_status == 'confirmed' && $booking->event_date->isPast())
+                        @if($booking->booking_status == 'confirmed' && $booking->event_date->lte(now()))
                         <button type="button" onclick="showBookingModal('complete'); return false;"
                             class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">
                             Mark as Complete
@@ -916,7 +916,7 @@
         }
 
         // Close modal when clicking outside
-        document.getElementById('bookingModal') ? .addEventListener('click', function (e) {
+        document.getElementById('bookingModal')?.addEventListener('click', function (e) {
             if (e.target === this) {
                 closeBookingModal();
             }

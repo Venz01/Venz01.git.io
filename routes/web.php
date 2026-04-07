@@ -68,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Notification routes
-Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->prefix('notifications')->name('notifications.')->group(function () {
     Route::get('/', [NotificationController::class, 'index'])->name('index');
     Route::get('/unread', [NotificationController::class, 'getUnread'])->name('unread');
     Route::patch('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
@@ -96,9 +96,13 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/calculate-price', [CustomerController::class, 'calculateCustomPrice'])->name('calculate.price');
 
     // Booking routes
-    Route::post('/booking/store-event', [\App\Http\Controllers\BookingController::class, 'storeEventDetails'])->name('booking.store-event');
+    Route::post('/booking/store-event', [\App\Http\Controllers\BookingController::class, 'storeEventDetails'])
+        ->middleware('throttle:20,1')
+        ->name('booking.store-event');
     Route::get('/booking/payment', [\App\Http\Controllers\BookingController::class, 'payment'])->name('booking.payment');
-    Route::post('/booking/process-payment', [\App\Http\Controllers\BookingController::class, 'processPayment'])->name('booking.process-payment');
+    Route::post('/booking/process-payment', [\App\Http\Controllers\BookingController::class, 'processPayment'])
+        ->middleware('throttle:10,1')
+        ->name('booking.process-payment');
     Route::get('/booking/confirmation/{booking}', [\App\Http\Controllers\BookingController::class, 'confirmation'])->name('booking.confirmation');
     Route::get('/booking/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('booking.cancel');
 
@@ -109,7 +113,9 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 
     // Pay balance
     Route::get('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'payBalance'])->name('booking.pay-balance');
-    Route::post('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'processBalancePayment'])->name('booking.process-balance');
+    Route::post('/bookings/{booking}/pay-balance', [\App\Http\Controllers\BookingController::class, 'processBalancePayment'])
+        ->middleware('throttle:10,1')
+        ->name('booking.process-balance');
 
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
@@ -133,7 +139,9 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/cart', [OrderController::class, 'cart'])->name('orders.cart');
     Route::get('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
-    Route::post('/orders/process', [OrderController::class, 'processOrder'])->name('orders.process');
+    Route::post('/orders/process', [OrderController::class, 'processOrder'])
+        ->middleware('throttle:20,1')
+        ->name('orders.process');
     Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmation'])->name('orders.confirmation');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -157,10 +165,18 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::delete('/dietary-tags/{dietaryTag}', [DietaryTagController::class, 'destroy'])->name('dietary-tags.destroy');
 
     Route::get('/calendar', [CatererController::class, 'calendar'])->name('calendar');
-    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])->name('availability.toggle');
-    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])->name('availability.block-range');
-    Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])->name('availability.unblock-range');
-    Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])->name('availability.clear-all');
+    Route::post('/availability/toggle', [CatererController::class, 'toggleAvailability'])
+        ->middleware('throttle:60,1')
+        ->name('availability.toggle');
+    Route::post('/availability/block-range', [CatererController::class, 'blockDateRange'])
+        ->middleware('throttle:30,1')
+        ->name('availability.block-range');
+    Route::post('/availability/unblock-range', [CatererController::class, 'unblockDateRange'])
+        ->middleware('throttle:30,1')
+        ->name('availability.unblock-range');
+    Route::post('/availability/clear-all', [CatererController::class, 'clearAllBlocked'])
+        ->middleware('throttle:10,1')
+        ->name('availability.clear-all');
 
     // Bookings
     Route::get('/bookings', [CatererController::class, 'bookings'])->name('bookings');
@@ -219,7 +235,9 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::post('/reviews/{review}/update-response', [ReviewController::class, 'updateResponse'])->name('reviews.update-response');
     Route::delete('/reviews/{review}/delete-response', [ReviewController::class, 'deleteResponse'])->name('reviews.delete-response');
 
-    Route::post('/bulk-action', [CatererController::class, 'bulkAction'])->name('bulk-action');
+    Route::post('/bulk-action', [CatererController::class, 'bulkAction'])
+        ->middleware('throttle:30,1')
+        ->name('bulk-action');
 
     // Orders
     Route::get('/orders', [CatererController::class, 'orders'])->name('orders');

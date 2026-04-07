@@ -10,20 +10,20 @@
 
         body {
             font-family: 'Georgia', 'Times New Roman', serif;
-            background: #f5f5f0;
+            background: #ffffff;
             color: #1a1a1a;
-            min-height: 100vh;
-            padding: 40px 20px;
+            padding: 24px 16px;
         }
 
         /* ── Paper ─────────────────────────────────────────────── */
         .paper {
             background: #ffffff;
-            max-width: 680px;
+            max-width: 720px;
             margin: 0 auto;
             padding: 0;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            box-shadow: none;
             border-radius: 2px;
+            border: 1px solid #e5e7eb;
         }
 
         /* ── Header Band ────────────────────────────────────────── */
@@ -45,11 +45,20 @@
             transform: translate(60px, 60px);
         }
 
+        /* DomPDF: avoid flex/grid; use table layout */
         .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            display: table;
+            width: 100%;
             margin-bottom: 24px;
+        }
+        .header-top > div {
+            display: table-cell;
+            vertical-align: top;
+        }
+        .header-top > div:last-child {
+            text-align: right;
+            width: 1%;
+            white-space: nowrap;
         }
 
         .business-name {
@@ -93,9 +102,15 @@
         }
 
         .header-meta {
-            display: flex;
-            gap: 32px;
+            display: table;
+            width: 100%;
         }
+        .header-meta .meta-item {
+            display: table-cell;
+            vertical-align: top;
+            padding-right: 18px;
+        }
+        .header-meta .meta-item:last-child { padding-right: 0; }
 
         .meta-item .meta-label {
             font-size: 10px;
@@ -121,12 +136,14 @@
 
         /* ── To Section ─────────────────────────────────────────── */
         .to-section {
-            display: flex;
-            justify-content: space-between;
+            display: table;
+            width: 100%;
             margin-bottom: 36px;
             padding-bottom: 28px;
             border-bottom: 1px solid #e8e8e0;
         }
+        .to-section > div { display: table-cell; vertical-align: top; }
+        .to-section > div:last-child { text-align: right; width: 1%; white-space: nowrap; }
 
         .to-block .to-label {
             font-size: 10px;
@@ -218,18 +235,22 @@
         }
 
         .menu-items-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px 20px;
+            display: table;
+            width: 100%;
+        }
+        .menu-items-grid .menu-item-row {
+            display: table-row;
+        }
+        .menu-items-grid .menu-item-row > span {
+            display: table-cell;
+            padding: 3px 0;
+            width: 50%;
+            vertical-align: top;
         }
 
         .menu-item-row {
             font-size: 12px;
             color: #444;
-            padding: 3px 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .menu-item-row::before {
@@ -329,11 +350,16 @@
 
         /* ── Payment Terms ──────────────────────────────────────── */
         .payment-terms {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            display: table;
+            width: 100%;
             margin-bottom: 32px;
         }
+        .payment-terms .payment-box {
+            display: table-cell;
+            vertical-align: top;
+        }
+        .payment-terms .payment-box:first-child { padding-right: 10px; }
+        .payment-terms .payment-box:last-child { padding-left: 10px; }
 
         .payment-box {
             background: #f8f8f5;
@@ -408,11 +434,12 @@
         .footer-band {
             background: #f0f0e8;
             padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: table;
+            width: 100%;
             border-top: 1px solid #dcdcd4;
         }
+        .footer-band > div { display: table-cell; vertical-align: top; }
+        .footer-band > div:last-child { text-align: right; width: 1%; white-space: nowrap; }
 
         .footer-band .footer-text {
             font-size: 11px;
@@ -429,7 +456,7 @@
         /* ── Print ───────────────────────────────────────────────── */
         @media print {
             body { background: white; padding: 0; }
-            .paper { box-shadow: none; max-width: 100%; }
+            .paper { box-shadow: none; max-width: 100%; border: none; }
             .no-print { display: none; }
         }
     </style>
@@ -437,16 +464,18 @@
 <body>
 
 {{-- Print Button (hidden when printing) --}}
-<div class="no-print" style="text-align:center; margin-bottom: 24px;">
-    <button onclick="window.print()"
-            style="background:#1a1a1a; color:#fff; border:none; padding:12px 28px; font-size:14px; cursor:pointer; border-radius:4px; font-family:Georgia,serif; letter-spacing:0.5px;">
-        🖨️ Print / Save as PDF
-    </button>
-    <button onclick="window.close()"
-            style="background:transparent; color:#666; border:1px solid #ccc; padding:12px 20px; font-size:14px; cursor:pointer; border-radius:4px; font-family:Georgia,serif; margin-left:8px;">
-        Close
-    </button>
-</div>
+@if(empty($is_pdf))
+    <div class="no-print" style="text-align:center; margin-bottom: 24px;">
+        <button onclick="window.print()"
+                style="background:#1a1a1a; color:#fff; border:none; padding:12px 28px; font-size:14px; cursor:pointer; border-radius:4px; font-family:Georgia,serif; letter-spacing:0.5px;">
+            Print / Save as PDF
+        </button>
+        <button onclick="window.close()"
+                style="background:transparent; color:#666; border:1px solid #ccc; padding:12px 20px; font-size:14px; cursor:pointer; border-radius:4px; font-family:Georgia,serif; margin-left:8px;">
+            Close
+        </button>
+    </div>
+@endif
 
 <div class="paper">
 
@@ -521,9 +550,20 @@
             <div style="margin-bottom: 16px;">
                 <div class="category-header">{{ $catName ?? 'Others' }}</div>
                 <div class="menu-items-grid">
-                    @foreach($items as $item)
-                        <div class="menu-item-row">{{ $item->name }}</div>
-                    @endforeach
+                    @php
+                        $pairs = $items->values();
+                        $count = $pairs->count();
+                    @endphp
+                    @for($i = 0; $i < $count; $i += 2)
+                        <div class="menu-item-row">
+                            <span>• {{ $pairs[$i]->name }}</span>
+                            <span>
+                                @if(isset($pairs[$i+1]))
+                                    • {{ $pairs[$i+1]->name }}
+                                @endif
+                            </span>
+                        </div>
+                    @endfor
                 </div>
             </div>
             @endforeach
@@ -620,13 +660,13 @@
         </div>
         <div class="footer-contact">
             @if($caterer->contact_number ?? $caterer->phone ?? null)
-                📞 {{ $caterer->contact_number ?? $caterer->phone }}<br>
+                Phone: {{ $caterer->contact_number ?? $caterer->phone }}<br>
             @endif
             @if($caterer->email)
-                ✉ {{ $caterer->email }}<br>
+                Email: {{ $caterer->email }}<br>
             @endif
             @if($caterer->business_address)
-                📍 {{ $caterer->business_address }}
+                Address: {{ $caterer->business_address }}
             @endif
         </div>
     </div>
