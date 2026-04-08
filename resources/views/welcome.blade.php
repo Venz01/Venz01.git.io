@@ -175,10 +175,14 @@
                         @if($caterer->profile_photo)
                             <img src="{{ $caterer->profile_photo }}"
                                 alt="{{ $caterer->business_name ?? $caterer->name }}"
+                                loading="lazy"
+                                decoding="async"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @elseif($caterer->featuredImages->count() > 0)
                             <img src="{{ $caterer->featuredImages->first()->image_path }}"
                                 alt="{{ $caterer->business_name ?? $caterer->name }}"
+                                loading="lazy"
+                                decoding="async"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
                             <div class="w-full h-full bg-gradient-to-br from-green-400 via-emerald-500 to-teal-500 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
@@ -329,6 +333,7 @@
                     <div class="relative overflow-hidden {{ $package->bookings_count > 0 ? 'pt-7' : '' }}">
                         @if($package->image_path)
                             <img src="{{ $package->image_path }}" alt="{{ $package->name }}"
+                                 loading="lazy" decoding="async"
                                  class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
                             <div class="w-full h-44 bg-gradient-to-br from-green-400 via-emerald-500 to-teal-500 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">

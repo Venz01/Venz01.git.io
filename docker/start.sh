@@ -18,6 +18,9 @@ chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 echo "Running database migrations..."
 php artisan migrate --force
 
+echo "Ensuring admin account exists..."
+php artisan db:seed --class=AdminUserSeeder --force
+
 # Clear and warm caches (safe now that DB tables exist if using database drivers)
 echo "Refreshing caches..."
 php artisan config:clear || true
