@@ -156,11 +156,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
-                                            <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                                                <span class="text-indigo-600 dark:text-indigo-300 font-medium text-sm">
-                                                    {{ substr($user->name, 0, 1) }}
-                                                </span>
-                                            </div>
+                                            <img src="{{ $user->profile_photo_url }}"
+                                                 alt="{{ $user->name }} profile picture"
+                                                 class="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700">
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">

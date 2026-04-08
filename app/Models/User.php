@@ -79,6 +79,24 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Resolve a display-safe profile photo URL with fallback avatar.
+     */
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        $photo = $this->profile_photo;
+
+        if (empty($photo)) {
+            return asset('images/default-avatar.svg');
+        }
+
+        if (filter_var($photo, FILTER_VALIDATE_URL) || str_starts_with($photo, '/storage/')) {
+            return $photo;
+        }
+
+        return asset('storage/' . ltrim($photo, '/'));
+    }
+
     // ─────────────────────────────────────────────
     // Relationships
     // ─────────────────────────────────────────────
