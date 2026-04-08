@@ -76,10 +76,12 @@ trait HandlesImageUploads
 
         // Normalise full URL (http://localhost/storage/x.jpg) → relative path (x.jpg)
         if (filter_var($path, FILTER_VALIDATE_URL)) {
-            $path = ltrim(
-                str_replace(Storage::disk('public')->url(''), '', $path),
-                '/'
-            );
+            $urlPath = parse_url($path, PHP_URL_PATH) ?: '';
+            if (str_starts_with($urlPath, '/storage/')) {
+                $path = ltrim(substr($urlPath, strlen('/storage/')), '/');
+            }
+        } elseif (str_starts_with($path, '/storage/')) {
+            $path = ltrim(substr($path, strlen('/storage/')), '/');
         }
 
         if ($path && Storage::disk('public')->exists($path)) {
@@ -99,7 +101,7 @@ trait HandlesImageUploads
     private function uploadToLocal($file, string $folder): string
     {
         $storedPath = $file->store($folder, 'public');
-        return Storage::disk('public')->url($storedPath);
+        return '/storage/' . ltrim($storedPath, '/');
     }
 
     // ── Cloudinary upload ─────────────────────────────────────────────────────

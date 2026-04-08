@@ -13,6 +13,9 @@ fi
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Ensure /public/storage exists for locally stored uploads.
+php artisan storage:link || true
+
 # Run migrations FIRST so `sessions`, `cache`, `jobs`, etc. exist before any
 # Artisan command that uses the DB (e.g. cache:clear with CACHE_STORE=database).
 echo "Running database migrations..."
