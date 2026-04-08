@@ -11,6 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('reviews')) {
+            return;
+        }
+
+        // If this migration is applied after a newer schema change, avoid failing.
+        if (Schema::hasColumn('reviews', 'admin_status')) {
+            return;
+        }
+
         Schema::table('reviews', function (Blueprint $table) {
             // Admin moderation fields
             $table->string('admin_status')->default('approved')->after('is_approved'); // approved, flagged, under_review, removed
@@ -32,15 +41,22 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('reviews')) {
+            return;
+        }
+
+        if (!Schema::hasColumn('reviews', 'admin_status')) {
+            return;
+        }
+
         Schema::table('reviews', function (Blueprint $table) {
-            $table->dropForeign(['reviewed_by']);
+            $table->dropConstrainedForeignId('reviewed_by');
             $table->dropIndex(['admin_status']);
             $table->dropIndex(['caterer_warned']);
             $table->dropColumn([
                 'admin_status',
                 'flagged_reason',
                 'admin_notes',
-                'reviewed_by',
                 'admin_reviewed_at',
                 'caterer_warned',
                 'caterer_warned_at'
