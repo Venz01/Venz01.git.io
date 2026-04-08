@@ -15,7 +15,9 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // Default to `file` so small / single-instance deploys (e.g. Render free) do not
+    // require the `cache` table before migrations run. Set CACHE_STORE=database in .env if you prefer DB cache.
+    'default' => env('CACHE_STORE', 'file'),
 
     /*
     |--------------------------------------------------------------------------
