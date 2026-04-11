@@ -24,7 +24,7 @@
                 </div>
 
                 <!-- Right Side - Registration Form -->
-                <div class="p-8 lg:p-12 flex flex-col justify-start lg:justify-center overflow-y-auto lg:max-h-screen">
+                <div class="p-8 lg:p-12 flex flex-col overflow-y-auto lg:max-h-screen lg:overflow-y-auto">
                     <!-- Mobile Header (visible only on mobile) -->
                     <div class="lg:hidden flex items-center justify-center gap-3 mb-8">
                         <div class="h-12 w-12 rounded-2xl bg-emerald-600/10 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-600/20 dark:border-emerald-400/20">
