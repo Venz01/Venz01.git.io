@@ -8,6 +8,11 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/foodlogo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/foodlogo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/foodlogo.png') }}">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -28,6 +33,7 @@
             </div>
         </header>
         @endisset
+
         <!-- Flash Messages -->
         @if(session('success'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
@@ -38,7 +44,6 @@
             </div>
         </div>
         @endif
-
 
         @if(session('error'))
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
