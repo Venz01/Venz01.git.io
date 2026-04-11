@@ -11,11 +11,14 @@ use App\Models\Package;
 use App\Models\MenuItem;
 use App\Models\CatererAvailability;
 use App\Services\NotificationService;
+use App\Traits\DatabaseLock;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
+    use DatabaseLock;
+
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
@@ -156,13 +159,22 @@ class BookingController extends Controller
             return redirect()->route('customer.caterers')->with('error', 'Booking session expired.');
         }
 
+        $lockKey = null;
+
         try {
             DB::beginTransaction();
 
             // Acquire an advisory lock per caterer+date to prevent double-bookings
             // under concurrent requests (race condition fix).
             $lockKey = 'booking_' . $bookingDetails['caterer_id'] . '_' . $bookingDetails['event_date'];
-            DB::select("SELECT GET_LOCK(?, 5) as locked", [$lockKey]);
+            
+            // Use database-agnostic lock (works with both MySQL and PostgreSQL)
+            $lockAcquired = $this->acquireLock($lockKey, 5);
+            
+            if (!$lockAcquired) {
+                DB::rollBack();
+                return back()->with('error', 'Unable to process booking at this time. Please try again.');
+            }
 
             // Re-check availability inside the lock
             $isBlocked = CatererAvailability::where('caterer_id', $bookingDetails['caterer_id'])
@@ -171,7 +183,7 @@ class BookingController extends Controller
                 ->exists();
 
             if ($isBlocked) {
-                DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+                $this->releaseLock($lockKey);
                 DB::rollBack();
                 session()->forget(['booking_details', 'booking_customization']);
                 return redirect()->route('customer.caterers')
@@ -184,7 +196,7 @@ class BookingController extends Controller
                 ->exists();
 
             if ($hasExistingBooking) {
-                DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+                $this->releaseLock($lockKey);
                 DB::rollBack();
                 session()->forget(['booking_details', 'booking_customization']);
                 return redirect()->route('customer.caterers')
@@ -248,15 +260,15 @@ class BookingController extends Controller
 
             session()->forget(['booking_details', 'booking_customization']);
             DB::commit();
-            DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+            $this->releaseLock($lockKey);
 
             return redirect()->route('customer.booking.confirmation', $booking->id)
                 ->with('success', 'Booking created successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            if (isset($lockKey)) {
-                DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
+            if ($lockKey) {
+                $this->releaseLock($lockKey);
             }
             Log::error('Booking creation failed', [
                 'user_id' => auth()->id(), 'error' => $e->getMessage(),
