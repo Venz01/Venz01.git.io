@@ -412,12 +412,10 @@
     <!-- Hidden Forms -->
     <form id="approveForm" method="POST" style="display: none;">
         @csrf
-        @method('PATCH')
     </form>
 
     <form id="rejectForm" method="POST" style="display: none;">
         @csrf
-        @method('PATCH')
     </form>
 
     <form id="statusForm" method="POST" style="display: none;">
