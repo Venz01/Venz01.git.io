@@ -204,73 +204,30 @@
                                 @endforeach
                             </div>
 
-                            <!-- Price Breakdown -->
+                            <!-- Price Breakdown — always JS-driven so it updates live with customer selections -->
                             <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
                                 <div class="space-y-2 text-sm">
-                                    @if($package->costing && $package->costing->total_cost > 0)
-                                        @if($package->costing->ingredient_cost > 0)
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Ingredients / Raw Food:</span>
-                                            <span class="font-medium">₱<span id="ingredientCost">{{ number_format($package->costing->ingredient_cost, 2) }}</span></span>
-                                        </div>
-                                        @endif
-                                        @if($package->costing->labor_cost > 0)
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Labor & Staffing:</span>
-                                            <span class="font-medium">₱<span id="laborCost">{{ number_format($package->costing->labor_cost, 2) }}</span></span>
-                                        </div>
-                                        @endif
-                                        @if($package->costing->equipment_cost > 0)
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Equipment & Rentals:</span>
-                                            <span class="font-medium">₱<span id="equipmentCost">{{ number_format($package->costing->equipment_cost, 2) }}</span></span>
-                                        </div>
-                                        @endif
-                                        @if($package->costing->consumables_cost > 0)
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Consumables & Packaging:</span>
-                                            <span class="font-medium">₱<span id="consumablesCost">{{ number_format($package->costing->consumables_cost, 2) }}</span></span>
-                                        </div>
-                                        @endif
-                                        @if($package->costing->overhead_cost > 0)
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Overhead & Utilities:</span>
-                                            <span class="font-medium">₱<span id="overheadCost">{{ number_format($package->costing->overhead_cost, 2) }}</span></span>
-                                        </div>
-                                        @endif
-                                        @if($package->costing->transport_cost > 0)
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Transport & Logistics:</span>
-                                            <span class="font-medium">₱<span id="transportCost">{{ number_format($package->costing->transport_cost, 2) }}</span></span>
-                                        </div>
-                                        @endif
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Profit Margin ({{ number_format($package->costing->profit_margin_percent, 1) }}%):</span>
-                                            <span class="font-medium">₱<span id="profitMargin">{{ number_format($package->costing->profit_amount, 2) }}</span></span>
-                                        </div>
-                                    @else
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Food Cost:</span>
-                                            <span class="font-medium">₱<span id="foodCost">0</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Labor & Utilities (20%):</span>
-                                            <span class="font-medium">₱<span id="laborCost">0</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Equipment & Transport (10%):</span>
-                                            <span class="font-medium">₱<span id="equipmentCost">0</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Profit Margin (25%):</span>
-                                            <span class="font-medium">₱<span id="profitMargin">0</span></span>
-                                        </div>
-                                    @endif
+                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                        <span>Food Cost:</span>
+                                        <span class="font-medium">₱<span id="foodCost">0.00</span></span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                        <span>Labor &amp; Utilities (20%):</span>
+                                        <span class="font-medium">₱<span id="laborCost">0.00</span></span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                        <span>Equipment &amp; Transport (10%):</span>
+                                        <span class="font-medium">₱<span id="equipmentCost">0.00</span></span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                        <span>Profit Margin (25%):</span>
+                                        <span class="font-medium">₱<span id="profitMargin">0.00</span></span>
+                                    </div>
                                     <div class="border-t-2 border-gray-300 dark:border-gray-600 my-3"></div>
                                     <div class="flex justify-between text-base font-semibold text-gray-900 dark:text-white">
                                         <span>Price per Head:</span>
-                                        <span>₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span></span>
+                                        <span>₱<span id="pricePerHead">0</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -558,10 +515,7 @@
     <script>
         const originalPrice   = {{ $package->price }};
         const originalPax     = {{ $package->pax }};
-        const hasCosting      = {{ $hasCosting ? 'true' : 'false' }};
-        const totalItemCount  = {{ $itemCount }};
         const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-        // IDs of default items (pre-checked on load)
         const defaultItemIds  = @json($defaultItemIds);
 
         const elements = {
@@ -585,9 +539,10 @@
 
         function updatePrice() {
             const checkboxes    = document.querySelectorAll('.menu-item-checkbox:checked');
-            let foodCost        = 0;
             const selectedItems = [];
+            let foodCost        = 0;
 
+            // Always sum from whatever is currently checked
             checkboxes.forEach(function (checkbox) {
                 const menuItem = checkbox.closest('.menu-item');
                 if (menuItem) {
@@ -596,23 +551,17 @@
                 }
             });
 
-            // Only use the original caterer price if ALL items (same count as total) are checked
-            // and we have a costing record — otherwise recalculate from scratch
-            let pricePerHead;
-            if (hasCosting && checkboxes.length === totalItemCount) {
-                pricePerHead = originalPrice;
-            } else {
-                const laborAndUtilities  = foodCost * 0.20;
-                const equipmentTransport = foodCost * 0.10;
-                const profitMargin       = foodCost * 0.25;
-                pricePerHead             = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
-                pricePerHead             = Math.ceil(pricePerHead / 5) * 5;
+            // Recalculate price from checked items every time
+            const laborAndUtilities  = foodCost * 0.20;
+            const equipmentTransport = foodCost * 0.10;
+            const profitMargin       = foodCost * 0.25;
+            let pricePerHead         = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
+            pricePerHead             = Math.ceil(pricePerHead / 5) * 5;
 
-                if (elements.foodCost)      elements.foodCost.textContent      = foodCost.toFixed(2);
-                if (elements.laborCost)     elements.laborCost.textContent     = (foodCost * 0.20).toFixed(2);
-                if (elements.equipmentCost) elements.equipmentCost.textContent = (foodCost * 0.10).toFixed(2);
-                if (elements.profitMargin)  elements.profitMargin.textContent  = (foodCost * 0.25).toFixed(2);
-            }
+            if (elements.foodCost)      elements.foodCost.textContent      = foodCost.toFixed(2);
+            if (elements.laborCost)     elements.laborCost.textContent     = laborAndUtilities.toFixed(2);
+            if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
+            if (elements.profitMargin)  elements.profitMargin.textContent  = profitMargin.toFixed(2);
 
             if (elements.pricePerHead)        elements.pricePerHead.textContent        = pricePerHead.toLocaleString();
             if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
