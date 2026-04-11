@@ -5,9 +5,7 @@
                 {{ __('Reports & Analytics') }}
             </h2>
             
-            <!-- Period Selector and Export Buttons -->
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <!-- Period Selector -->
                 <div class="flex gap-1 bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
                     <a href="?period=weekly" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium text-center {{ $period === 'weekly' ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }}">
                         Weekly
@@ -20,7 +18,6 @@
                     </a>
                 </div>
                 
-                <!-- Export Buttons -->
                 <div class="flex gap-2">
                     <a href="{{ route('caterer.reports.pdf', ['period' => $period]) }}" 
                        class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs sm:text-sm font-medium transition">
@@ -44,9 +41,8 @@
     <div class="py-6 sm:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <!-- ✅ UPDATED: Key Metrics with Orders -->
+            <!-- Key Metrics -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <!-- Total Revenue (Combined) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
@@ -63,7 +59,6 @@
                     </div>
                 </div>
 
-                <!-- Total Transactions (Combined) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
@@ -79,7 +74,6 @@
                     </div>
                 </div>
 
-                <!-- Average Values -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
@@ -95,7 +89,6 @@
                     </div>
                 </div>
 
-                <!-- Total Guests -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between mb-2">
@@ -110,9 +103,8 @@
                 </div>
             </div>
 
-            <!-- ✅ UPDATED: Charts Row with Combined Data -->
+            <!-- Charts Row 1 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <!-- Revenue Trends Chart (Combined) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Revenue Trends</h3>
@@ -122,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- Payment Status Chart -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Payment Status</h3>
@@ -133,9 +124,8 @@
                 </div>
             </div>
 
-            <!-- Second Charts Row -->
+            <!-- Charts Row 2 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <!-- Booking Status Chart -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Booking Status</h3>
@@ -145,7 +135,6 @@
                     </div>
                 </div>
 
-                <!-- ✅ NEW: Order Status Chart -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Order Status</h3>
@@ -156,9 +145,8 @@
                 </div>
             </div>
 
-            <!-- Third Charts Row -->
+            <!-- Charts Row 3 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <!-- Event Types Chart -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Event Types (Bookings)</h3>
@@ -168,7 +156,6 @@
                     </div>
                 </div>
 
-                <!-- ✅ NEW: Fulfillment Types Chart (Orders) -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
                         <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Fulfillment Types (Orders)</h3>
@@ -179,9 +166,8 @@
                 </div>
             </div>
 
-            <!-- ✅ UPDATED: Popular Items Tables (Both Types) -->
+            <!-- Popular Items Tables -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <!-- Popular Package Items (Bookings) -->
                 @if($popularItems->count() > 0)
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
@@ -212,7 +198,6 @@
                 </div>
                 @endif
 
-                <!-- ✅ NEW: Popular Display Menu Items (Orders) -->
                 @if(isset($popularDisplayItems) && $popularDisplayItems->count() > 0)
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-4 sm:p-6">
@@ -251,284 +236,310 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // ✅ Chart configuration
-        const isMobile = window.innerWidth < 640;
-        const fontSize = isMobile ? 10 : 12;
+        // ── THEME HELPERS ──────────────────────────────────────────────────────
+        // These functions read the CURRENT theme every time they're called,
+        // so charts always get the right colours whether in light or dark mode.
+        function isDarkMode() {
+            return document.documentElement.classList.contains('dark') ||
+                   window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
+        function getTextColor()  { return isDarkMode() ? '#e5e7eb' : '#374151'; }
+        function getGridColor()  { return isDarkMode() ? '#374151' : '#e5e7eb'; }
+
+        // ── CHART DATA (from PHP) ──────────────────────────────────────────────
+        const isMobile       = window.innerWidth < 640;
+        const fontSize       = isMobile ? 10 : 12;
         const legendFontSize = isMobile ? 10 : 12;
-        const isDark = document.documentElement.classList.contains('dark');
-        const textColor = isDark ? '#e5e7eb' : '#374151';
-        const gridColor = isDark ? '#374151' : '#e5e7eb';
 
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: textColor,
-                        font: { size: legendFontSize }
-                    }
+        const revenueTrendsLabels  = {!! json_encode($revenueTrends->pluck('date')) !!};
+        const bookingRevenueData   = {!! json_encode($revenueTrends->pluck('booking_revenue')) !!};
+        const orderRevenueData     = {!! json_encode($revenueTrends->pluck('order_revenue')) !!};
+        const totalRevenueData     = {!! json_encode($revenueTrends->pluck('total_revenue')) !!};
+
+        const paymentLabels        = {!! json_encode($paymentStatusData->pluck('payment_status')) !!};
+        const paymentCounts        = {!! json_encode($paymentStatusData->pluck('count')) !!};
+
+        const bookingStatusLabels  = {!! json_encode($bookingStatusData->pluck('booking_status')) !!};
+        const bookingStatusCounts  = {!! json_encode($bookingStatusData->pluck('count')) !!};
+
+        const orderStatusLabels    = {!! isset($orderStatusData) ? json_encode($orderStatusData->pluck('order_status')) : '[]' !!};
+        const orderStatusCounts    = {!! isset($orderStatusData) ? json_encode($orderStatusData->pluck('count')) : '[]' !!};
+
+        const eventTypeLabels      = {!! json_encode($eventTypes->pluck('event_type')) !!};
+        const eventTypeCounts      = {!! json_encode($eventTypes->pluck('count')) !!};
+
+        const fulfillmentLabels    = {!! isset($fulfillmentTypes) ? json_encode($fulfillmentTypes->pluck('fulfillment_type')) : '[]' !!};
+        const fulfillmentCounts    = {!! isset($fulfillmentTypes) ? json_encode($fulfillmentTypes->pluck('count')) : '[]' !!};
+
+        // ── BUILD CHART OPTIONS ────────────────────────────────────────────────
+        // Called every time we need fresh colours (initial render + theme switch)
+        function buildScalesXY(extra) {
+            return {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: getTextColor(), font: { size: fontSize }, ...(extra && extra.yTicks) },
+                    grid: { color: getGridColor() }
+                },
+                x: {
+                    ticks: {
+                        color: getTextColor(),
+                        font: { size: fontSize },
+                        maxRotation: isMobile ? 45 : 0,
+                        minRotation: isMobile ? 45 : 0
+                    },
+                    grid: { color: getGridColor() }
                 }
-            }
-        };
+            };
+        }
 
-        // ✅ UPDATED: Revenue Trends Chart with Booking + Order Data
-        const revenueTrendsCtx = document.getElementById('revenueTrendsChart').getContext('2d');
-        const revenueTrendsChart = new Chart(revenueTrendsCtx, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($revenueTrends->pluck('date')) !!},
-                datasets: [
-                    {
-                        label: 'Booking Revenue',
-                        data: {!! json_encode($revenueTrends->pluck('booking_revenue')) !!},
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Order Revenue',
-                        data: {!! json_encode($revenueTrends->pluck('order_revenue')) !!},
-                        borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Total Revenue',
-                        data: {!! json_encode($revenueTrends->pluck('total_revenue')) !!},
-                        borderColor: 'rgb(139, 92, 246)',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        fill: false,
-                        borderWidth: 3,
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ₱' + context.parsed.y.toLocaleString();
+        function buildLegend(position) {
+            return {
+                position: position || 'top',
+                labels: {
+                    color: getTextColor(),
+                    font: { size: legendFontSize },
+                    padding: isMobile ? 8 : 10,
+                    boxWidth: isMobile ? 30 : 40
+                }
+            };
+        }
+
+        // ── 1. REVENUE TRENDS ─────────────────────────────────────────────────
+        const revenueTrendsChart = new Chart(
+            document.getElementById('revenueTrendsChart').getContext('2d'),
+            {
+                type: 'line',
+                data: {
+                    labels: revenueTrendsLabels,
+                    datasets: [
+                        {
+                            label: 'Booking Revenue',
+                            data: bookingRevenueData,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Order Revenue',
+                            data: orderRevenueData,
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Total Revenue',
+                            data: totalRevenueData,
+                            borderColor: 'rgb(168, 85, 247)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            fill: false,
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: buildLegend('top'),
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.dataset.label + ': ₱' + ctx.parsed.y.toLocaleString();
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { 
-                            color: textColor,
-                            font: { size: fontSize },
-                            callback: function(value) {
-                                return '₱' + value.toLocaleString();
-                            }
-                        },
-                        grid: { color: gridColor }
                     },
-                    x: {
-                        ticks: { 
-                            color: textColor,
-                            font: { size: fontSize },
-                            maxRotation: isMobile ? 45 : 0,
-                            minRotation: isMobile ? 45 : 0
-                        },
-                        grid: { color: gridColor }
-                    }
+                    scales: buildScalesXY({
+                        yTicks: { callback: v => '₱' + v.toLocaleString() }
+                    })
                 }
             }
-        });
+        );
 
-        // Payment Status Chart
-        const paymentStatusCtx = document.getElementById('paymentStatusChart').getContext('2d');
-        const paymentStatusChart = new Chart(paymentStatusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($paymentStatusData->pluck('payment_status')) !!},
-                datasets: [{
-                    data: {!! json_encode($paymentStatusData->pluck('count')) !!},
-                    backgroundColor: [
-                        'rgb(34, 197, 94)',
-                        'rgb(251, 191, 36)',
-                        'rgb(239, 68, 68)',
-                        'rgb(59, 130, 246)'
-                    ]
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: textColor,
-                            font: { size: legendFontSize },
-                            padding: isMobile ? 8 : 10,
-                            boxWidth: isMobile ? 30 : 40
-                        }
-                    }
-                }
-            }
-        });
-
-        // Booking Status Chart
-        const bookingStatusCtx = document.getElementById('bookingStatusChart').getContext('2d');
-        const bookingStatusChart = new Chart(bookingStatusCtx, {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($bookingStatusData->pluck('booking_status')) !!},
-                datasets: [{
-                    label: 'Bookings',
-                    data: {!! json_encode($bookingStatusData->pluck('count')) !!},
-                    backgroundColor: 'rgb(59, 130, 246)'
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    legend: { display: false }
+        // ── 2. PAYMENT STATUS ─────────────────────────────────────────────────
+        const paymentStatusChart = new Chart(
+            document.getElementById('paymentStatusChart').getContext('2d'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: paymentLabels,
+                    datasets: [{
+                        data: paymentCounts,
+                        backgroundColor: [
+                            'rgb(34, 197, 94)',
+                            'rgb(251, 191, 36)',
+                            'rgb(239, 68, 68)',
+                            'rgb(59, 130, 246)'
+                        ]
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { 
-                            color: textColor,
-                            font: { size: fontSize }
-                        },
-                        grid: { color: gridColor }
-                    },
-                    x: {
-                        ticks: { 
-                            color: textColor,
-                            font: { size: fontSize }
-                        },
-                        grid: { color: gridColor }
-                    }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: buildLegend('bottom') }
                 }
             }
-        });
+        );
 
-        // ✅ NEW: Order Status Chart
-        const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
-        const orderStatusChart = new Chart(orderStatusCtx, {
-            type: 'bar',
-            data: {
-                labels: {!! isset($orderStatusData) ? json_encode($orderStatusData->pluck('order_status')) : '[]' !!},
-                datasets: [{
-                    label: 'Orders',
-                    data: {!! isset($orderStatusData) ? json_encode($orderStatusData->pluck('count')) : '[]' !!},
-                    backgroundColor: 'rgb(16, 185, 129)'
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    legend: { display: false }
+        // ── 3. BOOKING STATUS ─────────────────────────────────────────────────
+        const bookingStatusChart = new Chart(
+            document.getElementById('bookingStatusChart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: bookingStatusLabels,
+                    datasets: [{
+                        label: 'Bookings',
+                        data: bookingStatusCounts,
+                        backgroundColor: 'rgba(59, 130, 246, 0.85)'
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { 
-                            color: textColor,
-                            font: { size: fontSize }
-                        },
-                        grid: { color: gridColor }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
                     },
-                    x: {
-                        ticks: { 
-                            color: textColor,
-                            font: { size: fontSize }
-                        },
-                        grid: { color: gridColor }
-                    }
+                    scales: buildScalesXY()
                 }
             }
-        });
+        );
 
-        // Event Types Chart
-        const eventTypesCtx = document.getElementById('eventTypesChart').getContext('2d');
-        const eventTypesChart = new Chart(eventTypesCtx, {
-            type: 'pie',
-            data: {
-                labels: {!! json_encode($eventTypes->pluck('event_type')) !!},
-                datasets: [{
-                    data: {!! json_encode($eventTypes->pluck('count')) !!},
-                    backgroundColor: [
-                        'rgb(59, 130, 246)',
-                        'rgb(168, 85, 247)',
-                        'rgb(236, 72, 153)',
-                        'rgb(251, 191, 36)',
-                        'rgb(34, 197, 94)',
-                        'rgb(239, 68, 68)'
-                    ]
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: textColor,
-                            font: { size: legendFontSize },
-                            padding: isMobile ? 8 : 10,
-                            boxWidth: isMobile ? 30 : 40
-                        }
-                    }
+        // ── 4. ORDER STATUS ───────────────────────────────────────────────────
+        const orderStatusChart = new Chart(
+            document.getElementById('orderStatusChart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: orderStatusLabels,
+                    datasets: [{
+                        label: 'Orders',
+                        data: orderStatusCounts,
+                        backgroundColor: 'rgba(16, 185, 129, 0.85)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: buildScalesXY()
                 }
             }
-        });
+        );
 
-        // ✅ NEW: Fulfillment Types Chart (Orders)
-        const fulfillmentTypesCtx = document.getElementById('fulfillmentTypesChart').getContext('2d');
-        const fulfillmentTypesChart = new Chart(fulfillmentTypesCtx, {
-            type: 'pie',
-            data: {
-                labels: {!! isset($fulfillmentTypes) ? json_encode($fulfillmentTypes->pluck('fulfillment_type')) : '[]' !!},
-                datasets: [{
-                    data: {!! isset($fulfillmentTypes) ? json_encode($fulfillmentTypes->pluck('count')) : '[]' !!},
-                    backgroundColor: [
-                        'rgb(59, 130, 246)',
-                        'rgb(16, 185, 129)'
-                    ]
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: textColor,
-                            font: { size: legendFontSize },
-                            padding: isMobile ? 8 : 10,
-                            boxWidth: isMobile ? 30 : 40
-                        }
-                    }
+        // ── 5. EVENT TYPES ────────────────────────────────────────────────────
+        const eventTypesChart = new Chart(
+            document.getElementById('eventTypesChart').getContext('2d'),
+            {
+                type: 'pie',
+                data: {
+                    labels: eventTypeLabels,
+                    datasets: [{
+                        data: eventTypeCounts,
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(168, 85, 247)',
+                            'rgb(236, 72, 153)',
+                            'rgb(251, 191, 36)',
+                            'rgb(34, 197, 94)',
+                            'rgb(239, 68, 68)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: buildLegend('bottom') }
                 }
             }
-        });
+        );
 
-        // Handle window resize
+        // ── 6. FULFILLMENT TYPES ──────────────────────────────────────────────
+        const fulfillmentTypesChart = new Chart(
+            document.getElementById('fulfillmentTypesChart').getContext('2d'),
+            {
+                type: 'pie',
+                data: {
+                    labels: fulfillmentLabels,
+                    datasets: [{
+                        data: fulfillmentCounts,
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(16, 185, 129)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: buildLegend('bottom') }
+                }
+            }
+        );
+
+        // ── THEME SWITCH: update all charts when dark/light toggles ───────────
+        function updateAllChartColors() {
+            const text = getTextColor();
+            const grid = getGridColor();
+
+            // Helper: update a line/bar chart's scales
+            function refreshScales(chart) {
+                if (!chart.options.scales) return;
+                ['x', 'y'].forEach(axis => {
+                    if (chart.options.scales[axis]) {
+                        chart.options.scales[axis].ticks.color = text;
+                        chart.options.scales[axis].grid.color  = grid;
+                    }
+                });
+            }
+
+            // Helper: update legend label colour
+            function refreshLegend(chart) {
+                if (chart.options.plugins && chart.options.plugins.legend) {
+                    chart.options.plugins.legend.labels.color = text;
+                }
+            }
+
+            [revenueTrendsChart, bookingStatusChart, orderStatusChart].forEach(c => {
+                refreshScales(c);
+                refreshLegend(c);
+                c.update();
+            });
+
+            [paymentStatusChart, eventTypesChart, fulfillmentTypesChart].forEach(c => {
+                refreshLegend(c);
+                c.update();
+            });
+        }
+
+        // Watch Tailwind .dark class on <html>
+        new MutationObserver(updateAllChartColors)
+            .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+        // Watch OS-level preference
+        window.matchMedia('(prefers-color-scheme: dark)')
+              .addEventListener('change', updateAllChartColors);
+
+        // ── RESIZE ────────────────────────────────────────────────────────────
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                revenueTrendsChart.resize();
-                paymentStatusChart.resize();
-                bookingStatusChart.resize();
-                orderStatusChart.resize();
-                eventTypesChart.resize();
-                fulfillmentTypesChart.resize();
+                [revenueTrendsChart, paymentStatusChart, bookingStatusChart,
+                 orderStatusChart, eventTypesChart, fulfillmentTypesChart]
+                .forEach(c => c.resize());
             }, 250);
         });
     </script>
