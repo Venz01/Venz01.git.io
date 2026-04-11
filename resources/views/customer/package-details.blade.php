@@ -55,8 +55,12 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Main Content -->
+
+                <!-- ═══════════════════════════════════════════════
+                     MAIN CONTENT
+                ═══════════════════════════════════════════════ -->
                 <div class="lg:col-span-2 space-y-8">
+
                     <!-- Package Hero -->
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
                         <div class="relative h-96 bg-gradient-to-r from-gray-300 to-gray-400">
@@ -97,16 +101,33 @@
 
                     <!-- Customizable Menu Items -->
                     @if($package->items->count() > 0)
+                        @php
+                            $defaultItemIds = $package->items->filter(fn($i) => $i->pivot->is_default)->pluck('id')->toArray();
+                            $defaultCount   = count($defaultItemIds);
+                        @endphp
+
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-                            <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Customize Your Menu</h2>
                                 <div class="flex items-center space-x-4">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span id="selectedCount">{{ $package->items->count() }}</span> items selected
+                                        <span id="selectedCount">{{ $defaultCount }}</span> items selected
                                     </span>
                                     <button type="button" onclick="selectAll()" class="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">Select All</button>
                                     <button type="button" onclick="deselectAll()" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">Deselect All</button>
                                 </div>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="mb-4 flex flex-wrap gap-3 text-xs">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-400 font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                    Default — included in base price
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-full text-blue-700 dark:text-blue-400 font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+                                    Optional — add or remove as you like
+                                </span>
                             </div>
 
                             <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
@@ -114,7 +135,7 @@
                                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    Check or uncheck items to customize your package. The price will update automatically based on your selections.
+                                    Default items are pre-selected and included in the base price. Optional items can be checked or unchecked — the price updates automatically.
                                 </p>
                             </div>
 
@@ -137,25 +158,43 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             @foreach($items as $item)
-                                                <div class="menu-item relative p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent transition-all hover:border-green-300"
+                                                @php $isDefault = $item->pivot->is_default; @endphp
+                                                <div class="menu-item relative p-4 rounded-xl border-2 transition-all hover:shadow-md
+                                                        {{ $isDefault ? 'bg-green-50 dark:bg-green-900/10 border-green-400 dark:border-green-600' : 'bg-gray-50 dark:bg-gray-700 border-transparent' }}"
                                                     data-category="{{ $categoryName }}"
                                                     data-item-id="{{ $item->id }}"
-                                                    data-item-price="{{ $item->price }}">
+                                                    data-item-price="{{ $item->price }}"
+                                                    data-is-default="{{ $isDefault ? '1' : '0' }}">
+
+                                                    {{-- Default / Optional badge --}}
+                                                    <span class="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full
+                                                        {{ $isDefault
+                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                                                            : 'bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-400' }}">
+                                                        {{ $isDefault ? 'Default' : 'Optional' }}
+                                                    </span>
+
                                                     <label class="flex items-start space-x-3 cursor-pointer">
-                                                        <input type="checkbox" name="menu_items[]" value="{{ $item->id }}"
-                                                            class="menu-item-checkbox w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-1"
-                                                            checked onchange="updatePrice()">
-                                                        <div class="flex-1">
+                                                        <input type="checkbox"
+                                                            name="menu_items[]"
+                                                            value="{{ $item->id }}"
+                                                            class="menu-item-checkbox w-5 h-5 rounded focus:ring-green-500 mt-1
+                                                                {{ $isDefault ? 'text-green-600' : 'text-blue-500' }}"
+                                                            {{ $isDefault ? 'checked' : '' }}
+                                                            onchange="updatePrice()">
+                                                        <div class="flex-1 pr-12">
                                                             <div class="flex items-start justify-between">
                                                                 <h4 class="font-medium text-gray-900 dark:text-white">{{ $item->name }}</h4>
                                                                 @if($item->image_path)
-                                                                    <img src="{{ $item->image_path }}" alt="{{ $item->name }}" class="w-16 h-16 object-cover rounded-lg ml-2">
+                                                                    <img src="{{ $item->image_path }}" alt="{{ $item->name }}" class="w-16 h-16 object-cover rounded-lg ml-2 flex-shrink-0">
                                                                 @endif
                                                             </div>
                                                             @if($item->description)
                                                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $item->description }}</p>
                                                             @endif
-                                                            <p class="text-sm font-medium text-green-600 dark:text-green-400 mt-2">₱{{ number_format($item->price, 2) }}</p>
+                                                            <p class="text-sm font-medium text-green-600 dark:text-green-400 mt-2">
+                                                                ₱{{ number_format($item->price, 2) }}
+                                                            </p>
                                                         </div>
                                                     </label>
                                                 </div>
@@ -239,9 +278,13 @@
                     @endif
                 </div>
 
-                <!-- Sidebar -->
+                <!-- ═══════════════════════════════════════════════
+                     SIDEBAR
+                ═══════════════════════════════════════════════ -->
                 <div class="space-y-6">
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 sticky top-6">
+
+                        <!-- Total Price Hero -->
                         <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 text-white mb-6">
                             <div class="text-center">
                                 <p class="text-sm font-medium opacity-90 mb-2">Total Package Price</p>
@@ -329,7 +372,7 @@
                         </form>
                         @endauth
 
-                        {{-- Guest guest count display (read-only, no form) --}}
+                        {{-- Guest count display (read-only, no form) --}}
                         @guest
                         <div class="space-y-4 mb-6">
                             <div>
@@ -347,7 +390,6 @@
                         @endguest
 
                         <div class="space-y-3">
-                            {{-- Book Now button — behaviour differs for guest vs logged-in --}}
                             <button type="button" id="bookNowBtn"
                                 class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-lg">
                                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,7 +398,6 @@
                                 Book Now
                             </button>
 
-                            {{-- Cancel / Back button --}}
                             @auth
                             <a href="{{ route('customer.packages') }}"
                                 class="block w-full text-center border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -437,7 +478,6 @@
                             @endif
 
                             <div class="flex flex-col gap-2 pt-1">
-                                {{-- Profile link — different route for guests vs customers --}}
                                 @auth
                                 <a href="{{ route('customer.caterer.profile', $package->user->id) }}"
                                     class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors">
@@ -469,6 +509,8 @@
                         </div>
                     </div>
                 </div>
+                {{-- END SIDEBAR --}}
+
             </div>
         </div>
     </div>
@@ -489,7 +531,6 @@
                 You need an account to reserve this package.<br>It's free and takes less than a minute!
             </p>
             <div class="space-y-3">
-                {{-- Pass the current URL so the user is redirected back here after login --}}
                 <a href="{{ route('login') }}?redirect={{ urlencode(url()->current()) }}"
                     class="block w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors">
                     Log In
@@ -508,8 +549,10 @@
     @endguest
 
     @php
-        $itemCount = $package->items->count();
+        $itemCount  = $package->items->count();
         $hasCosting = $package->costing && $package->costing->total_cost > 0;
+        // Pass default item IDs to JS so price recalculation uses default items on first load
+        $defaultItemIds = $package->items->filter(fn($i) => $i->pivot->is_default)->pluck('id')->toArray();
     @endphp
 
     <script>
@@ -518,24 +561,26 @@
         const hasCosting      = {{ $hasCosting ? 'true' : 'false' }};
         const totalItemCount  = {{ $itemCount }};
         const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+        // IDs of default items (pre-checked on load)
+        const defaultItemIds  = @json($defaultItemIds);
 
         const elements = {
-            selectedCount:      document.getElementById('selectedCount'),
-            foodCost:           document.getElementById('foodCost'),
-            laborCost:          document.getElementById('laborCost'),
-            equipmentCost:      document.getElementById('equipmentCost'),
-            profitMargin:       document.getElementById('profitMargin'),
-            pricePerHead:       document.getElementById('pricePerHead'),
-            perHeadPriceDisplay:document.getElementById('perHeadPriceDisplay'),
-            totalPriceMain:     document.getElementById('totalPriceMain'),
-            guestCountDisplay:  document.getElementById('guestCountDisplay'),
-            depositAmount:      document.getElementById('depositAmount'),
-            dueNow:             document.getElementById('dueNow'),
-            hiddenPricePerHead: document.getElementById('hiddenPricePerHead'),
-            hiddenTotalPrice:   document.getElementById('hiddenTotalPrice'),
-            selectedItemsJson:  document.getElementById('selectedItemsJson'),
-            guestCount:         document.getElementById('guestCount'),
-            bookingForm:        document.getElementById('bookingForm'),
+            selectedCount:       document.getElementById('selectedCount'),
+            foodCost:            document.getElementById('foodCost'),
+            laborCost:           document.getElementById('laborCost'),
+            equipmentCost:       document.getElementById('equipmentCost'),
+            profitMargin:        document.getElementById('profitMargin'),
+            pricePerHead:        document.getElementById('pricePerHead'),
+            perHeadPriceDisplay: document.getElementById('perHeadPriceDisplay'),
+            totalPriceMain:      document.getElementById('totalPriceMain'),
+            guestCountDisplay:   document.getElementById('guestCountDisplay'),
+            depositAmount:       document.getElementById('depositAmount'),
+            dueNow:              document.getElementById('dueNow'),
+            hiddenPricePerHead:  document.getElementById('hiddenPricePerHead'),
+            hiddenTotalPrice:    document.getElementById('hiddenTotalPrice'),
+            selectedItemsJson:   document.getElementById('selectedItemsJson'),
+            guestCount:          document.getElementById('guestCount'),
+            bookingForm:         document.getElementById('bookingForm'),
         };
 
         function updatePrice() {
@@ -543,16 +588,16 @@
             let foodCost        = 0;
             const selectedItems = [];
 
-            checkboxes.forEach(function(checkbox) {
+            checkboxes.forEach(function (checkbox) {
                 const menuItem = checkbox.closest('.menu-item');
                 if (menuItem) {
-                    const price  = parseFloat(menuItem.dataset.itemPrice || 0);
-                    const itemId = menuItem.dataset.itemId;
-                    foodCost += price;
-                    selectedItems.push(itemId);
+                    foodCost += parseFloat(menuItem.dataset.itemPrice || 0);
+                    selectedItems.push(menuItem.dataset.itemId);
                 }
             });
 
+            // Only use the original caterer price if ALL items (same count as total) are checked
+            // and we have a costing record — otherwise recalculate from scratch
             let pricePerHead;
             if (hasCosting && checkboxes.length === totalItemCount) {
                 pricePerHead = originalPrice;
@@ -560,13 +605,13 @@
                 const laborAndUtilities  = foodCost * 0.20;
                 const equipmentTransport = foodCost * 0.10;
                 const profitMargin       = foodCost * 0.25;
-                pricePerHead = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
-                pricePerHead = Math.ceil(pricePerHead / 5) * 5;
+                pricePerHead             = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
+                pricePerHead             = Math.ceil(pricePerHead / 5) * 5;
 
                 if (elements.foodCost)      elements.foodCost.textContent      = foodCost.toFixed(2);
-                if (elements.laborCost)     elements.laborCost.textContent     = laborAndUtilities.toFixed(2);
-                if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
-                if (elements.profitMargin)  elements.profitMargin.textContent  = profitMargin.toFixed(2);
+                if (elements.laborCost)     elements.laborCost.textContent     = (foodCost * 0.20).toFixed(2);
+                if (elements.equipmentCost) elements.equipmentCost.textContent = (foodCost * 0.10).toFixed(2);
+                if (elements.profitMargin)  elements.profitMargin.textContent  = (foodCost * 0.25).toFixed(2);
             }
 
             if (elements.pricePerHead)        elements.pricePerHead.textContent        = pricePerHead.toLocaleString();
@@ -577,22 +622,32 @@
 
             updateTotalPrice();
 
-            document.querySelectorAll('.menu-item').forEach(function(item) {
-                const checkbox = item.querySelector('.menu-item-checkbox');
+            // Update card border/background to reflect checked state
+            document.querySelectorAll('.menu-item').forEach(function (item) {
+                const checkbox  = item.querySelector('.menu-item-checkbox');
+                const isDefault = item.dataset.isDefault === '1';
                 if (checkbox && checkbox.checked) {
-                    item.classList.add('border-green-500', 'bg-green-50');
-                    item.classList.remove('border-transparent');
+                    if (isDefault) {
+                        item.classList.add('bg-green-50', 'dark:bg-green-900/10', 'border-green-400', 'dark:border-green-600');
+                        item.classList.remove('border-transparent', 'bg-gray-50', 'dark:bg-gray-700');
+                    } else {
+                        item.classList.add('bg-blue-50', 'dark:bg-blue-900/10', 'border-blue-400', 'dark:border-blue-600');
+                        item.classList.remove('border-transparent', 'bg-gray-50', 'dark:bg-gray-700');
+                    }
                 } else {
-                    item.classList.remove('border-green-500', 'bg-green-50');
-                    item.classList.add('border-transparent');
+                    item.classList.remove(
+                        'bg-green-50', 'dark:bg-green-900/10', 'border-green-400', 'dark:border-green-600',
+                        'bg-blue-50',  'dark:bg-blue-900/10',  'border-blue-400',  'dark:border-blue-600'
+                    );
+                    item.classList.add('bg-gray-50', 'dark:bg-gray-700', 'border-transparent');
                 }
             });
         }
 
         function updateTotalPrice() {
-            const guests      = parseInt(elements.guestCount && elements.guestCount.value) || originalPax;
+            const guests       = parseInt(elements.guestCount && elements.guestCount.value) || originalPax;
             const pricePerHead = parseFloat(elements.hiddenPricePerHead && elements.hiddenPricePerHead.value) || originalPrice;
-            const totalPrice  = pricePerHead * guests;
+            const totalPrice   = pricePerHead * guests;
 
             if (elements.totalPriceMain)    elements.totalPriceMain.textContent    = totalPrice.toLocaleString();
             if (elements.guestCountDisplay) elements.guestCountDisplay.textContent = guests;
@@ -605,19 +660,21 @@
         }
 
         function selectAll() {
-            document.querySelectorAll('.menu-item-checkbox').forEach(function(cb) { cb.checked = true; });
+            document.querySelectorAll('.menu-item-checkbox').forEach(function (cb) { cb.checked = true; });
             updatePrice();
         }
 
         function deselectAll() {
-            document.querySelectorAll('.menu-item-checkbox').forEach(function(cb) { cb.checked = false; });
+            document.querySelectorAll('.menu-item-checkbox').forEach(function (cb) { cb.checked = false; });
             updatePrice();
         }
 
         function toggleCategory(categoryName) {
-            const categoryItems = document.querySelectorAll('.menu-item[data-category="' + categoryName + '"] .menu-item-checkbox');
-            const allChecked    = Array.from(categoryItems).every(function(cb) { return cb.checked; });
-            categoryItems.forEach(function(cb) { cb.checked = !allChecked; });
+            const categoryItems = document.querySelectorAll(
+                '.menu-item[data-category="' + categoryName + '"] .menu-item-checkbox'
+            );
+            const allChecked = Array.from(categoryItems).every(function (cb) { return cb.checked; });
+            categoryItems.forEach(function (cb) { cb.checked = !allChecked; });
             updatePrice();
         }
 
@@ -630,7 +687,7 @@
             }
 
             const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked'))
-                .map(function(cb) { return cb.value; });
+                .map(function (cb) { return cb.closest('.menu-item').dataset.itemId; });
 
             if (selectedItems.length === 0) {
                 alert('Please select at least one menu item.');
@@ -642,9 +699,9 @@
             }
 
             // Remove previously appended hidden inputs to avoid duplicates
-            elements.bookingForm.querySelectorAll('input[name="selected_items[]"]').forEach(function(el) { el.remove(); });
+            elements.bookingForm.querySelectorAll('input[name="selected_items[]"]').forEach(function (el) { el.remove(); });
 
-            selectedItems.forEach(function(itemId) {
+            selectedItems.forEach(function (itemId) {
                 const input   = document.createElement('input');
                 input.type    = 'hidden';
                 input.name    = 'selected_items[]';
@@ -655,22 +712,21 @@
             elements.bookingForm.submit();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Run once to set correct initial state based on which checkboxes are pre-checked
             updatePrice();
 
             if (elements.guestCount) {
                 elements.guestCount.addEventListener('input', updateTotalPrice);
             }
 
-            // ── Book Now button ────────────────────────────────────────────────
+            // Book Now button
             const bookNowBtn = document.getElementById('bookNowBtn');
             if (bookNowBtn) {
                 bookNowBtn.addEventListener('click', function () {
                     if (isAuthenticated) {
-                        // Logged-in customer — submit the booking form
                         submitBooking();
                     } else {
-                        // Guest — show the login prompt modal
                         document.getElementById('loginPromptModal').classList.remove('hidden');
                     }
                 });
@@ -679,10 +735,8 @@
             // Close login modal when clicking the backdrop
             const modal = document.getElementById('loginPromptModal');
             if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.classList.add('hidden');
-                    }
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) modal.classList.add('hidden');
                 });
             }
         });
@@ -694,8 +748,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         }
-        .menu-item-checkbox:checked + div { opacity: 1; }
-        .menu-item-checkbox:not(:checked) + div { opacity: 0.7; }
         #totalPriceMain, #perHeadPriceDisplay, #guestCountDisplay, #depositAmount, #dueNow {
             transition: all 0.3s ease;
         }

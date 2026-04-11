@@ -15,10 +15,25 @@ class Package extends Model
         'dietary_tags' => 'array',
     ];
 
+    /**
+     * All items in this package (default + alternatives).
+     */
     public function items()
     {
         return $this->belongsToMany(MenuItem::class, 'menu_item_package', 'package_id', 'menu_item_id')
+                    ->withPivot('is_default')
                     ->withTimestamps();
+    }
+
+    /**
+     * Only the default/priced items (used for cost calculation).
+     */
+    public function defaultItems()
+    {
+        return $this->belongsToMany(MenuItem::class, 'menu_item_package', 'package_id', 'menu_item_id')
+                    ->withPivot('is_default')
+                    ->withTimestamps()
+                    ->wherePivot('is_default', true);
     }
 
     public function user()
@@ -27,7 +42,7 @@ class Package extends Model
     }
 
     /**
-     * Get all bookings for this package
+     * Get all bookings for this package.
      */
     public function bookings()
     {
@@ -35,7 +50,7 @@ class Package extends Model
     }
 
     /**
-     * Get confirmed bookings for this package
+     * Get confirmed bookings for this package.
      */
     public function confirmedBookings()
     {
@@ -43,7 +58,7 @@ class Package extends Model
     }
 
     /**
-     * Scope for active packages
+     * Scope for active packages.
      */
     public function scopeActive($query)
     {
@@ -51,7 +66,7 @@ class Package extends Model
     }
 
     /**
-     * Scope for inactive packages
+     * Scope for inactive packages.
      */
     public function scopeInactive($query)
     {
@@ -59,7 +74,7 @@ class Package extends Model
     }
 
     /**
-     * Check if package has a specific dietary tag
+     * Check if package has a specific dietary tag.
      */
     public function hasDietaryTag(string $tag): bool
     {

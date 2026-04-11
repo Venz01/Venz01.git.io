@@ -13,11 +13,13 @@ class PackageController extends Controller
 {
     use HandlesImageUploads;
 
-    // ── Price Calculation ─────────────────────────────────────────────────────
+    // ── Price Calculation (default items only) ────────────────────────────────
 
-    private function calculatePackagePrice(array $menuItemIds): float
+    private function calculatePackagePrice(array $defaultItemIds): float
     {
-        $foodCost           = MenuItem::whereIn('id', $menuItemIds)->sum('price');
+        if (empty($defaultItemIds)) return 0;
+
+        $foodCost           = MenuItem::whereIn('id', $defaultItemIds)->sum('price');
         $laborAndUtilities  = $foodCost * 0.20;
         $equipmentTransport = $foodCost * 0.10;
         $profitMargin       = $foodCost * 0.25;
@@ -31,11 +33,11 @@ class PackageController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string|max:1000',
-            'pax'            => 'required|integer|min:1|max:1000',
-            'menu_items'     => 'required|array|min:1',
-            'menu_items.*'   => [
+            'name'             => 'required|string|max:255',
+            'description'      => 'nullable|string|max:1000',
+            'pax'              => 'required|integer|min:1|max:1000',
+            'menu_items'       => 'required|array|min:1',
+            'menu_items.*'     => [
                 'exists:menu_items,id',
                 function ($attribute, $value, $fail) {
                     $menuItem = MenuItem::find($value);
@@ -44,14 +46,21 @@ class PackageController extends Controller
                     }
                 },
             ],
-            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'dietary_tags'   => 'nullable|array',
-            'dietary_tags.*' => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
+            'default_items'    => 'nullable|array',
+            'default_items.*'  => 'exists:menu_items,id',
+            'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'dietary_tags'     => 'nullable|array',
+            'dietary_tags.*'   => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
         ]);
 
         try {
-            $calculatedPrice = $this->calculatePackagePrice($request->menu_items);
-            $imagePath       = $request->hasFile('image')
+            $allItems     = $request->input('menu_items', []);
+            $defaultItems = $request->input('default_items', []);
+
+            // Price is based ONLY on default items
+            $calculatedPrice = $this->calculatePackagePrice($defaultItems);
+
+            $imagePath = $request->hasFile('image')
                 ? $this->handleImageUpload($request->file('image'), 'packages')
                 : null;
 
@@ -66,7 +75,12 @@ class PackageController extends Controller
                 'dietary_tags' => $request->input('dietary_tags', []),
             ]);
 
-            $package->items()->attach($request->menu_items);
+            // Attach all items with is_default flag on the pivot
+            $syncData = [];
+            foreach ($allItems as $itemId) {
+                $syncData[$itemId] = ['is_default' => in_array($itemId, $defaultItems)];
+            }
+            $package->items()->sync($syncData);
 
             $this->applyDefaultCostingTemplate($package);
 
@@ -88,11 +102,11 @@ class PackageController extends Controller
         }
 
         $request->validate([
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string|max:1000',
-            'pax'            => 'required|integer|min:1|max:1000',
-            'menu_items'     => 'nullable|array',
-            'menu_items.*'   => [
+            'name'             => 'required|string|max:255',
+            'description'      => 'nullable|string|max:1000',
+            'pax'              => 'required|integer|min:1|max:1000',
+            'menu_items'       => 'nullable|array',
+            'menu_items.*'     => [
                 'exists:menu_items,id',
                 function ($attribute, $value, $fail) {
                     $menuItem = MenuItem::find($value);
@@ -101,15 +115,20 @@ class PackageController extends Controller
                     }
                 },
             ],
-            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'dietary_tags'   => 'nullable|array',
-            'dietary_tags.*' => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
+            'default_items'    => 'nullable|array',
+            'default_items.*'  => 'exists:menu_items,id',
+            'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'dietary_tags'     => 'nullable|array',
+            'dietary_tags.*'   => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
         ]);
 
         try {
-            $menuItems       = $request->input('menu_items', []);
-            $calculatedPrice = count($menuItems) > 0
-                ? $this->calculatePackagePrice($menuItems)
+            $allItems     = $request->input('menu_items', []);
+            $defaultItems = $request->input('default_items', []);
+
+            // Price is based ONLY on default items
+            $calculatedPrice = count($defaultItems) > 0
+                ? $this->calculatePackagePrice($defaultItems)
                 : 0;
 
             $imagePath = $package->image_path;
@@ -127,7 +146,12 @@ class PackageController extends Controller
                 'dietary_tags' => $request->input('dietary_tags', []),
             ]);
 
-            $package->items()->sync($menuItems);
+            // Rebuild pivot with is_default flags
+            $syncData = [];
+            foreach ($allItems as $itemId) {
+                $syncData[$itemId] = ['is_default' => in_array($itemId, $defaultItems)];
+            }
+            $package->items()->sync($syncData);
 
             return back()->with('success',
                 'Package updated successfully! New price per head: ₱' . number_format($calculatedPrice, 2));
@@ -185,8 +209,11 @@ class PackageController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $items = $package->items()->withPivot('is_default')->get();
+
         return response()->json([
-            'items' => $package->items()->pluck('menu_items.id')->toArray(),
+            'items'         => $items->pluck('id')->toArray(),
+            'default_items' => $items->where('pivot.is_default', true)->pluck('id')->values()->toArray(),
         ]);
     }
 
@@ -216,7 +243,9 @@ class PackageController extends Controller
                 'has_costing'           => true,
             ];
         } else {
-            $foodCost           = $package->items()->sum('price');
+            // Use only default items for breakdown display
+            $defaultItems       = $package->defaultItems()->get();
+            $foodCost           = $defaultItems->sum('price');
             $laborAndUtilities  = $foodCost * 0.20;
             $equipmentTransport = $foodCost * 0.10;
             $profitMargin       = $foodCost * 0.25;
@@ -233,8 +262,9 @@ class PackageController extends Controller
         }
 
         $breakdown['items'] = $package->items->map(fn ($item) => [
-            'name'  => $item->name,
-            'price' => $item->price,
+            'name'       => $item->name,
+            'price'      => $item->price,
+            'is_default' => (bool) $item->pivot->is_default,
         ]);
 
         return response()->json($breakdown);
