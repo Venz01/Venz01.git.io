@@ -256,7 +256,7 @@
                                             @if($user->status === 'pending')
                                                 <!-- Quick Approve Button -->
                                                 <button type="button"
-                                                        onclick="showConfirmation('approve', {{ $user->id }}, '{{ $user->name }}', '{{ $user->business_name }}')"
+                                                        onclick="showConfirmation('approve', {{ $user->id }}, {{ json_encode($user->name) }}, {{ json_encode($user->business_name) }})"
                                                         class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                         title="Approve Caterer">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@
 
                                                 <!-- Quick Reject Button -->
                                                 <button type="button"
-                                                        onclick="showConfirmation('reject', {{ $user->id }}, '{{ $user->name }}', '{{ $user->business_name }}')"
+                                                        onclick="showConfirmation('reject', {{ $user->id }}, {{ json_encode($user->name) }}, {{ json_encode($user->business_name) }})"
                                                         class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                                                         title="Reject Caterer">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,17 +302,17 @@
                                                      style="display: none;">
                                                     <div class="py-1">
                                                         <button type="button"
-                                                                onclick="showConfirmation('suspend', {{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}')"
+                                                                onclick="showConfirmation('suspend', {{ $user->id }}, {{ json_encode($user->name) }}, {{ json_encode($user->email) }})"
                                                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
                                                             Suspend User
                                                         </button>
                                                         <button type="button"
-                                                                onclick="showConfirmation('activate', {{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}')"
+                                                                onclick="showConfirmation('activate', {{ $user->id }}, {{ json_encode($user->name) }}, {{ json_encode($user->email) }})"
                                                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
                                                             Activate User
                                                         </button>
                                                         <button type="button"
-                                                                onclick="showConfirmation('delete', {{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}')"
+                                                                onclick="showConfirmation('delete', {{ $user->id }}, {{ json_encode($user->name) }}, {{ json_encode($user->email) }})"
                                                                 class="block w-full text-left px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600">
                                                             Delete User
                                                         </button>
@@ -412,10 +412,12 @@
     <!-- Hidden Forms -->
     <form id="approveForm" method="POST" style="display: none;">
         @csrf
+        @method('POST')
     </form>
 
     <form id="rejectForm" method="POST" style="display: none;">
         @csrf
+        @method('POST')
     </form>
 
     <form id="statusForm" method="POST" style="display: none;">
