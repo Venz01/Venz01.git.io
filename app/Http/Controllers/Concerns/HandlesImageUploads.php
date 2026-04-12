@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Drop this trait into any controller that uploads images.
@@ -45,12 +46,23 @@ trait HandlesImageUploads
     {
         if ($this->cloudinaryConfigured()) {
             try {
-                return $this->uploadToCloudinary($file, $folder);
+                $url = $this->uploadToCloudinary($file, $folder);
+                Log::info('Cloudinary upload successful', [
+                    'folder' => $folder,
+                    'url' => $url,
+                ]);
+                return $url;
             } catch (\Exception $e) {
-                \Log::warning('Cloudinary upload failed, falling back to local storage.', [
+                Log::error('Cloudinary upload failed, falling back to local storage.', [
+                    'folder' => $folder,
                     'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
+        } else {
+            Log::info('Cloudinary not configured, using local storage', [
+                'folder' => $folder,
+            ]);
         }
 
         return $this->uploadToLocal($file, $folder);
@@ -68,8 +80,12 @@ trait HandlesImageUploads
         if (str_contains($path, 'cloudinary.com')) {
             try {
                 $this->deleteFromCloudinary($path);
+                Log::info('Cloudinary delete successful', ['path' => $path]);
             } catch (\Exception $e) {
-                \Log::warning('Cloudinary delete failed.', ['error' => $e->getMessage()]);
+                Log::warning('Cloudinary delete failed.', [
+                    'path' => $path,
+                    'error' => $e->getMessage(),
+                ]);
             }
             return;
         }
@@ -86,6 +102,7 @@ trait HandlesImageUploads
 
         if ($path && Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
+            Log::info('Local storage delete successful', ['path' => $path]);
         }
     }
 
@@ -93,15 +110,44 @@ trait HandlesImageUploads
 
     private function cloudinaryConfigured(): bool
     {
-        return !empty(config('services.cloudinary.cloud_name', env('CLOUDINARY_CLOUD_NAME')))
-            && !empty(config('services.cloudinary.api_key',    env('CLOUDINARY_API_KEY')))
-            && !empty(config('services.cloudinary.api_secret', env('CLOUDINARY_API_SECRET')));
+        // Check both config locations: config/cloudinary.php and config/services.php
+        $cloudName = config('cloudinary.cloud_name') 
+                  ?? config('services.cloudinary.cloud_name')
+                  ?? env('CLOUDINARY_CLOUD_NAME');
+                  
+        $apiKey = config('cloudinary.api_key')
+               ?? config('services.cloudinary.api_key')
+               ?? env('CLOUDINARY_API_KEY');
+               
+        $apiSecret = config('cloudinary.api_secret')
+                  ?? config('services.cloudinary.api_secret')
+                  ?? env('CLOUDINARY_API_SECRET');
+
+        $configured = !empty($cloudName) && !empty($apiKey) && !empty($apiSecret);
+
+        if (!$configured) {
+            Log::debug('Cloudinary configuration check failed', [
+                'cloud_name_set' => !empty($cloudName),
+                'api_key_set' => !empty($apiKey),
+                'api_secret_set' => !empty($apiSecret),
+            ]);
+        }
+
+        return $configured;
     }
 
     private function uploadToLocal($file, string $folder): string
     {
         $storedPath = $file->store($folder, 'public');
-        return '/storage/' . ltrim($storedPath, '/');
+        $url = '/storage/' . ltrim($storedPath, '/');
+        
+        Log::info('Local upload successful', [
+            'folder' => $folder,
+            'path' => $storedPath,
+            'url' => $url,
+        ]);
+        
+        return $url;
     }
 
     // ── Cloudinary upload ─────────────────────────────────────────────────────
@@ -121,15 +167,34 @@ trait HandlesImageUploads
      */
     private function uploadToCloudinary($file, string $folder): string
     {
-        $cloudName = config('services.cloudinary.cloud_name', env('CLOUDINARY_CLOUD_NAME'));
-        $apiKey    = config('services.cloudinary.api_key',    env('CLOUDINARY_API_KEY'));
-        $apiSecret = config('services.cloudinary.api_secret', env('CLOUDINARY_API_SECRET'));
+        $cloudName = config('cloudinary.cloud_name')
+                  ?? config('services.cloudinary.cloud_name')
+                  ?? env('CLOUDINARY_CLOUD_NAME');
+                  
+        $apiKey = config('cloudinary.api_key')
+               ?? config('services.cloudinary.api_key')
+               ?? env('CLOUDINARY_API_KEY');
+               
+        $apiSecret = config('cloudinary.api_secret')
+                  ?? config('services.cloudinary.api_secret')
+                  ?? env('CLOUDINARY_API_SECRET');
+
+        if (!$cloudName || !$apiKey || !$apiSecret) {
+            throw new \RuntimeException('Cloudinary credentials not configured');
+        }
 
         $timestamp = time();
         $publicId  = uniqid(); // bare ID — folder param handles placement
 
         // Sorted: folder, public_id, timestamp. Secret appended directly (no &).
         $signature = sha1("folder={$folder}&public_id={$publicId}&timestamp={$timestamp}{$apiSecret}");
+
+        Log::debug('Cloudinary upload attempt', [
+            'cloud_name' => $cloudName,
+            'folder' => $folder,
+            'public_id' => $publicId,
+            'timestamp' => $timestamp,
+        ]);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -157,21 +222,38 @@ trait HandlesImageUploads
         $response  = curl_exec($ch);
         $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
+        $curlInfo  = curl_getinfo($ch);
         curl_close($ch);
 
         if ($curlError) {
+            Log::error('Cloudinary cURL error', [
+                'error' => $curlError,
+                'curl_info' => $curlInfo,
+                'ca_bundle' => $this->resolvedCaBundlePath(),
+            ]);
             throw new \RuntimeException('Cloudinary connection error: ' . $curlError);
         }
 
         if ($httpCode !== 200) {
             $decoded = json_decode($response, true);
             $message = $decoded['error']['message'] ?? $response;
-            throw new \RuntimeException('Cloudinary upload failed: ' . $message);
+            
+            Log::error('Cloudinary HTTP error', [
+                'http_code' => $httpCode,
+                'response' => $response,
+                'decoded' => $decoded,
+            ]);
+            
+            throw new \RuntimeException("Cloudinary upload failed (HTTP {$httpCode}): " . $message);
         }
 
         $result = json_decode($response, true);
 
         if (empty($result['secure_url'])) {
+            Log::error('Cloudinary response missing secure_url', [
+                'response' => $response,
+                'result' => $result,
+            ]);
             throw new \RuntimeException('Cloudinary upload failed: no URL returned.');
         }
 
@@ -187,16 +269,26 @@ trait HandlesImageUploads
      */
     private function deleteFromCloudinary(string $url): void
     {
-        $cloudName = config('services.cloudinary.cloud_name', env('CLOUDINARY_CLOUD_NAME'));
-        $apiKey    = config('services.cloudinary.api_key',    env('CLOUDINARY_API_KEY'));
-        $apiSecret = config('services.cloudinary.api_secret', env('CLOUDINARY_API_SECRET'));
+        $cloudName = config('cloudinary.cloud_name')
+                  ?? config('services.cloudinary.cloud_name')
+                  ?? env('CLOUDINARY_CLOUD_NAME');
+                  
+        $apiKey = config('cloudinary.api_key')
+               ?? config('services.cloudinary.api_key')
+               ?? env('CLOUDINARY_API_KEY');
+               
+        $apiSecret = config('cloudinary.api_secret')
+                  ?? config('services.cloudinary.api_secret')
+                  ?? env('CLOUDINARY_API_SECRET');
 
         if (!$cloudName || !$apiKey || !$apiSecret) {
+            Log::warning('Cloudinary delete skipped - credentials not configured');
             return;
         }
 
         $publicId = $this->extractCloudinaryPublicId($url);
         if (!$publicId) {
+            Log::warning('Failed to extract public_id from Cloudinary URL', ['url' => $url]);
             return;
         }
 
@@ -220,8 +312,17 @@ trait HandlesImageUploads
             CURLOPT_CAINFO         => $this->resolvedCaBundlePath(),
         ]);
 
-        curl_exec($ch);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        if ($httpCode !== 200) {
+            Log::warning('Cloudinary delete failed', [
+                'http_code' => $httpCode,
+                'response' => $response,
+                'public_id' => $publicId,
+            ]);
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -257,21 +358,43 @@ trait HandlesImageUploads
      * Priority:
      *   1. php.ini curl.cainfo  — system-wide config, trust it.
      *   2. storage/cacert.pem   — project-bundled file (see class docblock).
-     *   3. null                 — cURL uses its compiled-in default
-     *                            (works on most production Linux servers).
+     *   3. /etc/ssl/certs/ca-certificates.crt — Debian/Ubuntu default
+     *   4. /etc/pki/tls/certs/ca-bundle.crt — RedHat/CentOS default
+     *   5. null — cURL uses its compiled-in default (fallback)
      */
     private function resolvedCaBundlePath(): ?string
     {
+        // 1. Check php.ini setting
         $iniPath = ini_get('curl.cainfo');
         if ($iniPath && file_exists($iniPath)) {
+            Log::debug('Using CA bundle from php.ini', ['path' => $iniPath]);
             return $iniPath;
         }
 
+        // 2. Check project storage directory
         $bundled = storage_path('cacert.pem');
         if (file_exists($bundled)) {
+            Log::debug('Using CA bundle from storage/', ['path' => $bundled]);
             return $bundled;
         }
 
+        // 3. Check common Linux locations
+        $commonPaths = [
+            '/etc/ssl/certs/ca-certificates.crt',  // Debian/Ubuntu/Alpine
+            '/etc/pki/tls/certs/ca-bundle.crt',     // RedHat/CentOS
+            '/etc/ssl/ca-bundle.pem',               // OpenSUSE
+            '/etc/ssl/cert.pem',                    // OpenBSD
+        ];
+
+        foreach ($commonPaths as $path) {
+            if (file_exists($path)) {
+                Log::debug('Using system CA bundle', ['path' => $path]);
+                return $path;
+            }
+        }
+
+        // 4. Fallback to cURL's default
+        Log::debug('No CA bundle found, using cURL default');
         return null;
     }
 }
