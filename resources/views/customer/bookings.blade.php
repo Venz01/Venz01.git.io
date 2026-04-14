@@ -217,8 +217,20 @@
                                         <h4 class="font-semibold text-gray-900 dark:text-white">Caterer</h4>
                                         
                                         <div class="flex items-start">
-                                            <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
-                                                {{ substr($booking->caterer->business_name ?? $booking->caterer->name, 0, 1) }}
+                                            <div class="w-12 h-12 rounded-lg mr-3 flex-shrink-0 overflow-hidden bg-gradient-to-r from-green-400 to-green-600">
+                                                @if($booking->caterer->profile_photo)
+                                                    <img src="{{ $booking->caterer->profile_photo_url }}"
+                                                         alt="{{ $booking->caterer->business_name ?? $booking->caterer->name }}"
+                                                         class="w-full h-full object-cover"
+                                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                    <span class="w-full h-full hidden items-center justify-center text-white font-bold">
+                                                        {{ substr($booking->caterer->business_name ?? $booking->caterer->name, 0, 1) }}
+                                                    </span>
+                                                @else
+                                                    <span class="w-full h-full flex items-center justify-center text-white font-bold">
+                                                        {{ substr($booking->caterer->business_name ?? $booking->caterer->name, 0, 1) }}
+                                                    </span>
+                                                @endif
                                             </div>
                                             <div>
                                                 <p class="font-medium text-gray-900 dark:text-white">
