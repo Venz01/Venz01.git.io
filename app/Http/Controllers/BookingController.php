@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Concerns\HandlesImageUploads;
 use App\Http\Requests\StoreBookingEventRequest;
 use App\Http\Requests\ProcessPaymentRequest;
 use App\Http\Requests\ProcessBalancePaymentRequest;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
-    use DatabaseLock;
+    use DatabaseLock, HandlesImageUploads;
 
     protected $notificationService;
 
@@ -217,7 +218,8 @@ class BookingController extends Controller
             $depositPaid = $deposit + $serviceFee;
             $balance     = $totalPrice - $deposit;
 
-            $receiptPath = $request->file('receipt')->store('receipts', 'public');
+            // Uses Cloudinary when configured (production), falls back to local public disk (local dev)
+            $receiptPath = $this->handleImageUpload($request->file('receipt'), 'receipts');
 
             $booking = Booking::create([
                 'customer_id'         => auth()->id(),
@@ -500,7 +502,8 @@ class BookingController extends Controller
             ->findOrFail($bookingId);
 
         try {
-            $receiptPath = $request->file('receipt')->store('receipts/balance', 'public');
+            // Uses Cloudinary when configured (production), falls back to local public disk (local dev)
+            $receiptPath = $this->handleImageUpload($request->file('receipt'), 'receipts/balance');
 
             $booking->update([
                 'payment_status'       => 'fully_paid',

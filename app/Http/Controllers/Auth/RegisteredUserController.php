@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\HandlesImageUploads;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    use HandlesImageUploads;
     /**
      * Display the registration view.
      */
@@ -47,8 +49,11 @@ class RegisteredUserController extends Controller
 
         $businessPermitFilePath = null;
         if ($request->hasFile('business_permit_file')) {
-            // Store file and get path
-            $businessPermitFilePath = $request->file('business_permit_file')->store('business_permits', 'public');
+            // Uses Cloudinary when configured (production), falls back to local public disk (local dev)
+            $businessPermitFilePath = $this->handleImageUpload(
+                $request->file('business_permit_file'),
+                'business-permits'
+            );
         }
 
         $user = User::create([
