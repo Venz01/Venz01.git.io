@@ -49,6 +49,11 @@ class PackageCosting extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function costing()
+    {
+        return $this->hasOne(PackageCosting::class, 'package_id');
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
 
     /**

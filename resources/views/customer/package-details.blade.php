@@ -135,99 +135,120 @@
                                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    Default items are pre-selected and included in the base price. Optional items can be checked or unchecked — the price updates automatically.
+                                    Green items are included by default in the base price.
+                                    You can remove them or add optional blue items to customize your menu.
                                 </p>
                             </div>
 
-                            @php
-                                $itemsByCategory = $package->items->groupBy('category.name');
-                            @endphp
-
-                            <div class="space-y-8">
-                                @foreach($itemsByCategory as $categoryName => $items)
-                                    <div>
-                                        <div class="flex items-center justify-between mb-4">
-                                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                                {{ $categoryName ?? 'Uncategorized' }}
+                            <div class="space-y-4">
+                                @foreach($package->items->groupBy('category.name') as $categoryName => $items)
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-5 py-3 flex items-center justify-between cursor-pointer hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-colors"
+                                             onclick="toggleCategory('{{ $categoryName }}')">
+                                            <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                                @if(str_contains(strtolower($categoryName), 'appetizer'))
+                                                    <span class="text-xl">🥗</span>
+                                                @elseif(str_contains(strtolower($categoryName), 'main') || str_contains(strtolower($categoryName), 'entree'))
+                                                    <span class="text-xl">🍽️</span>
+                                                @elseif(str_contains(strtolower($categoryName), 'dessert'))
+                                                    <span class="text-xl">🍰</span>
+                                                @elseif(str_contains(strtolower($categoryName), 'beverage') || str_contains(strtolower($categoryName), 'drink'))
+                                                    <span class="text-xl">🥤</span>
+                                                @else
+                                                    <span class="text-xl">🍴</span>
+                                                @endif
+                                                {{ $categoryName }}
+                                                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $items->count() }} items)</span>
                                             </h3>
-                                            <button type="button" onclick="toggleCategory('{{ addslashes($categoryName) }}')"
-                                                class="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium">
-                                                Toggle All
-                                            </button>
+                                            <span class="text-green-600 dark:text-green-400 font-medium text-sm">Click to toggle all</span>
                                         </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                             @foreach($items as $item)
-                                                @php $isDefault = $item->pivot->is_default; @endphp
-                                                <div class="menu-item relative p-4 rounded-xl border-2 transition-all hover:shadow-md
-                                                        {{ $isDefault ? 'bg-green-50 dark:bg-green-900/10 border-green-400 dark:border-green-600' : 'bg-gray-50 dark:bg-gray-700 border-transparent' }}"
-                                                    data-category="{{ $categoryName }}"
-                                                    data-item-id="{{ $item->id }}"
-                                                    data-item-price="{{ $item->price }}"
-                                                    data-is-default="{{ $isDefault ? '1' : '0' }}">
-
-                                                    {{-- Default / Optional badge --}}
-                                                    <span class="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full
-                                                        {{ $isDefault
-                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                                                            : 'bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-400' }}">
-                                                        {{ $isDefault ? 'Default' : 'Optional' }}
-                                                    </span>
-
-                                                    <label class="flex items-start space-x-3 cursor-pointer">
+                                                @php
+                                                    $isDefault = $item->pivot->is_default ?? false;
+                                                @endphp
+                                                <label class="menu-item relative block p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 {{ $isDefault ? 'bg-green-50 dark:bg-green-900/10 border-green-400 dark:border-green-600' : 'bg-gray-50 dark:bg-gray-700 border-transparent' }} hover:shadow-md"
+                                                       data-item-id="{{ $item->id }}"
+                                                       data-item-price="{{ $item->price }}"
+                                                       data-is-default="{{ $isDefault ? '1' : '0' }}"
+                                                       data-category="{{ $categoryName }}">
+                                                    <div class="flex items-start gap-3">
                                                         <input type="checkbox"
-                                                            name="menu_items[]"
-                                                            value="{{ $item->id }}"
-                                                            class="menu-item-checkbox w-5 h-5 rounded focus:ring-green-500 mt-1
-                                                                {{ $isDefault ? 'text-green-600' : 'text-blue-500' }}"
-                                                            {{ $isDefault ? 'checked' : '' }}
-                                                            onchange="updatePrice()">
-                                                        <div class="flex-1 pr-12">
-                                                            <div class="flex items-start justify-between">
-                                                                <h4 class="font-medium text-gray-900 dark:text-white">{{ $item->name }}</h4>
-                                                                @if($item->image_path)
-                                                                    <img src="{{ $item->image_path }}" alt="{{ $item->name }}" class="w-16 h-16 object-cover rounded-lg ml-2 flex-shrink-0">
+                                                               class="menu-item-checkbox mt-1 w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                                                               {{ $isDefault ? 'checked' : '' }}
+                                                               onchange="updatePrice()">
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="flex items-start justify-between gap-2">
+                                                                <div class="flex-1 min-w-0">
+                                                                    <p class="font-semibold text-gray-900 dark:text-white truncate">{{ $item->name }}</p>
+                                                                    @if($item->description)
+                                                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{{ $item->description }}</p>
+                                                                    @endif
+                                                                </div>
+                                                                @if($isDefault)
+                                                                    <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-700 flex-shrink-0">
+                                                                        Default
+                                                                    </span>
                                                                 @endif
                                                             </div>
-                                                            @if($item->description)
-                                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $item->description }}</p>
-                                                            @endif
-                                                            <p class="text-sm font-medium text-green-600 dark:text-green-400 mt-2">
-                                                                ₱{{ number_format($item->price, 2) }}
-                                                            </p>
+                                                            <div class="mt-2 flex items-center justify-between">
+                                                                <span class="text-sm font-medium text-green-600 dark:text-green-400">₱{{ number_format($item->price, 2) }}</span>
+                                                                <span class="text-xs text-gray-400 dark:text-gray-500">per serving</span>
+                                                            </div>
                                                         </div>
-                                                    </label>
-                                                </div>
+                                                    </div>
+                                                </label>
                                             @endforeach
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
 
-                            <!-- Price Breakdown — always JS-driven so it updates live with customer selections -->
+                            <!-- Price Breakdown — now uses real costing data from caterer -->
                             <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
-                                <div class="space-y-2 text-sm">
-                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                        <span>Food Cost:</span>
-                                        <span class="font-medium">₱<span id="foodCost">0.00</span></span>
-                                    </div>
-                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                        <span>Labor &amp; Utilities (20%):</span>
-                                        <span class="font-medium">₱<span id="laborCost">0.00</span></span>
-                                    </div>
-                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                        <span>Equipment &amp; Transport (10%):</span>
-                                        <span class="font-medium">₱<span id="equipmentCost">0.00</span></span>
-                                    </div>
-                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                        <span>Profit Margin (25%):</span>
-                                        <span class="font-medium">₱<span id="profitMargin">0.00</span></span>
-                                    </div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    💰 Price Breakdown
+                                    @if($hasCosting)
+                                        <span class="text-xs font-normal text-green-600 dark:text-green-400">(Based on caterer's actual costs)</span>
+                                    @else
+                                        <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Estimated)</span>
+                                    @endif
+                                </h3>
+                                <div class="space-y-2 text-sm" id="costBreakdownContainer">
+                                    @if($hasCosting && $costing->cost_breakdown)
+                                        {{-- Display actual cost components from caterer's costing --}}
+                                        @foreach($costing->cost_breakdown as $component)
+                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                                <span>{{ $component['label'] }}:</span>
+                                                <span class="font-medium" data-cost-type="{{ strtolower(str_replace(' ', '_', $component['label'])) }}">
+                                                    ₱<span class="cost-value">{{ number_format($component['amount'], 2) }}</span>
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">({{ number_format($component['percent'], 1) }}%)</span>
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                            <span>Profit Margin ({{ number_format($costing->profit_margin_percent, 0) }}%):</span>
+                                            <span class="font-medium">₱<span id="profitMargin">{{ number_format($costing->profit_amount, 2) }}</span></span>
+                                        </div>
+                                    @else
+                                        {{-- Fallback: Show simplified breakdown when no costing exists --}}
+                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                            <span>Food Cost:</span>
+                                            <span class="font-medium">₱<span id="foodCost">0.00</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                            <span>Labor & Other Costs:</span>
+                                            <span class="font-medium">₱<span id="otherCosts">0.00</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                            <span>Service Fee:</span>
+                                            <span class="font-medium">₱<span id="profitMargin">0.00</span></span>
+                                        </div>
+                                    @endif
                                     <div class="border-t-2 border-gray-300 dark:border-gray-600 my-3"></div>
                                     <div class="flex justify-between text-base font-semibold text-gray-900 dark:text-white">
                                         <span>Price per Head:</span>
-                                        <span>₱<span id="pricePerHead">0</span></span>
+                                        <span>₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -507,9 +528,25 @@
 
     @php
         $itemCount  = $package->items->count();
-        $hasCosting = $package->costing && $package->costing->total_cost > 0;
+        $hasCosting = $costing && $costing->total_cost > 0;
         // Pass default item IDs to JS so price recalculation uses default items on first load
         $defaultItemIds = $package->items->filter(fn($i) => $i->pivot->is_default)->pluck('id')->toArray();
+        
+        // Prepare costing data for JavaScript
+        $costingData = $hasCosting ? [
+            'has_costing' => true,
+            'ingredient_cost' => $costing->ingredient_cost ?? 0,
+            'labor_cost' => $costing->labor_cost ?? 0,
+            'equipment_cost' => $costing->equipment_cost ?? 0,
+            'consumables_cost' => $costing->consumables_cost ?? 0,
+            'overhead_cost' => $costing->overhead_cost ?? 0,
+            'transport_cost' => $costing->transport_cost ?? 0,
+            'profit_margin_percent' => $costing->profit_margin_percent ?? 25,
+            'total_cost' => $costing->total_cost,
+            'breakdown' => $costing->cost_breakdown,
+        ] : [
+            'has_costing' => false,
+        ];
     @endphp
 
     <script>
@@ -517,57 +554,112 @@
         const originalPax     = {{ $package->pax }};
         const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
         const defaultItemIds  = @json($defaultItemIds);
+        const costingData     = @json($costingData);
 
         const elements = {
             selectedCount:       document.getElementById('selectedCount'),
-            foodCost:            document.getElementById('foodCost'),
-            laborCost:           document.getElementById('laborCost'),
-            equipmentCost:       document.getElementById('equipmentCost'),
-            profitMargin:        document.getElementById('profitMargin'),
             pricePerHead:        document.getElementById('pricePerHead'),
             perHeadPriceDisplay: document.getElementById('perHeadPriceDisplay'),
             totalPriceMain:      document.getElementById('totalPriceMain'),
             guestCountDisplay:   document.getElementById('guestCountDisplay'),
             depositAmount:       document.getElementById('depositAmount'),
             dueNow:              document.getElementById('dueNow'),
+            guestCount:          document.getElementById('guestCount'),
             hiddenPricePerHead:  document.getElementById('hiddenPricePerHead'),
             hiddenTotalPrice:    document.getElementById('hiddenTotalPrice'),
             selectedItemsJson:   document.getElementById('selectedItemsJson'),
-            guestCount:          document.getElementById('guestCount'),
             bookingForm:         document.getElementById('bookingForm'),
         };
 
         function updatePrice() {
-            const checkboxes    = document.querySelectorAll('.menu-item-checkbox:checked');
-            const selectedItems = [];
-            let foodCost        = 0;
+            const checkboxes  = Array.from(document.querySelectorAll('.menu-item-checkbox:checked'));
+            const menuItems   = checkboxes.map(cb => cb.closest('.menu-item'));
 
-            // Always sum from whatever is currently checked
-            checkboxes.forEach(function (checkbox) {
-                const menuItem = checkbox.closest('.menu-item');
-                if (menuItem) {
+            if (elements.selectedCount) elements.selectedCount.textContent = checkboxes.length;
+
+            let foodCost = 0;
+            menuItems.forEach(function (menuItem) {
+                if (menuItem && menuItem.dataset.itemPrice) {
                     foodCost += parseFloat(menuItem.dataset.itemPrice || 0);
-                    selectedItems.push(menuItem.dataset.itemId);
                 }
             });
 
-            // Recalculate price from checked items every time
-            const laborAndUtilities  = foodCost * 0.20;
-            const equipmentTransport = foodCost * 0.10;
-            const profitMargin       = foodCost * 0.25;
-            let pricePerHead         = foodCost + laborAndUtilities + equipmentTransport + profitMargin;
-            pricePerHead             = Math.ceil(pricePerHead / 5) * 5;
+            let pricePerHead = 0;
 
-            if (elements.foodCost)      elements.foodCost.textContent      = foodCost.toFixed(2);
-            if (elements.laborCost)     elements.laborCost.textContent     = laborAndUtilities.toFixed(2);
-            if (elements.equipmentCost) elements.equipmentCost.textContent = equipmentTransport.toFixed(2);
-            if (elements.profitMargin)  elements.profitMargin.textContent  = profitMargin.toFixed(2);
+            if (costingData.has_costing) {
+                // Use actual caterer's costing structure
+                const totalCost = costingData.total_cost;
+                const profitMarginPercent = costingData.profit_margin_percent;
+                
+                // Calculate proportional costs based on food cost ratio
+                const baseFoodCost = costingData.ingredient_cost || 0;
+                const ratio = baseFoodCost > 0 ? foodCost / baseFoodCost : 1;
+                
+                // Scale all costs proportionally
+                const ingredientCost = (costingData.ingredient_cost || 0) * ratio;
+                const laborCost = (costingData.labor_cost || 0) * ratio;
+                const equipmentCost = (costingData.equipment_cost || 0) * ratio;
+                const consumablesCost = (costingData.consumables_cost || 0) * ratio;
+                const overheadCost = (costingData.overhead_cost || 0) * ratio;
+                const transportCost = (costingData.transport_cost || 0) * ratio;
+                
+                const scaledTotalCost = ingredientCost + laborCost + equipmentCost + consumablesCost + overheadCost + transportCost;
+                const profitAmount = scaledTotalCost * (profitMarginPercent / 100);
+                
+                pricePerHead = scaledTotalCost + profitAmount;
+                
+                // Update breakdown display values
+                document.querySelectorAll('.cost-value').forEach(function(el) {
+                    const parent = el.closest('[data-cost-type]');
+                    if (parent) {
+                        const costType = parent.dataset.costType;
+                        let value = 0;
+                        
+                        // Map cost types to their values
+                        if (costType.includes('ingredient') || costType.includes('raw_food')) {
+                            value = ingredientCost;
+                        } else if (costType.includes('labor') || costType.includes('staffing')) {
+                            value = laborCost;
+                        } else if (costType.includes('equipment') || costType.includes('rental')) {
+                            value = equipmentCost;
+                        } else if (costType.includes('consumable') || costType.includes('packaging')) {
+                            value = consumablesCost;
+                        } else if (costType.includes('overhead') || costType.includes('utilities')) {
+                            value = overheadCost;
+                        } else if (costType.includes('transport') || costType.includes('logistics')) {
+                            value = transportCost;
+                        }
+                        
+                        el.textContent = value.toFixed(2);
+                    }
+                });
+                
+                // Update profit margin
+                const profitMarginEl = document.getElementById('profitMargin');
+                if (profitMarginEl) {
+                    profitMarginEl.textContent = profitAmount.toFixed(2);
+                }
+                
+            } else {
+                // Fallback: Simple calculation when no costing exists
+                const otherCosts = foodCost * 0.30; // 30% for labor and other costs
+                const profitMargin = foodCost * 0.25; // 25% profit
+                
+                pricePerHead = foodCost + otherCosts + profitMargin;
+                
+                const foodCostEl = document.getElementById('foodCost');
+                const otherCostsEl = document.getElementById('otherCosts');
+                const profitMarginEl = document.getElementById('profitMargin');
+                
+                if (foodCostEl) foodCostEl.textContent = foodCost.toFixed(2);
+                if (otherCostsEl) otherCostsEl.textContent = otherCosts.toFixed(2);
+                if (profitMarginEl) profitMarginEl.textContent = profitMargin.toFixed(2);
+            }
 
-            if (elements.pricePerHead)        elements.pricePerHead.textContent        = pricePerHead.toLocaleString();
-            if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
-            if (elements.hiddenPricePerHead)  elements.hiddenPricePerHead.value        = pricePerHead;
-            if (elements.selectedItemsJson)   elements.selectedItemsJson.value         = JSON.stringify(selectedItems);
-            if (elements.selectedCount)       elements.selectedCount.textContent       = checkboxes.length;
+            pricePerHead = Math.ceil(pricePerHead / 5) * 5; // Round to nearest 5
+
+            if (elements.pricePerHead) elements.pricePerHead.textContent = pricePerHead.toFixed(0);
+            if (elements.hiddenPricePerHead) elements.hiddenPricePerHead.value = pricePerHead;
 
             updateTotalPrice();
 
@@ -601,6 +693,7 @@
             if (elements.totalPriceMain)    elements.totalPriceMain.textContent    = totalPrice.toLocaleString();
             if (elements.guestCountDisplay) elements.guestCountDisplay.textContent = guests;
             if (elements.hiddenTotalPrice)  elements.hiddenTotalPrice.value        = totalPrice;
+            if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
 
             const deposit = totalPrice * 0.25;
             const dueNow  = deposit + 500;

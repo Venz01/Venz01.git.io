@@ -205,15 +205,24 @@ class CustomerController extends Controller
      * Show a single package's details — works for both guests and logged-in customers.
      */
     public function showPackage($catererId, $packageId)
-    {
-        $package = Package::where('id', $packageId)
-            ->where('user_id', $catererId)
-            ->where('status', 'active')
-            ->with(['items.category', 'user', 'costing'])
-            ->firstOrFail();
-
-        return view('customer.package-details', compact('package'));
-    }
+{
+    // Load package with all necessary relationships INCLUDING costing
+    $package = Package::with([
+        'user',
+        'items.category',
+        'costing'  // <- ADD THIS LINE - load the costing relationship
+    ])
+    ->where('user_id', $catererId)
+    ->where('id', $packageId)
+    ->where('status', 'active')
+    ->firstOrFail();
+ 
+    // Pass costing data to the view
+    $costing = $package->costing;
+    $hasCosting = $costing && $costing->total_cost > 0;
+ 
+    return view('customer.package-details', compact('package', 'costing', 'hasCosting'));
+}
 
     /**
      * Calculate customized package price based on selected items.
