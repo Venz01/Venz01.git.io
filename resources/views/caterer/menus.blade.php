@@ -786,7 +786,7 @@
                     <input type="file" name="image" accept="image/*"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
 
-                    <!-- ── TWO-TIER ITEM SELECTION ─────────────────────────── -->
+                    <!-- ── TWO-TIER ITEM SELECTION (MULTIPLE DEFAULTS) ───────────────────────── -->
                     <div>
                         <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-2">Select Menu Items</h3>
 
@@ -794,7 +794,7 @@
                         <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 mb-2">
                             <span class="flex items-center gap-1.5">
                                 <span class="w-3 h-3 rounded-full bg-green-500 inline-block flex-shrink-0"></span>
-                                <strong>Default</strong> = used for price calculation
+                                <strong>Default</strong> = used for price calculation (multiple allowed)
                             </span>
                             <span class="flex items-center gap-1.5">
                                 <span class="w-3 h-3 rounded border-2 border-blue-500 inline-block flex-shrink-0"></span>
@@ -808,31 +808,34 @@
                             <div class="p-3">
                                 <p class="font-semibold text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
                                     {{ $category->name }}
+                                    <span class="text-xs font-normal bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full ml-2">
+                                        (<span class="default-count-{{ $category->id }}">0</span> defaults selected)
+                                    </span>
                                 </p>
                                 <div class="space-y-1">
                                     @foreach($category->items as $item)
                                     <div class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
 
-                                        {{-- DEFAULT radio — drives price --}}
+                                        {{-- DEFAULT checkbox — MULTIPLE per category --}}
                                         <input
-                                            type="radio"
-                                            name="default_item_radio[{{ $category->id }}]"
-                                            value="{{ $item->id }}"
+                                            type="checkbox"
+                                            class="default-item-checkbox text-green-600 focus:ring-green-500 flex-shrink-0 cursor-pointer"
+                                            data-item-id="{{ $item->id }}"
                                             data-price="{{ $item->price }}"
                                             data-category="{{ $category->id }}"
-                                            @change="onDefaultRadioChange($event)"
-                                            class="default-item-radio text-green-600 focus:ring-green-500 flex-shrink-0 cursor-pointer"
-                                            title="Set as default (used for pricing)">
+                                            data-item-name="{{ $item->name }}"
+                                            @change="onDefaultCheckboxChange($event)"
+                                            title="Include as default (used for pricing)">
 
                                         {{-- ALTERNATIVE checkbox — customer choice --}}
                                         <input
                                             type="checkbox"
                                             name="menu_items[]"
                                             value="{{ $item->id }}"
+                                            class="alt-item-checkbox rounded text-blue-600 focus:ring-blue-500 flex-shrink-0 cursor-pointer"
                                             data-price="{{ $item->price }}"
                                             data-category="{{ $category->id }}"
                                             @change="onAltCheckboxChange($event)"
-                                            class="alt-item-checkbox rounded text-blue-600 focus:ring-blue-500 flex-shrink-0 cursor-pointer"
                                             title="Include as customer alternative">
 
                                         <span class="text-sm text-gray-800 dark:text-gray-200 flex-1 leading-snug">
@@ -850,7 +853,7 @@
                         {{-- Hidden inputs carrying default_items[] to server --}}
                         <div id="defaultItemsContainer"></div>
                     </div>
-                    <!-- ── END TWO-TIER ITEM SELECTION ────────────────────── -->
+                    <!-- ── END TWO-TIER ITEM SELECTION ────────────────────────────────────────── -->
 
                     <!-- Dietary Tags -->
                     <div class="mt-4">
@@ -1185,62 +1188,68 @@
             calculatedPrice: 0,
             pax: 1,
 
-            onDefaultRadioChange(event) {
-                const itemId   = event.target.value;
-                const category = event.target.dataset.category;
+            onDefaultCheckboxChange(event) {
+                const checkbox = event.target;
+                const category = checkbox.dataset.category;
+                
                 // Auto-check the alt checkbox when a default is selected
-                const cb = document.querySelector(
-                    `#createPackageForm .alt-item-checkbox[value="${itemId}"]`
+                const altCheckbox = document.querySelector(
+                    `#createPackageForm .alt-item-checkbox[value="${checkbox.dataset.itemId}"]`
                 );
-                if (cb && !cb.checked) {
-                    cb.checked = true;
+                if (altCheckbox && !altCheckbox.checked) {
+                    altCheckbox.checked = true;
+                    altCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
                 }
+                
+                // Update category default count
+                this.updateCategoryDefaultCount(category);
                 this.updatePrice();
             },
 
             onAltCheckboxChange(event) {
-                const itemId   = event.target.value;
-                const category = event.target.dataset.category;
+                const checkbox = event.target;
+                const itemId = checkbox.value;
+                const category = checkbox.dataset.category;
 
-                if (!event.target.checked) {
-                    // Uncheck also clears the default radio if it pointed here
-                    const radio = document.querySelector(
-                        `#createPackageForm .default-item-radio[value="${itemId}"]`
+                if (!checkbox.checked) {
+                    // Uncheck also clears the default checkbox if it was selected
+                    const defaultCheckbox = document.querySelector(
+                        `.default-item-checkbox[data-item-id="${itemId}"]`
                     );
-                    if (radio && radio.checked) {
-                        radio.checked = false;
-                    }
-                } else {
-                    // If no default yet for this category, auto-set this as default
-                    const anyDefault = document.querySelector(
-                        `#createPackageForm .default-item-radio[data-category="${category}"]:checked`
-                    );
-                    if (!anyDefault) {
-                        const radio = document.querySelector(
-                            `#createPackageForm .default-item-radio[value="${itemId}"]`
-                        );
-                        if (radio) radio.checked = true;
+                    if (defaultCheckbox && defaultCheckbox.checked) {
+                        defaultCheckbox.checked = false;
+                        defaultCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
                 this.updatePrice();
             },
 
+            updateCategoryDefaultCount(categoryId) {
+                const count = document.querySelectorAll(
+                    `.default-item-checkbox[data-category="${categoryId}"]:checked`
+                ).length;
+                const countSpan = document.querySelector(`.default-count-${categoryId}`);
+                if (countSpan) {
+                    countSpan.textContent = count;
+                }
+            },
+
             updatePrice() {
-                // Price ONLY from default radios
-                const radios = document.querySelectorAll(
-                    '#createPackageForm .default-item-radio:checked'
+                // Price from ALL default checkboxes (multiple per category)
+                const defaultCheckboxes = document.querySelectorAll(
+                    '#createPackageForm .default-item-checkbox:checked'
                 );
-                this.foodCost = Array.from(radios).reduce(
-                    (sum, r) => sum + parseFloat(r.dataset.price), 0
+                this.foodCost = Array.from(defaultCheckboxes).reduce(
+                    (sum, cb) => sum + parseFloat(cb.dataset.price), 0
                 );
                 const total = this.foodCost * (1 + 0.20 + 0.10 + 0.25);
                 this.calculatedPrice = Math.round(total / 5) * 5;
 
                 // selectedItems = all checked alt checkboxes (for "Save" button guard)
-                const checked = document.querySelectorAll(
+                const checkedAlt = document.querySelectorAll(
                     '#createPackageForm .alt-item-checkbox:checked'
                 );
-                this.selectedItems = Array.from(checked).map(c => c.value);
+                this.selectedItems = Array.from(checkedAlt).map(cb => cb.value);
 
                 this.syncDefaultInputs();
             },
@@ -1250,12 +1259,12 @@
                 if (!container) return;
                 container.innerHTML = '';
                 document.querySelectorAll(
-                    '#createPackageForm .default-item-radio:checked'
-                ).forEach(r => {
+                    '#createPackageForm .default-item-checkbox:checked'
+                ).forEach(cb => {
                     const input = document.createElement('input');
                     input.type  = 'hidden';
                     input.name  = 'default_items[]';
-                    input.value = r.value;
+                    input.value = cb.dataset.itemId;
                     container.appendChild(input);
                 });
             }
