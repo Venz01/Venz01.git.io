@@ -237,8 +237,16 @@
                             </div>
                             
                             <div id="filePreview" class="hidden">
-                                <img id="previewImage" src="" alt="Receipt preview" class="max-w-xs mx-auto rounded-lg mb-4">
-                                <p id="fileName" class="text-sm text-gray-600 dark:text-gray-400 mb-2"></p>
+                                <!-- Responsive Image Preview -->
+                                <div class="w-full max-w-[300px] mx-auto mb-4 p-2">
+                                    <img 
+                                        id="previewImage" 
+                                        src="" 
+                                        alt="Receipt preview" 
+                                        class="w-full h-auto max-h-[250px] object-contain rounded-lg shadow-md border border-gray-200 bg-white"
+                                    >
+                                </div>
+                                <p id="fileName" class="text-sm text-gray-600 dark:text-gray-400 mb-2 truncate max-w-full"></p>
                                 <button 
                                     type="button"
                                     onclick="clearFile()"
@@ -280,68 +288,81 @@
     </div>
 
     <script>
-        function updatePaymentMethod(method) {
-            const instructions = document.getElementById('paymentInstructions');
-            const instructionText = document.getElementById('instructionText');
-            
-            // Update selected radio button styling
-            document.querySelectorAll('.payment-method-option').forEach(option => {
-                option.classList.remove('border-green-500', 'bg-green-50');
-            });
-            event.target.closest('.payment-method-option').classList.add('border-green-500', 'bg-green-50');
-            
-            if (method === 'gcash') {
-                instructionText.textContent = 'Please send your payment to GCash number: 0917-123-4567 (Juan Dela Cruz). Take a screenshot of the confirmation and upload below.';
-                instructions.classList.remove('hidden');
-            } else if (method === 'paymaya') {
-                instructionText.textContent = 'Please send your payment to PayMaya number: 0917-123-4567 (Juan Dela Cruz). Take a screenshot of the confirmation and upload below.';
-                instructions.classList.remove('hidden');
-            } else if (method === 'bank_transfer') {
-                instructionText.textContent = 'Bank: BDO | Account Name: Catering Services Corp | Account Number: 1234-5678-9012. Please upload your bank transfer receipt below.';
-                instructions.classList.remove('hidden');
-            }
-        }
+    function updatePaymentMethod(method) {
+        const instructions = document.getElementById('paymentInstructions');
+        const instructionText = document.getElementById('instructionText');
         
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Hide placeholder, show preview
-            document.getElementById('uploadPlaceholder').classList.add('hidden');
-            document.getElementById('filePreview').classList.remove('hidden');
-            document.getElementById('receiptError').classList.add('hidden');
-            
-            // Update file name
-            document.getElementById('fileName').textContent = file.name;
-            
-            // Show image preview if it's an image
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('previewImage').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                document.getElementById('previewImage').classList.add('hidden');
-            }
-        }
-        
-        function clearFile() {
-            document.getElementById('receiptInput').value = '';
-            document.getElementById('uploadPlaceholder').classList.remove('hidden');
-            document.getElementById('filePreview').classList.add('hidden');
-            document.getElementById('previewImage').src = '';
-        }
-        
-        // Form validation
-        document.getElementById('paymentForm').addEventListener('submit', function(e) {
-            const receiptInput = document.getElementById('receiptInput');
-            if (!receiptInput.files.length) {
-                e.preventDefault();
-                document.getElementById('receiptError').classList.remove('hidden');
-                receiptInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+        // Reset ALL payment method options to default state
+        document.querySelectorAll('.payment-method-option').forEach(option => {
+            option.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-900/30');
+            option.classList.add('border-gray-300');
         });
-    </script>
+        
+        // Add selected styling ONLY to the clicked option
+        const selectedOption = event.target.closest('.payment-method-option');
+        selectedOption.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/30');
+        selectedOption.classList.remove('border-gray-300');
+        
+        // Show payment instructions
+        if (method === 'gcash') {
+            instructionText.textContent = 'Please send your payment to GCash number: 0917-123-4567 (Juan Dela Cruz). Take a screenshot of the confirmation and upload below.';
+            instructions.classList.remove('hidden');
+        } else if (method === 'paymaya') {
+            instructionText.textContent = 'Please send your payment to PayMaya number: 0917-123-4567 (Juan Dela Cruz). Take a screenshot of the confirmation and upload below.';
+            instructions.classList.remove('hidden');
+        } else if (method === 'bank_transfer') {
+            instructionText.textContent = 'Bank: BDO | Account Name: Catering Services Corp | Account Number: 1234-5678-9012. Please upload your bank transfer receipt below.';
+            instructions.classList.remove('hidden');
+        }
+    }
+    
+        function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Hide placeholder, show preview
+        document.getElementById('uploadPlaceholder').classList.add('hidden');
+        document.getElementById('filePreview').classList.remove('hidden');
+        document.getElementById('receiptError').classList.add('hidden');
+        
+        // Update file name with truncation for long names
+        const fileNameElement = document.getElementById('fileName');
+        if (file.name.length > 30) {
+            fileNameElement.textContent = file.name.substring(0, 27) + '...';
+        } else {
+            fileNameElement.textContent = file.name;
+        }
+        
+        // Show image preview if it's an image
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImage = document.getElementById('previewImage');
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Hide image preview for non-image files (PDF, etc.)
+            document.getElementById('previewImage').classList.add('hidden');
+        }
+    }
+    
+    function clearFile() {
+        document.getElementById('receiptInput').value = '';
+        document.getElementById('uploadPlaceholder').classList.remove('hidden');
+        document.getElementById('filePreview').classList.add('hidden');
+        document.getElementById('previewImage').src = '';
+    }
+    
+    // Form validation
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        const receiptInput = document.getElementById('receiptInput');
+        if (!receiptInput.files.length) {
+            e.preventDefault();
+            document.getElementById('receiptError').classList.remove('hidden');
+            receiptInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+</script>
 </x-app-layout>
