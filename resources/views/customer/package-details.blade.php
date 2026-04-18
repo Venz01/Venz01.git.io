@@ -61,199 +61,202 @@
                 ═══════════════════════════════════════════════ -->
                 <div class="lg:col-span-2 space-y-8">
 
-                    <!-- Package Hero -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-                        <div class="relative h-96 bg-gradient-to-r from-gray-300 to-gray-400">
-                            @if($package->image_path)
-                                <img src="{{ $package->image_path }}" alt="{{ $package->name }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
-                                    <svg class="w-32 h-32 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                    </svg>
+                        <!-- Package Hero -->
+                    <div class="px-2 sm:px-0">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+                            <div class="relative h-96 bg-gradient-to-r from-gray-300 to-gray-400">
+                                @if($package->image_path)
+                                    <img src="{{ $package->image_path }}" alt="{{ $package->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                                        <svg class="w-32 h-32 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="absolute top-6 left-6">
+                                    <span class="inline-block px-4 py-2 text-sm font-medium bg-white bg-opacity-90 text-gray-800 rounded-full">
+                                        @if(str_contains(strtolower($package->name), 'wedding'))
+                                            Wedding Package
+                                        @elseif(str_contains(strtolower($package->name), 'corporate'))
+                                            Corporate Package
+                                        @elseif(str_contains(strtolower($package->name), 'party'))
+                                            Party Package
+                                        @elseif(str_contains(strtolower($package->name), 'birthday'))
+                                            Birthday Package
+                                        @else
+                                            Event Package
+                                        @endif
+                                    </span>
                                 </div>
-                            @endif
-                            <div class="absolute top-6 left-6">
-                                <span class="inline-block px-4 py-2 text-sm font-medium bg-white bg-opacity-90 text-gray-800 rounded-full">
-                                    @if(str_contains(strtolower($package->name), 'wedding'))
-                                        Wedding Package
-                                    @elseif(str_contains(strtolower($package->name), 'corporate'))
-                                        Corporate Package
-                                    @elseif(str_contains(strtolower($package->name), 'party'))
-                                        Party Package
-                                    @elseif(str_contains(strtolower($package->name), 'birthday'))
-                                        Birthday Package
-                                    @else
-                                        Event Package
-                                    @endif
-                                </span>
                             </div>
                         </div>
-                    </div>
 
                     <!-- Package Description -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Package Description</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-                            {{ $package->description }}
-                        </p>
-                    </div>
-
-                    <!-- Customizable Menu Items -->
-                    @if($package->items->count() > 0)
-                        @php
-                            $defaultItemIds = $package->items->filter(fn($i) => $i->pivot->is_default)->pluck('id')->toArray();
-                            $defaultCount   = count($defaultItemIds);
-                        @endphp
-
+                    
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-                            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Customize Your Menu</h2>
-                                <div class="flex items-center space-x-4">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span id="selectedCount">{{ $defaultCount }}</span> items selected
-                                    </span>
-                                    <button type="button" onclick="selectAll()" class="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">Select All</button>
-                                    <button type="button" onclick="deselectAll()" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">Deselect All</button>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Package Description</h2>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                                {{ $package->description }}
+                            </p>
+                        </div>
+
+                        <!-- Customizable Menu Items -->
+                        @if($package->items->count() > 0)
+                            @php
+                                $defaultItemIds = $package->items->filter(fn($i) => $i->pivot->is_default)->pluck('id')->toArray();
+                                $defaultCount   = count($defaultItemIds);
+                            @endphp
+
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+                                <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Customize Your Menu</h2>
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                                            <span id="selectedCount">{{ $defaultCount }}</span> items selected
+                                        </span>
+                                        <button type="button" onclick="selectAll()" class="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">Select All</button>
+                                        <button type="button" onclick="deselectAll()" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">Deselect All</button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- Legend -->
-                            <div class="mb-4 flex flex-wrap gap-3 text-xs">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-400 font-medium">
-                                    <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-                                    Default — included in base price
-                                </span>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-full text-blue-700 dark:text-blue-400 font-medium">
-                                    <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
-                                    Optional — add or remove as you like
-                                </span>
-                            </div>
+                                <!-- Legend -->
+                                <div class="mb-4 flex flex-wrap gap-3 text-xs">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-400 font-medium">
+                                        <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                        Default — included in base price
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-full text-blue-700 dark:text-blue-400 font-medium">
+                                        <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+                                        Optional — add or remove as you like
+                                    </span>
+                                </div>
 
-                            <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                                <p class="text-sm text-blue-800 dark:text-blue-200">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Green items are included by default in the base price.
-                                    You can remove them or add optional blue items to customize your menu.
-                                </p>
-                            </div>
+                                <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                                    <p class="text-sm text-blue-800 dark:text-blue-200">
+                                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Green items are included by default in the base price.
+                                        You can remove them or add optional blue items to customize your menu.
+                                    </p>
+                                </div>
 
-                            <div class="space-y-4">
-                                @foreach($package->items->groupBy('category.name') as $categoryName => $items)
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-5 py-3 flex items-center justify-between cursor-pointer hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-colors"
-                                             onclick="toggleCategory('{{ $categoryName }}')">
-                                            <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                                @if(str_contains(strtolower($categoryName), 'appetizer'))
-                                                    <span class="text-xl">🥗</span>
-                                                @elseif(str_contains(strtolower($categoryName), 'main') || str_contains(strtolower($categoryName), 'entree'))
-                                                    <span class="text-xl">🍽️</span>
-                                                @elseif(str_contains(strtolower($categoryName), 'dessert'))
-                                                    <span class="text-xl">🍰</span>
-                                                @elseif(str_contains(strtolower($categoryName), 'beverage') || str_contains(strtolower($categoryName), 'drink'))
-                                                    <span class="text-xl">🥤</span>
-                                                @else
-                                                    <span class="text-xl">🍴</span>
-                                                @endif
-                                                {{ $categoryName }}
-                                                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $items->count() }} items)</span>
-                                            </h3>
-                                            <span class="text-green-600 dark:text-green-400 font-medium text-sm">Click to toggle all</span>
-                                        </div>
-                                        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            @foreach($items as $item)
-                                                @php
-                                                    $isDefault = $item->pivot->is_default ?? false;
-                                                @endphp
-                                                <label class="menu-item relative block p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 {{ $isDefault ? 'bg-green-50 dark:bg-green-900/10 border-green-400 dark:border-green-600' : 'bg-gray-50 dark:bg-gray-700 border-transparent' }} hover:shadow-md"
-                                                       data-item-id="{{ $item->id }}"
-                                                       data-item-price="{{ $item->price }}"
-                                                       data-is-default="{{ $isDefault ? '1' : '0' }}"
-                                                       data-category="{{ $categoryName }}">
-                                                    <div class="flex items-start gap-3">
-                                                        <input type="checkbox"
-                                                               class="menu-item-checkbox mt-1 w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                                                               {{ $isDefault ? 'checked' : '' }}
-                                                               onchange="updatePrice()">
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="flex items-start justify-between gap-2">
-                                                                <div class="flex-1 min-w-0">
-                                                                    <p class="font-semibold text-gray-900 dark:text-white truncate">{{ $item->name }}</p>
-                                                                    @if($item->description)
-                                                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{{ $item->description }}</p>
+                                <div class="space-y-4">
+                                    @foreach($package->items->groupBy('category.name') as $categoryName => $items)
+                                        <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-5 py-3 flex items-center justify-between cursor-pointer hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-colors"
+                                                onclick="toggleCategory('{{ $categoryName }}')">
+                                                <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                                    @if(str_contains(strtolower($categoryName), 'appetizer'))
+                                                        <span class="text-xl">🥗</span>
+                                                    @elseif(str_contains(strtolower($categoryName), 'main') || str_contains(strtolower($categoryName), 'entree'))
+                                                        <span class="text-xl">🍽️</span>
+                                                    @elseif(str_contains(strtolower($categoryName), 'dessert'))
+                                                        <span class="text-xl">🍰</span>
+                                                    @elseif(str_contains(strtolower($categoryName), 'beverage') || str_contains(strtolower($categoryName), 'drink'))
+                                                        <span class="text-xl">🥤</span>
+                                                    @else
+                                                        <span class="text-xl">🍴</span>
+                                                    @endif
+                                                    {{ $categoryName }}
+                                                    <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $items->count() }} items)</span>
+                                                </h3>
+                                                <span class="text-green-600 dark:text-green-400 font-medium text-sm">Click to toggle all</span>
+                                            </div>
+                                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                @foreach($items as $item)
+                                                    @php
+                                                        $isDefault = $item->pivot->is_default ?? false;
+                                                    @endphp
+                                                    <label class="menu-item relative block p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 {{ $isDefault ? 'bg-green-50 dark:bg-green-900/10 border-green-400 dark:border-green-600' : 'bg-gray-50 dark:bg-gray-700 border-transparent' }} hover:shadow-md"
+                                                        data-item-id="{{ $item->id }}"
+                                                        data-item-price="{{ $item->price }}"
+                                                        data-is-default="{{ $isDefault ? '1' : '0' }}"
+                                                        data-category="{{ $categoryName }}">
+                                                        <div class="flex items-start gap-3">
+                                                            <input type="checkbox"
+                                                                class="menu-item-checkbox mt-1 w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                                                                {{ $isDefault ? 'checked' : '' }}
+                                                                onchange="updatePrice()">
+                                                            <div class="flex-1 min-w-0">
+                                                                <div class="flex items-start justify-between gap-2">
+                                                                    <div class="flex-1 min-w-0">
+                                                                        <p class="font-semibold text-gray-900 dark:text-white truncate">{{ $item->name }}</p>
+                                                                        @if($item->description)
+                                                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{{ $item->description }}</p>
+                                                                        @endif
+                                                                    </div>
+                                                                    @if($isDefault)
+                                                                        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-700 flex-shrink-0">
+                                                                            Default
+                                                                        </span>
                                                                     @endif
                                                                 </div>
-                                                                @if($isDefault)
-                                                                    <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-700 flex-shrink-0">
-                                                                        Default
-                                                                    </span>
-                                                                @endif
-                                                            </div>
-                                                            <div class="mt-2 flex items-center justify-between">
-                                                                <span class="text-sm font-medium text-green-600 dark:text-green-400">₱{{ number_format($item->price, 2) }}</span>
-                                                                <span class="text-xs text-gray-400 dark:text-gray-500">per serving</span>
+                                                                <div class="mt-2 flex items-center justify-between">
+                                                                    <span class="text-sm font-medium text-green-600 dark:text-green-400">₱{{ number_format($item->price, 2) }}</span>
+                                                                    <span class="text-xs text-gray-400 dark:text-gray-500">per serving</span>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </label>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <!-- Price Breakdown — now uses real costing data from caterer -->
-                            <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                    💰 Price Breakdown
-                                    @if($hasCosting)
-                                        <span class="text-xs font-normal text-green-600 dark:text-green-400">(Based on caterer's actual costs)</span>
-                                    @else
-                                        <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Estimated)</span>
-                                    @endif
-                                </h3>
-                                <div class="space-y-2 text-sm" id="costBreakdownContainer">
-                                    @if($hasCosting && $costing->cost_breakdown)
-                                        {{-- Display actual cost components from caterer's costing --}}
-                                        @foreach($costing->cost_breakdown as $component)
-                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                                <span>{{ $component['label'] }}:</span>
-                                                <span class="font-medium" data-cost-type="{{ strtolower(str_replace(' ', '_', $component['label'])) }}">
-                                                    ₱<span class="cost-value">{{ number_format($component['amount'], 2) }}</span>
-                                                    <span class="text-xs text-gray-500 dark:text-gray-400">({{ number_format($component['percent'], 1) }}%)</span>
-                                                </span>
+                                                    </label>
+                                                @endforeach
                                             </div>
-                                        @endforeach
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Profit Margin ({{ number_format($costing->profit_margin_percent, 0) }}%):</span>
-                                            <span class="font-medium">₱<span id="profitMargin">{{ number_format($costing->profit_amount, 2) }}</span></span>
                                         </div>
-                                    @else
-                                        {{-- Fallback: Show simplified breakdown when no costing exists --}}
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Food Cost:</span>
-                                            <span class="font-medium">₱<span id="foodCost">0.00</span></span>
+                                    @endforeach
+                                </div>
+
+                                <!-- Price Breakdown — now uses real costing data from caterer -->
+                                <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                        💰 Price Breakdown
+                                        @if($hasCosting)
+                                            <span class="text-xs font-normal text-green-600 dark:text-green-400">(Based on caterer's actual costs)</span>
+                                        @else
+                                            <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Estimated)</span>
+                                        @endif
+                                    </h3>
+                                    <div class="space-y-2 text-sm" id="costBreakdownContainer">
+                                        @if($hasCosting && $costing->cost_breakdown)
+                                            {{-- Display actual cost components from caterer's costing --}}
+                                            @foreach($costing->cost_breakdown as $component)
+                                                <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                                    <span>{{ $component['label'] }}:</span>
+                                                    <span class="font-medium" data-cost-type="{{ strtolower(str_replace(' ', '_', $component['label'])) }}">
+                                                        ₱<span class="cost-value">{{ number_format($component['amount'], 2) }}</span>
+                                                        <span class="text-xs text-gray-500 dark:text-gray-400">({{ number_format($component['percent'], 1) }}%)</span>
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                                <span>Profit Margin ({{ number_format($costing->profit_margin_percent, 0) }}%):</span>
+                                                <span class="font-medium">₱<span id="profitMargin">{{ number_format($costing->profit_amount, 2) }}</span></span>
+                                            </div>
+                                        @else
+                                            {{-- Fallback: Show simplified breakdown when no costing exists --}}
+                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                                <span>Food Cost:</span>
+                                                <span class="font-medium">₱<span id="foodCost">0.00</span></span>
+                                            </div>
+                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                                <span>Labor & Other Costs:</span>
+                                                <span class="font-medium">₱<span id="otherCosts">0.00</span></span>
+                                            </div>
+                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                                <span>Service Fee:</span>
+                                                <span class="font-medium">₱<span id="profitMargin">0.00</span></span>
+                                            </div>
+                                        @endif
+                                        <div class="border-t-2 border-gray-300 dark:border-gray-600 my-3"></div>
+                                        <div class="flex justify-between text-base font-semibold text-gray-900 dark:text-white">
+                                            <span>Price per Head:</span>
+                                            <span>₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span></span>
                                         </div>
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Labor & Other Costs:</span>
-                                            <span class="font-medium">₱<span id="otherCosts">0.00</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                            <span>Service Fee:</span>
-                                            <span class="font-medium">₱<span id="profitMargin">0.00</span></span>
-                                        </div>
-                                    @endif
-                                    <div class="border-t-2 border-gray-300 dark:border-gray-600 my-3"></div>
-                                    <div class="flex justify-between text-base font-semibold text-gray-900 dark:text-white">
-                                        <span>Price per Head:</span>
-                                        <span>₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span></span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
 
                 <!-- ═══════════════════════════════════════════════

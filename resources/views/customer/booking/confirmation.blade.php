@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 px-2 sm:px-0">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <!-- Success Message -->
             <div class="bg-green-50 border-2 border-green-500 rounded-2xl p-8 mb-8 text-center">
