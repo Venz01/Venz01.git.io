@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 px-2 sm:px-0">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -71,6 +71,7 @@
             </div>
 
             <!-- Filters -->
+            <div class="px-4 sm:px-0">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
                 <form method="GET" action="{{ route('customer.bookings') }}" class="flex flex-wrap gap-4">
                     <div class="flex-1 min-w-[200px]">
@@ -117,7 +118,7 @@
 
             <!-- Bookings List -->
             @if($bookings->count() > 0)
-                <div class="space-y-6">
+                <div class="space-y-6 px-2 sm:px-0">
                     @foreach($bookings as $booking)
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                             <div class="p-6">
@@ -297,11 +298,12 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-8">
+                <div class="mt-8 px-4 sm:px-0 flex justify-center">
                     {{ $bookings->appends(request()->query())->links() }}
                 </div>
             @else
                 <!-- Empty State -->
+                <div class="px-4 sm:px-0"> 
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
                     <svg class="w-24 h-24 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
