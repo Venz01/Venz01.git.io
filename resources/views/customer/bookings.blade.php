@@ -71,7 +71,7 @@
             </div>
 
             <!-- Filters -->
-            <div class="px-4 sm:px-0">
+            <div class="px-0 sm:px-0">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
                 <form method="GET" action="{{ route('customer.bookings') }}" class="flex flex-wrap gap-4">
                     <div class="flex-1 min-w-[200px]">
@@ -118,7 +118,7 @@
 
             <!-- Bookings List -->
             @if($bookings->count() > 0)
-                <div class="space-y-6 px-2 sm:px-0">
+                <div class="space-y-6 px-0 sm:px-0">
                     @foreach($bookings as $booking)
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                             <div class="p-6">
@@ -298,7 +298,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-8 px-4 sm:px-0 flex justify-center">
+                <div class="mt-8 px-0 sm:px-0 flex justify-center">
                     {{ $bookings->appends(request()->query())->links() }}
                 </div>
             @else
