@@ -192,6 +192,7 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    
 
             {{-- ══════════════════════════════════════════════════════════════
                 HERO + SEARCH BAR
@@ -388,7 +389,7 @@
                  PACKAGES GRID / LIST
             ══════════════════════════════════════════════════════════════ --}}
             @if($packages->count() > 0)
-                <div id="packagesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div id="packagesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 px-4 sm:px-0">
                     @foreach($packages as $package)
                         @php
                             $caterer = $package->user;
@@ -519,7 +520,7 @@
                 </div>
 
                 {{-- LIST VIEW --}}
-                <div id="packagesListView" class="hidden space-y-3">
+                <div id="packagesListView" class="hidden space-y-3 px-4 sm:px-0">
                     @foreach($packages as $package)
                         @php
                             $caterer  = $package->user;
