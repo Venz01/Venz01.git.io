@@ -5,10 +5,11 @@
         </h2>
     </x-slot>
 
-    <div class="py-6">
+    <div class="py-6  px-2 sm:px-0">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             {{-- Welcome Hero — matches Browse Packages hero gradient --}}
+            <div class="px-2 sm:px-0 mb-8">
             <div class="relative bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 rounded-3xl p-8 mb-8 text-white overflow-hidden">
                 {{-- Decorative blobs (same as packages page) --}}
                 <div class="absolute -top-10 -right-10 w-64 h-64 bg-white/5 rounded-full pointer-events-none"></div>
@@ -34,6 +35,7 @@
             </div>
 
             {{-- Quick Stats --}}
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8 px-2 sm:px-0">    
             @php
                 $allBookings = \App\Models\Booking::where('customer_id', auth()->id())->get();
                 $totalBookings = $allBookings->count();
@@ -131,6 +133,7 @@
 
             {{-- Upcoming Events --}}
             @if($upcomingBookings->count() > 0)
+            <div class="px-2 sm:px-0 mb-6">
             <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming Events</h3>
@@ -181,6 +184,7 @@
                 </div>
             </div>
             @else
+            <div class="px-2 sm:px-0 mb-6"> 
             <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 rounded-2xl mb-6 p-12 text-center">
                 <div class="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-5">
                     <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,6 +205,7 @@
 
             {{-- Upcoming Orders --}}
             @if($upcomingOrders->count() > 0)
+            <div class="px-2 sm:px-0 mb-8"> 
             <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 rounded-2xl mb-8 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming Orders</h3>
@@ -259,7 +264,7 @@
             @endif
 
             {{-- Quick Actions --}}
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 px-2 sm:px-0">
 
                 <a href="{{ route('customer.caterers') }}"
                     class="group bg-white dark:bg-gray-800 shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 rounded-2xl p-5 transition-all hover:-translate-y-0.5 flex items-center gap-4">

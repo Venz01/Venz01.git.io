@@ -15,7 +15,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 px-2 sm:px-0">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Caterer Info Header with Profile Photo -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8">
@@ -156,6 +156,7 @@
                 </div>
 
                 <!-- Contact Info Grid -->
+                <div class="px-4 sm:px-0">
                 <div
                     class="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
                     @if($caterer->contact_number || $caterer->phone)
@@ -227,6 +228,7 @@
 
             <!-- Portfolio Section (if available) -->
             @if($caterer->portfolioImages && $caterer->portfolioImages->count() > 0)
+            <div class="px-2 sm:px-0 mb-8">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8 p-8">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Portfolio</h2>
@@ -260,6 +262,7 @@
             @endif
 
             <!-- Tabs Section -->
+            <div class="px-4 sm:px-0">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
                 <!-- Tab Navigation -->
                 <div class="border-b border-gray-200 dark:border-gray-700">
