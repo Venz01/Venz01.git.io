@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-8 px-2 sm:px-0">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             {{-- Stats Cards --}}
