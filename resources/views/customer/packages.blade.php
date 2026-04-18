@@ -190,7 +190,7 @@
     </div>
     {{-- ── END Dietary Panel ── --}}
 
-    <div class="py-8">
+    <div class="py-8 px-4 sm:px-0">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
     
 
@@ -591,7 +591,7 @@
                 </div>
 
                 @if($packages->hasPages())
-                    <div class="mt-8 flex justify-center">
+                    <div class="mt-8 flex justify-center px-4 sm:px-0">
                         {{ $packages->appends(request()->query())->links() }}
                     </div>
                 @endif
