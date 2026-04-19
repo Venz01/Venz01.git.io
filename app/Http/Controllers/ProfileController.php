@@ -187,6 +187,11 @@ class ProfileController extends Controller
                 $this->deleteImage($user->profile_photo);
                 $user->profile_photo = null;
                 $user->save();
+                
+                // Clear welcome page cache if caterer
+                if ($user->isCaterer()) {
+                    \Illuminate\Support\Facades\Cache::forget('welcome:featured_caterers');
+                }
             }
 
             return Redirect::route('profile.edit')
@@ -204,6 +209,11 @@ class ProfileController extends Controller
                 $imageUrl = $this->handleImageUpload($request->file('profile_photo'), 'profile-photos');
                 $user->profile_photo = $imageUrl;
                 $user->save();
+                
+                // Clear welcome page cache if caterer
+                if ($user->isCaterer()) {
+                    \Illuminate\Support\Facades\Cache::forget('welcome:featured_caterers');
+                }
 
                 return Redirect::route('profile.edit')
                     ->with('photo_success', 'Profile photo updated successfully!');
