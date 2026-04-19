@@ -24,6 +24,7 @@ class WelcomeController extends Controller
             return User::query()
                 ->where('role', 'caterer')
                 ->where('status', 'approved')
+                ->select('id', 'name', 'business_name', 'business_address', 'cuisine_types', 'profile_photo')
                 ->withCount(['approvedReviews'])
                 ->withAvg('approvedReviews as average_rating', 'rating')
                 ->with([

@@ -173,7 +173,7 @@
                     {{-- Image --}}
                     <div class="relative h-44 overflow-hidden">
                         @if($caterer->profile_photo)
-                            <img src="{{ $caterer->profile_photo }}"
+                            <img src="{{ $caterer->profile_photo_url }}"
                                 alt="{{ $caterer->business_name ?? $caterer->name }}"
                                 loading="lazy"
                                 decoding="async"
