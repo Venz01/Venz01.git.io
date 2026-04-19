@@ -482,7 +482,7 @@
         </div>
 
         <!-- DISPLAY MENUS TAB CONTENT -->
-        <div x-show="activeTab === 'display'" x-transition class="space-y-6">
+        <div x-show="activeTab === 'display'" x-transition class="space-y-6 ">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Customer Display Menus</h2>
@@ -500,7 +500,7 @@
             </div>
 
             @if(isset($displayMenus) && $displayMenus->count() > 0)
-            <div class="space-y-6">
+            <div class="space-y-6 ">
                 @foreach($displayMenus as $category => $menus)
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
@@ -1083,7 +1083,7 @@
 
     <!-- Display Menu Modal -->
     <div id="displayMenuModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 px-2 sm:px-0">
         <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white dark:bg-gray-800">
             <div class="flex justify-between items-center mb-4">
                 <h3 id="displayMenuModalTitle" class="text-xl font-bold text-gray-800 dark:text-gray-200">Add Display Menu</h3>

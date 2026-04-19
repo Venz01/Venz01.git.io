@@ -15,7 +15,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 px-2 sm:px-0">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Action Banner -->
             <div class="mb-6 p-6 rounded-xl border-2
@@ -24,9 +24,9 @@
                 @elseif($booking->booking_status == 'completed') bg-green-50 border-green-500
                 @elseif($booking->booking_status == 'cancelled') bg-red-50 border-red-500
                 @endif">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center mr-4
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-2">
+                    <div class="flex items-start lg:items-center gap-4 flex-1">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0
                             @if($booking->booking_status == 'pending') bg-yellow-500
                             @elseif($booking->booking_status == 'confirmed') bg-blue-500
                             @elseif($booking->booking_status == 'completed') bg-green-500
@@ -48,8 +48,8 @@
                                 @endif
                             </svg>
                         </div>
-                        <div>
-                            <h3 class="text-xl font-bold 
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-xl font-bold truncate
                                 @if($booking->booking_status == 'pending') text-yellow-900
                                 @elseif($booking->booking_status == 'confirmed') text-blue-900
                                 @elseif($booking->booking_status == 'completed') text-green-900
@@ -57,7 +57,7 @@
                                 @endif">
                                 Booking {{ ucfirst($booking->booking_status) }}
                             </h3>
-                            <p class="text-sm 
+                            <p class="text-sm leading-relaxed
                                 @if($booking->booking_status == 'pending') text-yellow-700
                                 @elseif($booking->booking_status == 'confirmed') text-blue-700
                                 @elseif($booking->booking_status == 'completed') text-green-700
@@ -76,44 +76,46 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-2">
+                    <!-- Action Buttons - Responsive Stack -->
+                    <div class="flex flex-wrap gap-2 justify-end items-center min-w-0 flex-shrink-0">
                         @if($booking->booking_status == 'pending')
                         <button type="button" onclick="showBookingModal('confirm'); return false;"
-                            class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">
-                            Confirm Booking
+                            class="flex-1 sm:flex-none px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm sm:text-base min-w-[120px]">
+                            Confirm
                         </button>
                         <button type="button" onclick="showBookingModal('reject'); return false;"
-                            class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold">
+                            class="flex-1 sm:flex-none px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm sm:text-base min-w-[120px]">
                             Reject
                         </button>
                         @endif
 
                         @if($booking->booking_status == 'confirmed' && $booking->event_date->lte(now()))
                         <button type="button" onclick="showBookingModal('complete'); return false;"
-                            class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">
-                            Mark as Complete
+                            class="flex-1 sm:flex-none px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm sm:text-base min-w-[140px]">
+                            Mark Complete
                         </button>
                         @endif
 
                         @if($booking->booking_status == 'confirmed' && $booking->event_date->isFuture())
-                        <div class="px-6 py-3 bg-blue-100 text-blue-800 rounded-lg font-semibold">
+                        <div class="px-4 py-3 bg-blue-100 text-blue-800 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap">
                             Event in {{ $booking->event_date->diffForHumans() }}
                         </div>
                         @endif
 
                         @if(in_array($booking->booking_status, ['pending', 'confirmed']) && $booking->event_date->isFuture())
                         <button type="button" onclick="openCatererCancelModal()"
-                            class="px-4 py-3 bg-red-50 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-semibold flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="flex-1 sm:flex-none px-3 py-3 bg-red-50 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-semibold text-xs sm:text-sm min-w-[100px] flex items-center justify-center gap-1">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
-                            Cancel Booking
+                            Cancel
                         </button>
                         @endif
 
+                        <!-- Print Button - Always smaller and right-aligned -->
                         <button onclick="window.print()"
-                            class="px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="px-3 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center text-sm sm:text-base min-w-[44px]">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                                 </path>
@@ -122,7 +124,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-6">
