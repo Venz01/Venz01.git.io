@@ -133,8 +133,22 @@ class Booking extends Model
     public function needsRefundTracking(): bool
     {
         return $this->booking_status === 'cancelled'
-            && $this->deposit_paid > 0
+            && $this->hasRefundablePayment()
             && in_array($this->refund_status ?? 'none', ['none', 'pending']);
+    }
+
+    /**
+     * Refundable principal excludes service fee.
+     * For now, we treat paid deposit_amount as refundable basis.
+     */
+    public function refundableBaseAmount(): float
+    {
+        return (float) ($this->deposit_amount ?? 0);
+    }
+
+    public function hasRefundablePayment(): bool
+    {
+        return $this->refundableBaseAmount() > 0;
     }
 
     /**

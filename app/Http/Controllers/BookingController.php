@@ -338,20 +338,24 @@ class BookingController extends Controller
             );
         }
 
-        $request->validate([
+        $rules = [
             'cancellation_reason' => 'required|string|min:10|max:1000',
             'refund_details'      => 'nullable|string|max:500',
-        ], [
+        ];
+
+        if ($booking->hasRefundablePayment()) {
+            $rules['refund_details'] = 'required|string|max:500';
+        }
+
+        $request->validate($rules, [
             'cancellation_reason.required' => 'Please provide a reason for cancelling.',
             'cancellation_reason.min'      => 'Please give a bit more detail (at least 10 characters).',
+            'refund_details.required'      => 'Please provide your GCash / bank details so the refund can be processed.',
         ]);
 
-        // Refund is only "pending" when money was paid AND the customer provided bank details.
-        // If no deposit was paid there is nothing to refund.
-        $refundStatus = 'none';
-        if ($booking->deposit_paid > 0) {
-            $refundStatus = 'pending'; // caterer must contact customer and send it back manually
-        }
+        // Refund is only "pending" when refundable principal exists.
+        // (Use refundable basis, not deposit_paid which includes service fee.)
+        $refundStatus = $booking->hasRefundablePayment() ? 'pending' : 'none';
 
         $booking->update([
             'booking_status'      => 'cancelled',
@@ -398,20 +402,30 @@ class BookingController extends Controller
             );
         }
 
-        $request->validate([
+        $rules = [
             'cancellation_reason' => 'required|string|min:10|max:1000',
-        ], [
+            'refund_details'      => 'nullable|string|max:500',
+        ];
+
+        if ($booking->hasRefundablePayment()) {
+            // Require payout details when caterer cancels a refundable booking.
+            $rules['refund_details'] = 'required|string|max:500';
+        }
+
+        $request->validate($rules, [
             'cancellation_reason.required' => 'Please provide a reason for cancelling this booking.',
             'cancellation_reason.min'      => 'Please give a bit more detail (at least 10 characters).',
+            'refund_details.required'      => 'Please provide customer payout details to process the refund.',
         ]);
 
-        $refundStatus = ($booking->deposit_paid > 0) ? 'pending' : 'none';
+        $refundStatus = $booking->hasRefundablePayment() ? 'pending' : 'none';
 
         $booking->update([
             'booking_status'      => 'cancelled',
             'cancelled_by'        => 'caterer',
             'cancellation_reason' => $request->cancellation_reason,
             'refund_status'       => $refundStatus,
+            'refund_details'      => $request->refund_details,
             'cancelled_at'        => now(),
         ]);
 
@@ -442,6 +456,10 @@ class BookingController extends Controller
             ->where('booking_status', 'cancelled')
             ->where('refund_status', 'pending')
             ->firstOrFail();
+
+        if (! $booking->hasRefundablePayment()) {
+            return back()->with('error', 'This booking has no refundable amount.');
+        }
 
         $booking->update([
             'refund_status'  => 'issued',
