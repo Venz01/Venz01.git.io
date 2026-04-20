@@ -194,6 +194,18 @@ class Review extends Model
     }
 
     /**
+     * Check if review is visible to the customer who wrote it
+     * Customers always see their own reviews, regardless of moderation status
+     */
+    public function isVisibleToCustomer()
+    {
+        if (auth()->check() && auth()->id() === $this->customer_id) {
+            return true;
+        }
+        return $this->isVisible();
+    }
+
+    /**
      * Check if review needs admin attention
      */
     public function needsAttention()

@@ -378,6 +378,67 @@
                         </div>
                     </div>
 
+                    {{-- Your Review Section --}}
+                    @if($booking->review && $booking->review->isVisibleToCustomer())
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <svg class="w-6 h-6 text-amber-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                            </svg>
+                            Your Review
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            {{-- Rating --}}
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
+                                <div class="flex items-center gap-1 text-2xl">
+                                    {!! $booking->review->starDisplay !!}
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">{{ $booking->review->rating }}/5 Stars</p>
+                            </div>
+                            
+                            {{-- Status --}}
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                                    @if($booking->review->admin_status === 'approved') bg-green-100 text-green-800
+                                    @elseif($booking->review->admin_status === 'under_review') bg-yellow-100 text-yellow-800
+                                    @elseif($booking->review->admin_status === 'flagged') bg-red-100 text-red-800
+                                    @else bg-gray-100 text-gray-800 @endif">
+                                    {{ $booking->review->statusText }}
+                                </span>
+                            </div>
+                            
+                            {{-- Your Comment --}}
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Comment</label>
+                                <p class="text-sm text-gray-900 dark:text-white whitespace-pre-wrap bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                                    {{ trim($booking->review->comment) }}
+                                </p>
+                            </div>
+                            
+                            {{-- Caterer Response --}}
+                            @if($booking->review->caterer_response)
+                            <div>
+                                <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                    Caterer Response 
+                                    <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">New</span>
+                                </label>
+                                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                    <p class="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+                                        {{ $booking->review->caterer_response }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-2">
+                                        Responded on {{ $booking->review->responded_at->format('M d, Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- Cancellation / Refund Info (read-only for customer) --}}
                     @if($booking->booking_status === 'cancelled')
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
