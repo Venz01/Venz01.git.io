@@ -400,11 +400,11 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Service Fee:</span>
-                                    <span class="font-medium">₱500</span>
+                                    <span class="font-medium">₱<span id="serviceFee">{{ number_format((float) \App\Models\SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500)), 0) }}</span></span>
                                 </div>
                                 <div class="flex justify-between font-semibold text-base text-gray-900 dark:text-white">
                                     <span>Due Now:</span>
-                                    <span class="text-green-600 dark:text-green-400">₱<span id="dueNow">{{ number_format((($package->price * $package->pax) * 0.25) + 500, 0) }}</span></span>
+                                    <span class="text-green-600 dark:text-green-400">₱<span id="dueNow">{{ number_format((($package->price * $package->pax) * 0.25) + (float) \App\Models\SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500)), 0) }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -558,6 +558,7 @@
         const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
         const defaultItemIds  = @json($defaultItemIds);
         const costingData     = @json($costingData);
+        const serviceFee      = {{ (float) \App\Models\SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500)) }};
 
         const elements = {
             selectedCount:       document.getElementById('selectedCount'),
@@ -699,8 +700,10 @@
             if (elements.perHeadPriceDisplay) elements.perHeadPriceDisplay.textContent = '₱' + pricePerHead.toLocaleString();
 
             const deposit = totalPrice * 0.25;
-            const dueNow  = deposit + 500;
+            const dueNow  = deposit + serviceFee;
             if (elements.depositAmount) elements.depositAmount.textContent = deposit.toLocaleString();
+            const serviceFeeEl = document.getElementById('serviceFee');
+            if (serviceFeeEl) serviceFeeEl.textContent = serviceFee.toLocaleString();
             if (elements.dueNow)        elements.dueNow.textContent        = dueNow.toLocaleString();
         }
 

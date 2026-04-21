@@ -11,6 +11,7 @@ use App\Models\Booking;
 use App\Models\Package;
 use App\Models\MenuItem;
 use App\Models\CatererAvailability;
+use App\Models\SystemSetting;
 use App\Services\NotificationService;
 use App\Traits\DatabaseLock;
 use Illuminate\Support\Facades\DB;
@@ -141,7 +142,7 @@ class BookingController extends Controller
         $package       = Package::with('user')->findOrFail($bookingDetails['package_id']);
         $selectedItems = MenuItem::whereIn('id', $bookingDetails['selected_items'])->get();
         $deposit       = $bookingDetails['total_price'] * 0.25;
-        $serviceFee    = 500;
+        $serviceFee    = max(0, (float) SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500)));
         $depositDue    = $deposit + $serviceFee;
 
         return view('customer.booking.payment', compact(
@@ -214,7 +215,7 @@ class BookingController extends Controller
             $guests      = (int) ($bookingDetails['guests'] ?? 0);
             $totalPrice  = (float) $package->price * max($guests, 0);
             $deposit     = $totalPrice * 0.25;
-            $serviceFee  = 500;
+            $serviceFee  = max(0, (float) SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500)));
             $depositPaid = $deposit + $serviceFee;
             $balance     = $totalPrice - $deposit;
 

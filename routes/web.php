@@ -275,6 +275,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('activity-logs');
     Route::get('/activity-logs/{id}', [AdminController::class, 'getActivityLogDetails'])->name('activity-log-details');
+
+    Route::patch('/settings/service-fee', [AdminController::class, 'updateServiceFee'])->name('settings.service-fee.update');
 });
 
 Route::get('/register-pending', function () {

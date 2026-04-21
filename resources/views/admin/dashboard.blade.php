@@ -107,6 +107,44 @@
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
             </div>
 
+            {{-- Booking Service Fee Setting --}}
+            <div class="mb-8">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-2">Booking Service Fee</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        Set the platform service fee applied to new bookings. This amount is added to the 25% deposit due at checkout.
+                    </p>
+
+                    <form action="{{ route('admin.settings.service-fee.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="md:col-span-2">
+                            <label for="service_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service Fee (₱)</label>
+                            <input
+                                id="service_fee"
+                                name="service_fee"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value="{{ old('service_fee', number_format((float) ($serviceFee ?? 0), 2, '.', '')) }}"
+                                class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500"
+                                required
+                            >
+                            @error('service_fee')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+                                Update Fee
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             {{-- Pending Caterer Approvals --}}
             @php
                 $pendingCaterers = \App\Models\User::where('role', 'caterer')

@@ -175,6 +175,14 @@
                                 The remaining balance of ₱{{ number_format($booking->balance, 2) }} must be paid on or before the event date.
                             </p>
                         </div>
+
+                        <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700 rounded-lg">
+                            <p class="text-sm text-amber-800 dark:text-amber-200">
+                                <strong>Service Fee Policy:</strong> The service fee is an admin-configured platform processing charge applied per booking.
+                                This fee is included in your deposit payment and is generally non-refundable once payment is processed.
+                                Refund eligibility applies to the refundable booking deposit portion based on cancellation policy.
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Status Badges -->

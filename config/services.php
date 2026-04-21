@@ -49,4 +49,8 @@ return [
         'api_secret' => env('CLOUDINARY_API_SECRET'),
     ],
 
+    'booking' => [
+        'service_fee' => (float) env('BOOKING_SERVICE_FEE', 500),
+    ],
+
 ];

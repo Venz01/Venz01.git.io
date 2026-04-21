@@ -60,6 +60,14 @@
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Payment Information</h2>
                 <p class="text-gray-600 dark:text-gray-400 mb-8">We require a 25% deposit to confirm your booking.</p>
 
+                <div class="mb-8 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700">
+                    <p class="text-sm text-amber-800 dark:text-amber-200">
+                        <strong>Service Fee Policy:</strong> The service fee is a platform processing charge set by the admin and applied per booking.
+                        This fee is included in the amount due now and is generally non-refundable once payment is processed.
+                        Refund eligibility is based on the booking deposit amount and cancellation policy.
+                    </p>
+                </div>
+
                 <!-- Order Summary -->
                 <div class="mb-8 p-6 bg-gray-50 dark:bg-gray-700 rounded-xl">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h3>

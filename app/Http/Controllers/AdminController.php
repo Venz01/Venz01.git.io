@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use App\Helpers\ActivityLogger;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
+use App\Models\SystemSetting;
 
 class AdminController extends Controller
 {
@@ -25,8 +26,34 @@ class AdminController extends Controller
             'week_logs' => ActivityLog::where('created_at', '>=', now()->subWeek())->count(),
             'recent_activity' => ActivityLog::with('user')->latest()->take(5)->get(),
         ];
+
+        $serviceFee = (float) SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500));
         
-        return view('admin.dashboard', compact('stats'));
+        return view('admin.dashboard', compact('stats', 'serviceFee'));
+    }
+
+    /**
+     * Update booking service fee setting.
+     */
+    public function updateServiceFee(Request $request)
+    {
+        $validated = $request->validate([
+            'service_fee' => 'required|numeric|min:0|max:1000000',
+        ]);
+
+        $fee = round((float) $validated['service_fee'], 2);
+
+        SystemSetting::setValue('booking_service_fee', $fee);
+
+        ActivityLogger::logAdmin(
+            'booking_service_fee_updated',
+            "Updated booking service fee to ₱{$fee}",
+            [
+                'new_service_fee' => $fee,
+            ]
+        );
+
+        return back()->with('success', 'Booking service fee updated successfully.');
     }
 
     public function userManagement(Request $request)
