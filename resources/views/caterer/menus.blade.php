@@ -75,20 +75,20 @@
         </div>
 
         <!-- TAB NAVIGATION -->
-        <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="flex space-x-8" aria-label="Tabs">
+        <div class="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+            <nav class="flex min-w-max sm:min-w-0 sm:flex-wrap gap-2 sm:gap-6" aria-label="Tabs">
                 <button @click="setTab('packages')"
                     :class="activeTab === 'packages' ?
                         'border-purple-500 text-purple-600 dark:text-purple-400' :
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    class="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors">
                     Packages & Menu Items
                 </button>
                 <button @click="setTab('display')"
                     :class="activeTab === 'display' ?
                         'border-purple-500 text-purple-600 dark:text-purple-400' :
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    class="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors">
                     Customer Display Menus
                 </button>
             </nav>
@@ -482,8 +482,8 @@
         </div>
 
         <!-- DISPLAY MENUS TAB CONTENT -->
-        <div x-show="activeTab === 'display'" x-transition class="space-y-6 ">
-            <div class="flex items-center justify-between">
+        <div x-show="activeTab === 'display'" x-transition class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Customer Display Menus</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -491,7 +491,7 @@
                     </p>
                 </div>
                 <button type="button" @click="openDisplayMenuModal()"
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm">
+                    class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -502,7 +502,7 @@
             @if(isset($displayMenus) && $displayMenus->count() > 0)
             <div class="space-y-6 ">
                 @foreach($displayMenus as $category => $menus)
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
@@ -596,8 +596,8 @@
 
     <!-- Category Modal -->
     <div id="categoryModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md mx-4 p-6">
+        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Add Category</h2>
             <form action="{{ route('caterer.categories.store') }}" method="POST">
                 @csrf
@@ -625,8 +625,8 @@
 
     <!-- Edit Category Modal -->
     <div id="editCategoryModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md mx-4 p-6">
+        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Category</h2>
             <form id="editCategoryForm" method="POST">
                 @csrf
@@ -655,8 +655,8 @@
 
     <!-- Add Item Modal -->
     <div id="itemModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md mx-4 p-6">
+        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Add Menu Item</h2>
             <form action="{{ route('caterer.menu-items.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -695,8 +695,8 @@
 
     <!-- Edit Item Modal -->
     <div id="editItemModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md mx-4 p-6">
+        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Menu Item</h2>
             <form id="editItemForm" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -744,8 +744,8 @@
          CREATE PACKAGE MODAL
          ===================================================================== -->
     <div id="packageModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Create Package</h2>
             <form id="createPackageForm" action="{{ route('caterer.packages.store') }}" method="POST"
                 enctype="multipart/form-data" x-data="packagePriceCalculator()">
@@ -908,8 +908,8 @@
          EDIT PACKAGE MODAL
          ===================================================================== -->
     <div id="editPackageModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Package</h2>
             <form id="editPackageForm" method="POST" enctype="multipart/form-data"
                 x-data="editPackagePriceCalculator()">
@@ -997,15 +997,15 @@
                                     @foreach($category->items as $item)
                                     <div class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
 
-                                        {{-- DEFAULT radio --}}
+                                        {{-- DEFAULT checkbox --}}
                                         <input
-                                            type="radio"
-                                            name="edit_default_item_radio[{{ $category->id }}]"
+                                            type="checkbox"
                                             value="{{ $item->id }}"
+                                            data-item-id="{{ $item->id }}"
                                             data-price="{{ $item->price }}"
                                             data-category="{{ $category->id }}"
-                                            @change="onEditDefaultRadioChange($event)"
-                                            class="edit-default-item-radio text-green-600 focus:ring-green-500 flex-shrink-0 cursor-pointer"
+                                            @change="onEditDefaultCheckboxChange($event)"
+                                            class="edit-default-item-checkbox text-green-600 focus:ring-green-500 flex-shrink-0 cursor-pointer"
                                             title="Set as default (used for pricing)">
 
                                         {{-- ALTERNATIVE checkbox --}}
@@ -1283,15 +1283,19 @@
                 this.$nextTick(() => this.updateEditPrice());
             },
 
-            onEditDefaultRadioChange(event) {
-                const itemId = event.target.value;
-                // Auto-check corresponding alt checkbox
+            onEditDefaultCheckboxChange(event) {
+                const checkbox = event.target;
+                const itemId = checkbox.dataset.itemId;
+
+                // Auto-check corresponding alt checkbox when default is selected
                 const cb = document.querySelector(
                     `#editPackageForm .edit-menu-item-checkbox[value="${itemId}"]`
                 );
                 if (cb && !cb.checked) {
                     cb.checked = true;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
                 }
+
                 this.updateEditPrice();
                 this.syncEditDefaultInputs();
             },
@@ -1301,21 +1305,12 @@
                 const category = event.target.dataset.category;
 
                 if (!event.target.checked) {
-                    const radio = document.querySelector(
-                        `#editPackageForm .edit-default-item-radio[value="${itemId}"]`
+                    const defaultCheckbox = document.querySelector(
+                        `#editPackageForm .edit-default-item-checkbox[data-item-id="${itemId}"]`
                     );
-                    if (radio && radio.checked) {
-                        radio.checked = false;
-                    }
-                } else {
-                    const anyDefault = document.querySelector(
-                        `#editPackageForm .edit-default-item-radio[data-category="${category}"]:checked`
-                    );
-                    if (!anyDefault) {
-                        const radio = document.querySelector(
-                            `#editPackageForm .edit-default-item-radio[value="${itemId}"]`
-                        );
-                        if (radio) radio.checked = true;
+                    if (defaultCheckbox && defaultCheckbox.checked) {
+                        defaultCheckbox.checked = false;
+                        defaultCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
                 this.updateEditPrice();
@@ -1323,10 +1318,10 @@
             },
 
             updateEditPrice() {
-                const radios = document.querySelectorAll(
-                    '#editPackageForm .edit-default-item-radio:checked'
+                const defaultCheckboxes = document.querySelectorAll(
+                    '#editPackageForm .edit-default-item-checkbox:checked'
                 );
-                this.foodCost = Array.from(radios).reduce(
+                this.foodCost = Array.from(defaultCheckboxes).reduce(
                     (sum, r) => sum + parseFloat(r.dataset.price), 0
                 );
                 const total = this.foodCost * (1 + 0.20 + 0.10 + 0.25);
@@ -1345,12 +1340,12 @@
                 if (!container) return;
                 container.innerHTML = '';
                 document.querySelectorAll(
-                    '#editPackageForm .edit-default-item-radio:checked'
+                    '#editPackageForm .edit-default-item-checkbox:checked'
                 ).forEach(r => {
                     const input = document.createElement('input');
                     input.type  = 'hidden';
                     input.name  = 'default_items[]';
-                    input.value = r.value;
+                    input.value = r.dataset.itemId;
                     container.appendChild(input);
                 });
             }
@@ -1371,9 +1366,9 @@
             if (typeof toggleDietaryTag === 'function') toggleDietaryTag(cb);
         });
 
-        // Reset all checkboxes + radios before loading
+        // Reset all checkboxes before loading
         document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => cb.checked = false);
-        document.querySelectorAll('.edit-default-item-radio').forEach(r  => r.checked  = false);
+        document.querySelectorAll('.edit-default-item-checkbox').forEach(r => r.checked = false);
         const editDefaultContainer = document.getElementById('editDefaultItemsContainer');
         if (editDefaultContainer) editDefaultContainer.innerHTML = '';
 
@@ -1414,10 +1409,10 @@
                     if (cb) cb.checked = true;
                 });
 
-                // Check default radios
+                // Check default checkboxes
                 defaultItems.forEach(itemId => {
-                    const radio = document.querySelector(`.edit-default-item-radio[value="${itemId}"]`);
-                    if (radio) radio.checked = true;
+                    const checkbox = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`);
+                    if (checkbox) checkbox.checked = true;
                 });
 
                 requestAnimationFrame(() => {
@@ -1451,7 +1446,7 @@
     function closeEditPackageModal() {
         document.getElementById('editPackageModal').classList.add('hidden');
         document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => cb.checked = false);
-        document.querySelectorAll('.edit-default-item-radio').forEach(r  => r.checked  = false);
+        document.querySelectorAll('.edit-default-item-checkbox').forEach(r => r.checked = false);
         document.getElementById('editSelectedItemsContainer').innerHTML =
             '<p class="text-sm text-gray-500 italic">No items selected.</p>';
         const c = document.getElementById('editDefaultItemsContainer');
@@ -1475,7 +1470,7 @@
             const itemName  = checkbox.dataset.itemName;
             const itemPrice = parseFloat(checkbox.dataset.itemPrice).toFixed(2);
             const itemId    = checkbox.value;
-            const isDefault = document.querySelector(`.edit-default-item-radio[value="${itemId}"]`)?.checked;
+            const isDefault = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`)?.checked;
 
             html += `
                 <div class="flex items-center justify-between bg-white dark:bg-gray-600 rounded px-3 py-2">
@@ -1502,8 +1497,8 @@
 
     function removeEditMenuItem(itemId) {
         const checkbox = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
-        const radio    = document.querySelector(`.edit-default-item-radio[value="${itemId}"]`);
-        if (radio)    radio.checked    = false;
+        const checkboxDefault = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`);
+        if (checkboxDefault) checkboxDefault.checked = false;
         if (checkbox) {
             checkbox.checked = false;
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
