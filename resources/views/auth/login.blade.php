@@ -1,14 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Sign In') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+    <div class="min-h-screen w-full">
+        <div class="w-full">
             <!-- Login Container with Two Columns -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden bg-white dark:bg-gray-900 shadow-2xl dark:shadow-2xl/50">
+            <div class="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden bg-white dark:bg-gray-900">
                 
                 <!-- Left Side - Hero Image Section -->
                 <div class="hidden lg:flex relative overflow-hidden" style="background-image: linear-gradient(135deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.25) 100%), url('{{ asset('images/catering.jpg') }}'); background-size: cover; background-position: center;">

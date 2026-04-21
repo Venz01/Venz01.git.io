@@ -70,11 +70,19 @@ class CatererController extends Controller
             'total'     => (int) $orderAgg->total,
         ];
 
-        // ✅ UPDATED: Revenue from BOTH bookings and orders
+        // ✅ Revenue from BOTH bookings and orders (cash actually collected)
         $revenueStats = [
             'bookings_total' => Booking::where('caterer_id', $catererId)
-                ->whereIn('payment_status', ['deposit_paid', 'fully_paid'])
-                ->sum('total_price'),
+                ->selectRaw("
+                    COALESCE(SUM(
+                        CASE
+                            WHEN payment_status = 'fully_paid' THEN total_price
+                            WHEN payment_status = 'deposit_paid' THEN COALESCE(deposit_paid, deposit_amount, 0)
+                            ELSE 0
+                        END
+                    ), 0) as collected_revenue
+                ")
+                ->value('collected_revenue'),
             'orders_total' => Order::where('caterer_id', $catererId)
                 ->where('payment_status', 'paid')
                 ->sum('total_amount'),
@@ -218,11 +226,19 @@ class CatererController extends Controller
             $startOfMonth = $date->copy()->startOfMonth();
             $endOfMonth = $date->copy()->endOfMonth();
 
-            // Bookings revenue
+            // Bookings revenue (cash actually collected)
             $bookingRevenue = Booking::where('caterer_id', $catererId)
                 ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->whereIn('payment_status', ['deposit_paid', 'fully_paid'])
-                ->sum('total_price');
+                ->selectRaw("
+                    COALESCE(SUM(
+                        CASE
+                            WHEN payment_status = 'fully_paid' THEN total_price
+                            WHEN payment_status = 'deposit_paid' THEN COALESCE(deposit_paid, deposit_amount, 0)
+                            ELSE 0
+                        END
+                    ), 0) as collected_revenue
+                ")
+                ->value('collected_revenue');
 
             // Orders revenue
             $orderRevenue = Order::where('caterer_id', $catererId)
@@ -268,8 +284,20 @@ class CatererController extends Controller
     {
         return [
             'total_bookings' => $bookings->count(),
-            'total_revenue' => $bookings->sum('total_price'),
-            'total_deposits' => $bookings->sum('deposit_amount'),
+            'total_revenue' => $bookings->sum(function ($booking) {
+                if ($booking->payment_status === 'fully_paid') {
+                    return (float) $booking->total_price;
+                }
+
+                if ($booking->payment_status === 'deposit_paid') {
+                    return (float) ($booking->deposit_paid ?? $booking->deposit_amount ?? 0);
+                }
+
+                return 0;
+            }),
+            'total_deposits' => $bookings->sum(function ($booking) {
+                return (float) ($booking->deposit_paid ?? $booking->deposit_amount ?? 0);
+            }),
             'total_balance' => $bookings->sum('balance'),
             'average_booking_value' => $bookings->avg('total_price') ?? 0,
             'total_guests' => $bookings->sum('guests'),
@@ -283,7 +311,19 @@ class CatererController extends Controller
     {
         return Booking::where('caterer_id', $caterer_id)
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
-            ->select('payment_status', DB::raw('count(*) as count'), DB::raw('sum(total_price) as total'))
+            ->select(
+                'payment_status',
+                DB::raw('count(*) as count'),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN payment_status = 'fully_paid' THEN total_price
+                            WHEN payment_status = 'deposit_paid' THEN COALESCE(deposit_paid, deposit_amount, 0)
+                            ELSE 0
+                        END
+                    ) as total
+                ")
+            )
             ->groupBy('payment_status')
             ->get();
     }
@@ -310,7 +350,15 @@ class CatererController extends Controller
                 ->whereBetween('created_at', [$dates['start'], $dates['end']])
                 ->select(
                     DB::raw("TO_CHAR(created_at, '{$format}') as date"),
-                    DB::raw('sum(total_price) as revenue'),
+                    DB::raw("
+                        SUM(
+                            CASE
+                                WHEN payment_status = 'fully_paid' THEN total_price
+                                WHEN payment_status = 'deposit_paid' THEN COALESCE(deposit_paid, deposit_amount, 0)
+                                ELSE 0
+                            END
+                        ) as revenue
+                    "),
                     DB::raw('count(*) as bookings')
                 )
                 ->groupBy(DB::raw("TO_CHAR(created_at, '{$format}')"))
@@ -324,7 +372,15 @@ class CatererController extends Controller
                 ->whereBetween('created_at', [$dates['start'], $dates['end']])
                 ->select(
                     DB::raw("DATE_FORMAT(created_at, '{$format}') as date"),
-                    DB::raw('sum(total_price) as revenue'),
+                    DB::raw("
+                        SUM(
+                            CASE
+                                WHEN payment_status = 'fully_paid' THEN total_price
+                                WHEN payment_status = 'deposit_paid' THEN COALESCE(deposit_paid, deposit_amount, 0)
+                                ELSE 0
+                            END
+                        ) as revenue
+                    "),
                     DB::raw('count(*) as bookings')
                 )
                 ->groupBy('date')
@@ -864,11 +920,19 @@ class CatererController extends Controller
         $bookings = $bookingPayments->paginate(10, ['*'], 'bookings_page');
         $orders = $orderPayments->paginate(10, ['*'], 'orders_page');
 
-        // ✅ UPDATED: Payment statistics from both sources
+        // ✅ UPDATED: Payment statistics from both sources (cash actually collected)
         $paymentStats = [
             'total_revenue' => Booking::where('caterer_id', $catererId)
-                    ->whereIn('payment_status', ['deposit_paid', 'fully_paid'])
-                    ->sum('total_price') +
+                    ->selectRaw("
+                        COALESCE(SUM(
+                            CASE
+                                WHEN payment_status = 'fully_paid' THEN total_price
+                                WHEN payment_status = 'deposit_paid' THEN COALESCE(deposit_paid, deposit_amount, 0)
+                                ELSE 0
+                            END
+                        ), 0) as collected_revenue
+                    ")
+                    ->value('collected_revenue') +
                 Order::where('caterer_id', $catererId)
                     ->where('payment_status', 'paid')
                     ->sum('total_amount'),
