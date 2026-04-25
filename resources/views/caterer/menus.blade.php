@@ -7,6 +7,47 @@
 
     <div x-data="menuManager()" class="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 lg:px-8 space-y-4 sm:space-y-6">
 
+        <!-- Success/Error Messages -->
+        @if (session('success'))
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-sm text-green-700 dark:text-green-300 font-medium">{{ session('success') }}</p>
+                </div>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-sm text-red-700 dark:text-red-300 font-medium">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">Please fix the following errors:</p>
+                        <ul class="list-disc list-inside text-sm text-red-600 dark:text-red-400 space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Loading Overlay -->
         <div x-show="loading" x-transition
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
@@ -658,22 +699,22 @@
         class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Add Menu Item</h2>
-            <form action="{{ route('caterer.menu-items.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="addItemForm" action="{{ route('caterer.menu-items.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="category_id" id="itemCategoryId">
+                <input type="hidden" name="category_id" id="itemCategoryId" required>
                 <div class="space-y-3">
-                    <input type="text" name="name" placeholder="Item Name"
+                    <input type="text" name="name" id="itemName" placeholder="Item Name"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         required>
-                    <textarea name="description" placeholder="Description (optional)"
+                    <textarea name="description" id="itemDescription" placeholder="Description (optional)"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         rows="3"></textarea>
-                    <input type="number" name="price" step="0.01" min="0" placeholder="Price per serving"
+                    <input type="number" name="price" id="itemPrice" step="0.01" min="0" placeholder="Price per serving"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         required>
-                    <input type="file" name="image" accept="image/*"
+                    <input type="file" name="image" id="itemImage" accept="image/*"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    <select name="status"
+                    <select name="status" id="itemStatus"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500">
                         <option value="available">Available</option>
                         <option value="unavailable">Unavailable</option>
@@ -1847,6 +1888,31 @@
                 } else {
                     newCategoryInput.value = categorySelect.value;
                 }
+            });
+        }
+
+        // Add logging for menu item form submissions
+        const addItemForm = document.getElementById('addItemForm');
+        if (addItemForm) {
+            addItemForm.addEventListener('submit', function(e) {
+                console.log('Add Item Form Submitting...', {
+                    category_id: document.getElementById('itemCategoryId').value,
+                    name: document.getElementById('itemName').value,
+                    price: document.getElementById('itemPrice').value,
+                    status: document.getElementById('itemStatus').value,
+                });
+            });
+        }
+
+        const editItemForm = document.getElementById('editItemForm');
+        if (editItemForm) {
+            editItemForm.addEventListener('submit', function(e) {
+                console.log('Edit Item Form Submitting...', {
+                    name: document.getElementById('editItemName').value,
+                    price: document.getElementById('editItemPrice').value,
+                    status: document.getElementById('editItemStatus').value,
+                    action: editItemForm.action,
+                });
             });
         }
 
