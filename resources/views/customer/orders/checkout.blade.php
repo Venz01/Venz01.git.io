@@ -49,7 +49,7 @@
                                             </svg>
                                             <div>
                                                 <div class="font-semibold text-gray-900 dark:text-white">Delivery</div>
-                                                <div class="text-sm text-gray-600 dark:text-gray-400">₱100 fee</div>
+                                                <div class="text-sm text-gray-600 dark:text-gray-400">Fee assigned after review</div>
                                             </div>
                                         </div>
                                     </div>
@@ -228,14 +228,14 @@
                                 </div>
                                 <div class="flex justify-between text-gray-700 dark:text-gray-300">
                                     <span>Delivery Fee</span>
-                                    <span id="deliveryFeeDisplay" class="font-semibold">₱{{ number_format($deliveryFee, 2) }}</span>
+                                    <span id="deliveryFeeDisplay" class="font-semibold text-yellow-600 dark:text-yellow-400">To be assigned by caterer</span>
                                 </div>
                             </div>
 
                             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
                                 <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
                                     <span>Total</span>
-                                    <span id="totalDisplay">₱{{ number_format($subtotal + $deliveryFee, 2) }}</span>
+                                    <span id="totalDisplay">₱{{ number_format($subtotal, 2) }}</span>
                                 </div>
                             </div>
 
@@ -264,8 +264,8 @@
             const totalDisplay = document.getElementById('totalDisplay');
             
             const subtotal = {{ $subtotal }};
-            const deliveryFee = deliveryType === 'delivery' ? 100 : 0;
-            const total = subtotal + deliveryFee;
+            const deliveryFee = 0;
+            const total = subtotal;
             
             if (deliveryType === 'pickup') {
                 addressSection.style.display = 'none';
@@ -275,7 +275,13 @@
                 addressInput.setAttribute('required', 'required');
             }
             
-            deliveryFeeDisplay.textContent = '₱' + deliveryFee.toFixed(2);
+            if (deliveryType === 'delivery') {
+                deliveryFeeDisplay.textContent = 'To be assigned by caterer';
+                deliveryFeeDisplay.classList.add('text-yellow-600', 'dark:text-yellow-400');
+            } else {
+                deliveryFeeDisplay.textContent = '₱0.00';
+                deliveryFeeDisplay.classList.remove('text-yellow-600', 'dark:text-yellow-400');
+            }
             totalDisplay.textContent = '₱' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
         }
 

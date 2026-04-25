@@ -145,11 +145,18 @@
                                     <span>Subtotal</span>
                                     <span>₱{{ number_format($order->subtotal, 2) }}</span>
                                 </div>
-                                @if($order->delivery_fee > 0)
-                                <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                    <span>Delivery Fee</span>
-                                    <span>₱{{ number_format($order->delivery_fee, 2) }}</span>
-                                </div>
+                                @if($order->fulfillment_type === 'delivery')
+                                    @if($order->delivery_fee_status === 'pending')
+                                    <div class="flex justify-between text-yellow-700 dark:text-yellow-300">
+                                        <span>Delivery Fee</span>
+                                        <span class="font-medium">Pending caterer review</span>
+                                    </div>
+                                    @elseif(in_array($order->delivery_fee_status, ['assigned', 'accepted']) && $order->delivery_fee > 0)
+                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                        <span>Delivery Fee</span>
+                                        <span>₱{{ number_format($order->delivery_fee, 2) }}</span>
+                                    </div>
+                                    @endif
                                 @endif
                                 <div class="flex justify-between text-xl font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-600">
                                     <span>Total</span>
@@ -167,8 +174,54 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
                         
                         <div class="space-y-3">
+
+                            {{-- DELIVERY FEE ASSIGNMENT --}}
+                            @if($order->fulfillment_type === 'delivery')
+                                @if($order->delivery_fee_status === 'pending')
+                                    <form action="{{ route('caterer.orders.assign-delivery-fee', $order->id) }}" method="POST"
+                                        class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                            Assign Delivery Fee
+                                        </label>
+
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                                            Review the customer's delivery address, then enter the delivery fee.
+                                        </p>
+
+                                        <input type="number" name="delivery_fee" min="0" step="0.01"
+                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white mb-3"
+                                            placeholder="Enter delivery fee" required>
+
+                                        <button type="submit"
+                                            class="w-full px-4 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors">
+                                            Submit Delivery Fee
+                                        </button>
+                                    </form>
+
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+                                        You can confirm this order after the customer accepts the assigned delivery fee.
+                                    </div>
+                                @elseif($order->delivery_fee_status === 'assigned')
+                                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
+                                        Delivery fee assigned: <strong>₱{{ number_format($order->delivery_fee, 2) }}</strong>.
+                                        Waiting for customer confirmation.
+                                    </div>
+                                @elseif($order->delivery_fee_status === 'accepted')
+                                    <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-sm text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700">
+                                        Customer accepted the delivery fee. You may now confirm or continue processing this order.
+                                    </div>
+                                @elseif($order->delivery_fee_status === 'rejected')
+                                    <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-sm text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700">
+                                        Customer rejected the delivery fee. This order should be cancelled.
+                                    </div>
+                                @endif
+                            @endif
+
                             <!-- Status Updates -->
-                            @if($order->order_status === 'pending')
+                            @if($order->order_status === 'pending' && ($order->fulfillment_type !== 'delivery' || in_array($order->delivery_fee_status, ['not_required', 'accepted'])))
                                 <form action="{{ route('caterer.orders.update-status', $order->id) }}" method="POST">
                                     @csrf
                                     @method('PATCH')

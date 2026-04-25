@@ -150,6 +150,10 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::patch('/orders/cart/update/{menuItem}', [OrderController::class, 'updateCart'])->name('orders.update-cart');
     Route::delete('/orders/cart/remove/{menuItem}', [OrderController::class, 'removeFromCart'])->name('orders.remove-from-cart');
     Route::delete('/orders/cart/clear', [OrderController::class, 'clearCart'])->name('orders.clear-cart');
+
+    Route::post('/orders/{order}/accept-delivery-fee', [OrderController::class, 'acceptDeliveryFee'])->name('orders.accept-delivery-fee');
+
+    Route::post('/orders/{order}/reject-delivery-fee', [OrderController::class, 'rejectDeliveryFee'])->name('orders.reject-delivery-fee');
 });
 
 // ============================================
@@ -249,6 +253,7 @@ Route::middleware(['auth', 'role:caterer', 'caterer.suspended', 'caterer.approva
     Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports');
     Route::get('/reports/export/pdf', [App\Http\Controllers\ReportsController::class, 'exportPdf'])->name('reports.pdf');
     Route::get('/reports/export/excel', [App\Http\Controllers\ReportsController::class, 'exportExcel'])->name('reports.excel');
+    Route::patch('/orders/{order}/assign-delivery-fee', [CatererController::class, 'assignDeliveryFee'])->name('orders.assign-delivery-fee');
 });
 
 // ============================================

@@ -210,8 +210,11 @@ class OrderController extends Controller
             }
 
             // ── Totals ────────────────────────────────────────────────────────
-            $deliveryFee = $request->fulfillment_type === 'delivery' ? 100 : 0;
-            $totalAmount = $subtotal + $deliveryFee;
+            $isDelivery = $request->fulfillment_type === 'delivery';
+
+            $deliveryFee = 0;
+            $deliveryFeeStatus = $isDelivery ? 'pending' : 'not_required';
+            $totalAmount = $subtotal;
 
             // ── Create order ──────────────────────────────────────────────────
             $order = Order::create([
@@ -232,6 +235,9 @@ class OrderController extends Controller
                 'payment_method'       => $request->payment_method,
                 'receipt_path'         => $receiptPath,
                 'payment_status'       => $request->payment_method === 'cod' ? 'pending' : 'paid',
+                'delivery_fee'         => $deliveryFee,
+                'delivery_fee_status'  => $deliveryFeeStatus,
+                'total_amount'         => $totalAmount,
                 'order_status'         => 'pending',
             ]);
 
@@ -349,5 +355,42 @@ class OrderController extends Controller
 
         return redirect()->route('customer.orders.index')
             ->with('success', 'Order has been cancelled successfully.');
+    }
+
+    public function acceptDeliveryFee($orderId)
+    {
+        $order = Order::where('customer_id', auth()->id())
+            ->where('id', $orderId)
+            ->firstOrFail();
+
+        if ($order->delivery_fee_status !== 'assigned') {
+            return back()->with('error', 'Delivery fee is not ready for confirmation.');
+        }
+
+        $order->update([
+            'delivery_fee_status' => 'accepted',
+        ]);
+
+        return back()->with('success', 'Delivery fee accepted. Your order is now ready for caterer confirmation.');
+    }
+
+    public function rejectDeliveryFee(Request $request, $orderId)
+    {
+        $order = Order::where('customer_id', auth()->id())
+            ->where('id', $orderId)
+            ->firstOrFail();
+
+        if ($order->delivery_fee_status !== 'assigned') {
+            return back()->with('error', 'Delivery fee cannot be rejected yet.');
+        }
+
+        $order->update([
+            'delivery_fee_status' => 'rejected',
+            'order_status' => 'cancelled',
+            'cancellation_reason' => $request->reason ?? 'Customer rejected the assigned delivery fee.',
+        ]);
+
+        return redirect()->route('customer.orders.index')
+            ->with('success', 'Order cancelled because delivery fee was rejected.');
     }
 }

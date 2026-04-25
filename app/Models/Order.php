@@ -29,6 +29,8 @@ class Order extends Model
         'payment_status',
         'order_status',
         'cancellation_reason',
+        'delivery_fee_status',
+        'delivery_fee_assigned_at',
     ];
 
     protected $casts = [

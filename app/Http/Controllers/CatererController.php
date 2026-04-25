@@ -1272,4 +1272,34 @@ class CatererController extends Controller
 
         return back()->with('success', 'Payment confirmed!');
     }
+
+    public function assignDeliveryFee(Request $request, $orderId)
+    {
+        $request->validate([
+            'delivery_fee' => 'required|numeric|min:0|max:999999',
+        ]);
+
+        $order = Order::where('caterer_id', auth()->id())
+            ->where('id', $orderId)
+            ->firstOrFail();
+
+        if ($order->fulfillment_type !== 'delivery') {
+            return back()->with('error', 'This order is for pickup. Delivery fee is not needed.');
+        }
+
+        if ($order->order_status === 'cancelled') {
+            return back()->with('error', 'Cannot assign delivery fee to a cancelled order.');
+        }
+
+        $deliveryFee = (float) $request->delivery_fee;
+
+        $order->update([
+            'delivery_fee' => $deliveryFee,
+            'delivery_fee_status' => 'assigned',
+            'delivery_fee_assigned_at' => now(),
+            'total_amount' => $order->subtotal + $deliveryFee,
+        ]);
+
+        return back()->with('success', 'Delivery fee assigned. Waiting for customer confirmation.');
+    }
 }

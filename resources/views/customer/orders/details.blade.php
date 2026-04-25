@@ -131,11 +131,18 @@
                                     <span>Subtotal</span>
                                     <span>₱{{ number_format($order->subtotal, 2) }}</span>
                                 </div>
-                                @if($order->delivery_fee > 0)
-                                <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                    <span>Delivery Fee</span>
-                                    <span>₱{{ number_format($order->delivery_fee, 2) }}</span>
-                                </div>
+                                @if($order->fulfillment_type === 'delivery')
+                                    @if($order->delivery_fee_status === 'pending')
+                                    <div class="flex justify-between text-yellow-700 dark:text-yellow-300">
+                                        <span>Delivery Fee</span>
+                                        <span class="font-medium">Pending caterer review</span>
+                                    </div>
+                                    @elseif(in_array($order->delivery_fee_status, ['assigned', 'accepted']) && $order->delivery_fee > 0)
+                                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                                        <span>Delivery Fee</span>
+                                        <span>₱{{ number_format($order->delivery_fee, 2) }}</span>
+                                    </div>
+                                    @endif
                                 @endif
                                 <div class="flex justify-between text-xl font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-600">
                                     <span>Total</span>
@@ -144,6 +151,58 @@
                             </div>
                         </div>
                     </div>
+
+
+                    {{-- DELIVERY FEE CUSTOMER CONFIRMATION --}}
+                    @if($order->fulfillment_type === 'delivery')
+                        @if($order->delivery_fee_status === 'pending')
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-yellow-800 dark:text-yellow-300 mb-2">Delivery Fee Pending</h3>
+                            <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                                Please wait while the caterer reviews your delivery address and assigns the delivery fee.
+                            </p>
+                        </div>
+                        @elseif($order->delivery_fee_status === 'assigned')
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-blue-800 dark:text-blue-300 mb-2">Confirm Delivery Fee</h3>
+                            <p class="text-sm text-blue-700 dark:text-blue-200 mb-4">
+                                The caterer assigned a delivery fee of
+                                <strong>₱{{ number_format($order->delivery_fee, 2) }}</strong>.
+                                Please accept to proceed or cancel the order.
+                            </p>
+
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <form action="{{ route('customer.orders.accept-delivery-fee', $order->id) }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors">
+                                        Accept Delivery Fee
+                                    </button>
+                                </form>
+
+                                <form action="{{ route('customer.orders.reject-delivery-fee', $order->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Cancel this order because of the delivery fee?')">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors">
+                                        Cancel Order
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @elseif($order->delivery_fee_status === 'accepted')
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-green-800 dark:text-green-300 mb-2">Delivery Fee Accepted</h3>
+                            <p class="text-sm text-green-700 dark:text-green-200">
+                                You accepted the delivery fee. Waiting for the caterer to continue processing the order.
+                            </p>
+                        </div>
+                        @elseif($order->delivery_fee_status === 'rejected')
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-red-800 dark:text-red-300 mb-2">Delivery Fee Rejected</h3>
+                            <p class="text-sm text-red-700 dark:text-red-200">
+                                This order was cancelled because the assigned delivery fee was rejected.
+                            </p>
+                        </div>
+                        @endif
+                    @endif
 
                     <!-- Special Instructions -->
                     @if($order->special_instructions)
