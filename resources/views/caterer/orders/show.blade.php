@@ -311,7 +311,7 @@
                             </div>
                             @if($order->receipt_path)
                             <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
-                                <a href="{{ asset('storage/' . $order->receipt_path) }}" target="_blank"
+                                <a href="{{ str_starts_with($order->receipt_path, 'http') ? $order->receipt_path : asset(ltrim($order->receipt_path, '/')) }}" target="_blank"
                                    class="text-purple-600 hover:text-purple-700 dark:text-purple-400 font-medium flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
