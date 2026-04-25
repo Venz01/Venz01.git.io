@@ -8,6 +8,7 @@ use App\Models\MenuItem;
 use App\Models\PackageCosting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class PackageController extends Controller
 {
@@ -49,8 +50,8 @@ class PackageController extends Controller
             'default_items'    => 'nullable|array',
             'default_items.*'  => 'exists:menu_items,id',
             'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'dietary_tags'     => 'nullable|array',
-            'dietary_tags.*'   => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
+            'dietary_tags'   => 'nullable|array',
+            'dietary_tags.*' => ['string', Rule::exists('dietary_tags', 'slug')],
         ]);
 
         try {
@@ -118,8 +119,8 @@ class PackageController extends Controller
             'default_items'    => 'nullable|array',
             'default_items.*'  => 'exists:menu_items,id',
             'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'dietary_tags'     => 'nullable|array',
-            'dietary_tags.*'   => 'string|in:no_pork,vegetarian,vegan,halal,gluten_free,dairy_free,seafood_free',
+            'dietary_tags'   => 'nullable|array',
+            'dietary_tags.*' => ['string', Rule::exists('dietary_tags', 'slug')],
         ]);
 
         try {
