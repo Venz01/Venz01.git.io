@@ -9,43 +9,50 @@
 
         <!-- Success/Error Messages -->
         @if (session('success'))
-            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
-                <div class="flex items-center gap-3">
-                    <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p class="text-sm text-green-700 dark:text-green-300 font-medium">{{ session('success') }}</p>
-                </div>
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-sm text-green-700 dark:text-green-300 font-medium">{{ session('success') }}</p>
             </div>
+        </div>
         @endif
 
         @if (session('error'))
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-                <div class="flex items-center gap-3">
-                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p class="text-sm text-red-700 dark:text-red-300 font-medium">{{ session('error') }}</p>
-                </div>
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-sm text-red-700 dark:text-red-300 font-medium">{{ session('error') }}</p>
             </div>
+        </div>
         @endif
 
         @if ($errors->any())
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-                <div class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="flex-1">
-                        <p class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">Please fix the following errors:</p>
-                        <ul class="list-disc list-inside text-sm text-red-600 dark:text-red-400 space-y-1">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">Please fix the following
+                        errors:</p>
+                    <ul class="list-disc list-inside text-sm text-red-600 dark:text-red-400 space-y-1">
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
+        </div>
         @endif
 
         <!-- Loading Overlay -->
@@ -273,7 +280,8 @@
                                     <h3
                                         class="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                                         {{ $category->name }}
-                                        <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-normal ml-1.5">
+                                        <span
+                                            class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-normal ml-1.5">
                                             ({{ $category->items->count() }} items)
                                         </span>
                                     </h3>
@@ -290,7 +298,8 @@
                             <button type="button"
                                 @click.stop="openEditCategoryModal({{ $category->id }}, '{{ addslashes($category->name) }}', '{{ addslashes($category->description ?? '') }}')"
                                 class="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
@@ -299,7 +308,8 @@
                             <button type="button"
                                 @click.stop="showDeleteConfirm('{{ route('caterer.categories.destroy', $category->id) }}', 'category', '{{ addslashes($category->name) }}', {{ $category->items->count() }})"
                                 class="flex items-center gap-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
@@ -307,7 +317,8 @@
                             </button>
                             <button type="button" @click.stop="openItemModal({{ $category->id }})"
                                 class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors font-medium flex items-center gap-1">
-                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4v16m8-8H4" />
                                 </svg>
@@ -370,7 +381,8 @@
                                 @click="openEditItemModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->description ?? '') }}', {{ $item->price }}, '{{ $item->status }}')"
                                 class="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                 title="Edit item">
-                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
@@ -379,7 +391,8 @@
                                 @click="showDeleteConfirm('{{ route('caterer.menu-items.destroy', $item->id) }}', 'item', '{{ addslashes($item->name) }}')"
                                 class="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="Delete item">
-                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
@@ -393,7 +406,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                         </svg>
-                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">No items in this category yet.</p>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">No items in this category yet.
+                        </p>
                         <button @click="openItemModal({{ $category->id }})"
                             class="mt-3 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                             + Add your first item
@@ -408,7 +422,8 @@
             <div class="mt-8 sm:mt-12">
                 <div class="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 mb-4 sm:mb-6">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200">Packages</h2>
-                    <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ $packages->count() }} total packages</span>
+                    <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ $packages->count() }} total
+                        packages</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     @forelse($packages as $package)
@@ -446,18 +461,22 @@
                             <div class="space-y-1.5 mb-4">
                                 <p class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                                     ₱{{ number_format($package->price, 2) }}
-                                    <span class="text-xs sm:text-sm font-normal text-gray-500 dark:text-gray-400">per head</span>
+                                    <span class="text-xs sm:text-sm font-normal text-gray-500 dark:text-gray-400">per
+                                        head</span>
                                 </p>
-                                <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                <div
+                                    class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                                     <span class="flex items-center gap-1">
-                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
                                         <strong>{{ $package->pax }}</strong> guests
                                     </span>
                                     <span class="flex items-center gap-1">
-                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                         </svg>
@@ -477,7 +496,8 @@
                                         {{ json_encode($package->dietary_tags ?? []) }}
                                     )"
                                     class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium text-xs sm:text-sm transition-colors">
-                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
@@ -486,7 +506,8 @@
                                 <button type="button"
                                     @click="showDeleteConfirm('{{ route('caterer.packages.destroy', $package->id) }}', 'package', '{{ addslashes($package->name) }}')"
                                     class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 font-medium text-xs sm:text-sm transition-colors">
-                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
@@ -508,11 +529,13 @@
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                         <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-300">No packages yet</h3>
-                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first package.</p>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first
+                            package.</p>
                         <button @click="openModal('packageModal')"
                             class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
                             </svg>
                             Create Package
                         </button>
@@ -543,22 +566,30 @@
             @if(isset($displayMenus) && $displayMenus->count() > 0)
             <div class="space-y-6 ">
                 @foreach($displayMenus as $category => $menus)
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path
+                                d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z">
+                            </path>
                         </svg>
                         {{ $category }}
-                        <span class="text-sm text-gray-500 dark:text-gray-400 font-normal">({{ count($menus) }} items)</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400 font-normal">({{ count($menus) }}
+                            items)</span>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($menus as $menu)
-                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <div
+                            class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                             @if($menu->image_path)
                             <img src="{{ $menu->image_path }}" alt="{{ $menu->name }}" class="w-full h-40 object-cover">
                             @else
-                            <div class="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
-                                <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div
+                                class="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -566,13 +597,16 @@
                             @endif
                             <div class="p-4">
                                 <div class="flex items-start justify-between gap-2 mb-2">
-                                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 flex-1">{{ $menu->name }}</h4>
-                                    <span class="text-xs px-2 py-1 rounded-full flex-shrink-0 {{ $menu->status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' }}">
+                                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 flex-1">{{ $menu->name }}
+                                    </h4>
+                                    <span
+                                        class="text-xs px-2 py-1 rounded-full flex-shrink-0 {{ $menu->status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' }}">
                                         {{ ucfirst($menu->status) }}
                                     </span>
                                 </div>
                                 @if($menu->description)
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{{ $menu->description }}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                    {{ $menu->description }}</p>
                                 @endif
                                 @if($menu->price)
                                 <p class="text-base font-bold text-purple-600 dark:text-purple-400 mb-3">
@@ -585,7 +619,8 @@
                                         class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium text-sm transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                            </path>
                                         </svg>
                                         Edit
                                     </button>
@@ -594,7 +629,8 @@
                                         class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 font-medium text-sm transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                            </path>
                                         </svg>
                                         Delete
                                     </button>
@@ -607,10 +643,13 @@
                 @endforeach
             </div>
             @else
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-dashed border-gray-300 dark:border-gray-600 p-12 text-center">
-                <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-dashed border-gray-300 dark:border-gray-600 p-12 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
                 </svg>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-300 mb-2">No Display Menus Yet</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-4">
@@ -699,7 +738,8 @@
         class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Add Menu Item</h2>
-            <form id="addItemForm" action="{{ route('caterer.menu-items.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="addItemForm" action="{{ route('caterer.menu-items.store') }}" method="POST"
+                enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="category_id" id="itemCategoryId" required>
                 <div class="space-y-3">
@@ -786,7 +826,8 @@
          ===================================================================== -->
     <div id="packageModal"
         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Create Package</h2>
             <form id="createPackageForm" action="{{ route('caterer.packages.store') }}" method="POST"
                 enctype="multipart/form-data" x-data="packagePriceCalculator()">
@@ -800,9 +841,11 @@
                         rows="3"></textarea>
 
                     <!-- Price display — driven by default radios only -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div
+                        class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per Head:</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per
+                                Head:</span>
                             <span class="text-xl font-bold text-blue-600 dark:text-blue-400"
                                 x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
@@ -818,7 +861,8 @@
                     <div x-show="pax > 0"
                         class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package Cost:</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package
+                                Cost:</span>
                             <span class="text-lg font-bold text-green-600 dark:text-green-400"
                                 x-text="'₱' + (calculatedPrice * pax).toFixed(2)"></span>
                         </div>
@@ -832,56 +876,56 @@
                         <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-2">Select Menu Items</h3>
 
                         <!-- Legend -->
-                        <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 mb-2">
+                        <div
+                            class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 mb-2">
                             <span class="flex items-center gap-1.5">
                                 <span class="w-3 h-3 rounded-full bg-green-500 inline-block flex-shrink-0"></span>
                                 <strong>Default</strong> = used for price calculation (multiple allowed)
                             </span>
                             <span class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded border-2 border-blue-500 inline-block flex-shrink-0"></span>
+                                <span
+                                    class="w-3 h-3 rounded border-2 border-blue-500 inline-block flex-shrink-0"></span>
                                 <strong>Checked</strong> = customer can choose this
                             </span>
                         </div>
 
-                        <div class="max-h-72 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
+                        <div
+                            class="max-h-72 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
                             @foreach($categories as $category)
                             @if($category->items->count() > 0)
                             <div class="p-3">
-                                <p class="font-semibold text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                                <p
+                                    class="font-semibold text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
                                     {{ $category->name }}
-                                    <span class="text-xs font-normal bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full ml-2">
+                                    <span
+                                        class="text-xs font-normal bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full ml-2">
                                         (<span class="default-count-{{ $category->id }}">0</span> defaults selected)
                                     </span>
                                 </p>
                                 <div class="space-y-1">
                                     @foreach($category->items as $item)
-                                    <div class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div
+                                        class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
 
                                         {{-- DEFAULT checkbox — MULTIPLE per category --}}
-                                        <input
-                                            type="checkbox"
+                                        <input type="checkbox"
                                             class="default-item-checkbox text-green-600 focus:ring-green-500 flex-shrink-0 cursor-pointer"
-                                            data-item-id="{{ $item->id }}"
-                                            data-price="{{ $item->price }}"
-                                            data-category="{{ $category->id }}"
-                                            data-item-name="{{ $item->name }}"
+                                            data-item-id="{{ $item->id }}" data-price="{{ $item->price }}"
+                                            data-category="{{ $category->id }}" data-item-name="{{ $item->name }}"
                                             @change="onDefaultCheckboxChange($event)"
                                             title="Include as default (used for pricing)">
 
                                         {{-- ALTERNATIVE checkbox — customer choice --}}
-                                        <input
-                                            type="checkbox"
-                                            name="menu_items[]"
-                                            value="{{ $item->id }}"
+                                        <input type="checkbox" name="menu_items[]" value="{{ $item->id }}"
                                             class="alt-item-checkbox rounded text-blue-600 focus:ring-blue-500 flex-shrink-0 cursor-pointer"
-                                            data-price="{{ $item->price }}"
-                                            data-category="{{ $category->id }}"
+                                            data-price="{{ $item->price }}" data-category="{{ $category->id }}"
                                             @change="onAltCheckboxChange($event)"
                                             title="Include as customer alternative">
 
                                         <span class="text-sm text-gray-800 dark:text-gray-200 flex-1 leading-snug">
                                             {{ $item->name }}
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">— ₱{{ number_format($item->price, 2) }}</span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">—
+                                                ₱{{ number_format($item->price, 2) }}</span>
                                         </span>
                                     </div>
                                     @endforeach
@@ -904,25 +948,28 @@
                     <!-- Price Breakdown -->
                     <div x-show="selectedItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
-                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown (Default items):</h4>
+                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown (Default items):
+                        </h4>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
                                 <span>Food Cost:</span>
                                 <span x-text="'₱' + foodCost.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Labor & Utilities (20%):</span>
-                                <span x-text="'₱' + (foodCost * 0.20).toFixed(2)"></span>
+
+                            <template x-for="component in costingBreakdown" :key="component.key">
+                                <div class="flex justify-between">
+                                    <span x-text="component.label + ':'"></span>
+                                    <span x-text="'₱' + component.amount.toFixed(2)"></span>
+                                </div>
+                            </template>
+
+                            <div class="flex justify-between" x-show="profitPercent > 0">
+                                <span x-text="'Profit Margin (' + profitPercent + '%):'"></span>
+                                <span x-text="'₱' + profitAmount.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Equipment & Transport (10%):</span>
-                                <span x-text="'₱' + (foodCost * 0.10).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Profit Margin (25%):</span>
-                                <span x-text="'₱' + (foodCost * 0.25).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
+
+                            <div
+                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
                                 <span>Total per Head:</span>
                                 <span x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                             </div>
@@ -950,7 +997,8 @@
          ===================================================================== -->
     <div id="editPackageModal"
         class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Edit Package</h2>
             <form id="editPackageForm" method="POST" enctype="multipart/form-data"
                 x-data="editPackagePriceCalculator()">
@@ -960,14 +1008,17 @@
                     <input type="text" name="name" id="editPackageName" placeholder="Package Name"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required>
-                    <textarea name="description" id="editPackageDescription" placeholder="Package Description (optional)"
+                    <textarea name="description" id="editPackageDescription"
+                        placeholder="Package Description (optional)"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         rows="3"></textarea>
 
                     <!-- Price display — default items only -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div
+                        class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per Head:</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Package Price per
+                                Head:</span>
                             <span class="text-xl font-bold text-blue-600 dark:text-blue-400"
                                 x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                         </div>
@@ -983,7 +1034,8 @@
                     <div x-show="pax > 0"
                         class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package Cost:</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Package
+                                Cost:</span>
                             <span class="text-lg font-bold text-green-600 dark:text-green-400"
                                 x-text="'₱' + (calculatedPrice * pax).toFixed(2)"></span>
                         </div>
@@ -1009,16 +1061,19 @@
 
                         <!-- Available Items -->
                         <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-3">
-                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available Menu Items</p>
+                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available Menu Items
+                            </p>
 
                             <!-- Legend -->
-                            <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 mb-2">
+                            <div
+                                class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 mb-2">
                                 <span class="flex items-center gap-1.5">
                                     <span class="w-3 h-3 rounded-full bg-green-500 inline-block flex-shrink-0"></span>
                                     <strong>Default</strong> = used for price calculation
                                 </span>
                                 <span class="flex items-center gap-1.5">
-                                    <span class="w-3 h-3 rounded border-2 border-blue-500 inline-block flex-shrink-0"></span>
+                                    <span
+                                        class="w-3 h-3 rounded border-2 border-blue-500 inline-block flex-shrink-0"></span>
                                     <strong>Checked</strong> = customer can choose this
                                 </span>
                             </div>
@@ -1032,39 +1087,33 @@
                                 @foreach($categories as $category)
                                 @if($category->items->count() > 0)
                                 <div class="py-2">
-                                    <p class="font-semibold text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+                                    <p
+                                        class="font-semibold text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">
                                         {{ $category->name }}
                                     </p>
                                     @foreach($category->items as $item)
-                                    <div class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div
+                                        class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
 
                                         {{-- DEFAULT checkbox --}}
-                                        <input
-                                            type="checkbox"
-                                            value="{{ $item->id }}"
-                                            data-item-id="{{ $item->id }}"
-                                            data-price="{{ $item->price }}"
-                                            data-category="{{ $category->id }}"
+                                        <input type="checkbox" value="{{ $item->id }}" data-item-id="{{ $item->id }}"
+                                            data-price="{{ $item->price }}" data-category="{{ $category->id }}"
                                             @change="onEditDefaultCheckboxChange($event)"
                                             class="edit-default-item-checkbox text-green-600 focus:ring-green-500 flex-shrink-0 cursor-pointer"
                                             title="Set as default (used for pricing)">
 
                                         {{-- ALTERNATIVE checkbox --}}
-                                        <input
-                                            type="checkbox"
-                                            name="menu_items[]"
-                                            value="{{ $item->id }}"
-                                            data-price="{{ $item->price }}"
-                                            data-item-name="{{ $item->name }}"
-                                            data-item-price="{{ $item->price }}"
-                                            data-category="{{ $category->id }}"
+                                        <input type="checkbox" name="menu_items[]" value="{{ $item->id }}"
+                                            data-price="{{ $item->price }}" data-item-name="{{ $item->name }}"
+                                            data-item-price="{{ $item->price }}" data-category="{{ $category->id }}"
                                             @change="onEditAltCheckboxChange($event); updateEditSelectedItemsDisplay()"
                                             class="edit-menu-item-checkbox rounded text-blue-600 focus:ring-blue-500 flex-shrink-0 cursor-pointer"
                                             title="Include as customer alternative">
 
                                         <span class="text-sm text-gray-800 dark:text-gray-200 leading-snug">
                                             {{ $item->name }}
-                                            <span class="text-xs text-gray-500">— ₱{{ number_format($item->price, 2) }}</span>
+                                            <span class="text-xs text-gray-500">—
+                                                ₱{{ number_format($item->price, 2) }}</span>
                                         </span>
                                     </div>
                                     @endforeach
@@ -1081,25 +1130,28 @@
                     <!-- Price Breakdown -->
                     <div x-show="selectedEditItems.length > 0"
                         class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm">
-                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown (Default items):</h4>
+                        <h4 class="font-semibold mb-2 text-gray-800 dark:text-gray-200">Price Breakdown (Default items):
+                        </h4>
                         <div class="space-y-1 text-gray-700 dark:text-gray-300">
                             <div class="flex justify-between">
                                 <span>Food Cost:</span>
                                 <span x-text="'₱' + foodCost.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Labor & Utilities (20%):</span>
-                                <span x-text="'₱' + (foodCost * 0.20).toFixed(2)"></span>
+
+                            <template x-for="component in costingBreakdown" :key="component.key">
+                                <div class="flex justify-between">
+                                    <span x-text="component.label + ':'"></span>
+                                    <span x-text="'₱' + component.amount.toFixed(2)"></span>
+                                </div>
+                            </template>
+
+                            <div class="flex justify-between" x-show="profitPercent > 0">
+                                <span x-text="'Profit Margin (' + profitPercent + '%):'"></span>
+                                <span x-text="'₱' + profitAmount.toFixed(2)"></span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Equipment & Transport (10%):</span>
-                                <span x-text="'₱' + (foodCost * 0.10).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Profit Margin (25%):</span>
-                                <span x-text="'₱' + (foodCost * 0.25).toFixed(2)"></span>
-                            </div>
-                            <div class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
+
+                            <div
+                                class="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-1.5 mt-1.5">
                                 <span>Total per Head:</span>
                                 <span x-text="'₱' + calculatedPrice.toFixed(2)"></span>
                             </div>
@@ -1127,11 +1179,13 @@
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 px-2 sm:px-0">
         <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white dark:bg-gray-800">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="displayMenuModalTitle" class="text-xl font-bold text-gray-800 dark:text-gray-200">Add Display Menu</h3>
+                <h3 id="displayMenuModalTitle" class="text-xl font-bold text-gray-800 dark:text-gray-200">Add Display
+                    Menu</h3>
                 <button type="button" onclick="closeDisplayMenuModal()"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -1167,7 +1221,8 @@
                             placeholder="Enter new category name">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                         <textarea name="description" id="display_menu_description" rows="3"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                             placeholder="Brief description of the item"></textarea>
@@ -1189,7 +1244,8 @@
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-200">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, JPEG, PNG (Max: 2MB)</p>
                         <div id="display_menu_image_preview" class="mt-2 hidden">
-                            <img id="display_menu_preview_img" src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg">
+                            <img id="display_menu_preview_img" src="" alt="Preview"
+                                class="w-32 h-32 object-cover rounded-lg">
                         </div>
                     </div>
                     <div>
@@ -1217,206 +1273,330 @@
         </div>
     </div>
 
-    <script>
-    // ── TAB PERSISTENCE ───────────────────────────────────────────────────────
-    var TAB_KEY = 'menuManagerActiveTab';
+    @php
+    $defaultCostingData = null;
 
-    // ── CREATE package price calculator ──────────────────────────────────────
-    function packagePriceCalculator() {
-        return {
-            selectedItems: [],   // tracks alt checkboxes (for button guard)
-            foodCost: 0,
-            calculatedPrice: 0,
-            pax: 1,
+    if (isset($defaultCosting) && $defaultCosting) {
+        $componentFields = [
+            'labor_cost'       => 'Labor & Staffing',
+            'equipment_cost'   => 'Equipment & Rentals',
+            'consumables_cost' => 'Consumables & Packaging',
+            'overhead_cost'    => 'Overhead & Utilities',
+            'transport_cost'   => 'Transport & Logistics',
+        ];
 
-            onDefaultCheckboxChange(event) {
-                const checkbox = event.target;
-                const category = checkbox.dataset.category;
-                
-                // Auto-check the alt checkbox when a default is selected
-                const altCheckbox = document.querySelector(
-                    `#createPackageForm .alt-item-checkbox[value="${checkbox.dataset.itemId}"]`
-                );
-                if (altCheckbox && !altCheckbox.checked) {
-                    altCheckbox.checked = true;
-                    altCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                
-                // Update category default count
-                this.updateCategoryDefaultCount(category);
-                this.updatePrice();
-            },
+        $components = [];
 
-            onAltCheckboxChange(event) {
-                const checkbox = event.target;
-                const itemId = checkbox.value;
-                const category = checkbox.dataset.category;
+        foreach ($componentFields as $field => $label) {
+            $amount = $defaultCosting->{$field} ?? null;
 
-                if (!checkbox.checked) {
-                    // Uncheck also clears the default checkbox if it was selected
-                    const defaultCheckbox = document.querySelector(
-                        `.default-item-checkbox[data-item-id="${itemId}"]`
-                    );
-                    if (defaultCheckbox && defaultCheckbox.checked) {
-                        defaultCheckbox.checked = false;
-                        defaultCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-                this.updatePrice();
-            },
-
-            updateCategoryDefaultCount(categoryId) {
-                const count = document.querySelectorAll(
-                    `.default-item-checkbox[data-category="${categoryId}"]:checked`
-                ).length;
-                const countSpan = document.querySelector(`.default-count-${categoryId}`);
-                if (countSpan) {
-                    countSpan.textContent = count;
-                }
-            },
-
-            updatePrice() {
-                // Price from ALL default checkboxes (multiple per category)
-                const defaultCheckboxes = document.querySelectorAll(
-                    '#createPackageForm .default-item-checkbox:checked'
-                );
-                this.foodCost = Array.from(defaultCheckboxes).reduce(
-                    (sum, cb) => sum + parseFloat(cb.dataset.price), 0
-                );
-                const total = this.foodCost * (1 + 0.20 + 0.10 + 0.25);
-                this.calculatedPrice = Math.round(total / 5) * 5;
-
-                // selectedItems = all checked alt checkboxes (for "Save" button guard)
-                const checkedAlt = document.querySelectorAll(
-                    '#createPackageForm .alt-item-checkbox:checked'
-                );
-                this.selectedItems = Array.from(checkedAlt).map(cb => cb.value);
-
-                this.syncDefaultInputs();
-            },
-
-            syncDefaultInputs() {
-                const container = document.getElementById('defaultItemsContainer');
-                if (!container) return;
-                container.innerHTML = '';
-                document.querySelectorAll(
-                    '#createPackageForm .default-item-checkbox:checked'
-                ).forEach(cb => {
-                    const input = document.createElement('input');
-                    input.type  = 'hidden';
-                    input.name  = 'default_items[]';
-                    input.value = cb.dataset.itemId;
-                    container.appendChild(input);
-                });
+            if (!is_null($amount) && (float) $amount > 0) {
+                $components[] = [
+                    'key'    => $field,
+                    'label'  => $label,
+                    'amount' => (float) $amount,
+                ];
             }
-        };
+        }
+
+        $defaultCostingData = [
+            'ingredient_cost' => (float) ($defaultCosting->ingredient_cost ?? 0),
+            'profit_margin_percent' => (float) ($defaultCosting->profit_margin_percent ?? 0),
+            'components' => $components,
+        ];
     }
+@endphp
 
-    // ── EDIT package price calculator ─────────────────────────────────────────
-    function editPackagePriceCalculator() {
-        return {
-            selectedEditItems: [],
-            foodCost: 0,
-            calculatedPrice: 0,
-            pax: 1,
+<script>
+        // ── TAB PERSISTENCE ───────────────────────────────────────────────────────
+        var TAB_KEY = 'menuManagerActiveTab';
 
-            init() {
-                this.$nextTick(() => this.updateEditPrice());
-            },
+        const DEFAULT_COSTING = @json($defaultCostingData);
 
-            onEditDefaultCheckboxChange(event) {
-                const checkbox = event.target;
-                const itemId = checkbox.dataset.itemId;
+        // ── CREATE package price calculator ──────────────────────────────────────
+        function packagePriceCalculator() {
+            return {
+                selectedItems: [], // tracks alt checkboxes (for button guard)
+                foodCost: 0,
+                calculatedPrice: 0,
+                pax: 1,
+                costingBreakdown: [],
+                profitAmount: 0,
+                profitPercent: 0,
 
-                // Auto-check corresponding alt checkbox when default is selected
-                const cb = document.querySelector(
-                    `#editPackageForm .edit-menu-item-checkbox[value="${itemId}"]`
-                );
-                if (cb && !cb.checked) {
-                    cb.checked = true;
-                    cb.dispatchEvent(new Event('change', { bubbles: true }));
-                }
+                onDefaultCheckboxChange(event) {
+                    const checkbox = event.target;
+                    const category = checkbox.dataset.category;
 
-                this.updateEditPrice();
-                this.syncEditDefaultInputs();
-            },
-
-            onEditAltCheckboxChange(event) {
-                const itemId   = event.target.value;
-                const category = event.target.dataset.category;
-
-                if (!event.target.checked) {
-                    const defaultCheckbox = document.querySelector(
-                        `#editPackageForm .edit-default-item-checkbox[data-item-id="${itemId}"]`
+                    // Auto-check the alt checkbox when a default is selected
+                    const altCheckbox = document.querySelector(
+                        `#createPackageForm .alt-item-checkbox[value="${checkbox.dataset.itemId}"]`
                     );
-                    if (defaultCheckbox && defaultCheckbox.checked) {
-                        defaultCheckbox.checked = false;
-                        defaultCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (altCheckbox && !altCheckbox.checked) {
+                        altCheckbox.checked = true;
+                        altCheckbox.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                     }
+
+                    // Update category default count
+                    this.updateCategoryDefaultCount(category);
+                    this.updatePrice();
+                },
+
+                onAltCheckboxChange(event) {
+                    const checkbox = event.target;
+                    const itemId = checkbox.value;
+                    const category = checkbox.dataset.category;
+
+                    if (!checkbox.checked) {
+                        // Uncheck also clears the default checkbox if it was selected
+                        const defaultCheckbox = document.querySelector(
+                            `.default-item-checkbox[data-item-id="${itemId}"]`
+                        );
+                        if (defaultCheckbox && defaultCheckbox.checked) {
+                            defaultCheckbox.checked = false;
+                            defaultCheckbox.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    }
+                    this.updatePrice();
+                },
+
+                updateCategoryDefaultCount(categoryId) {
+                    const count = document.querySelectorAll(
+                        `.default-item-checkbox[data-category="${categoryId}"]:checked`
+                    ).length;
+                    const countSpan = document.querySelector(`.default-count-${categoryId}`);
+                    if (countSpan) {
+                        countSpan.textContent = count;
+                    }
+                },
+
+                updatePrice() {
+                    const defaultCheckboxes = document.querySelectorAll(
+                        '#createPackageForm .default-item-checkbox:checked'
+                    );
+
+                    this.foodCost = Array.from(defaultCheckboxes).reduce(
+                        (sum, cb) => sum + parseFloat(cb.dataset.price || 0), 0
+                    );
+
+                    if (DEFAULT_COSTING) {
+                        const templateFoodCost = parseFloat(DEFAULT_COSTING.ingredient_cost || 0) || 1;
+                        let extraCost = 0;
+
+                        this.costingBreakdown = [];
+
+                        (DEFAULT_COSTING.components || []).forEach(component => {
+                            const templateAmount = parseFloat(component.amount || 0);
+                            const rate = templateAmount / templateFoodCost;
+                            const amount = this.foodCost * rate;
+
+                            extraCost += amount;
+
+                            this.costingBreakdown.push({
+                                key: component.key,
+                                label: component.label,
+                                amount: amount
+                            });
+                        });
+
+                        this.profitPercent = parseFloat(DEFAULT_COSTING.profit_margin_percent || 0);
+
+                        const subtotal = this.foodCost + extraCost;
+                        this.profitAmount = subtotal * (this.profitPercent / 100);
+
+                        this.calculatedPrice = Math.ceil((subtotal + this.profitAmount) / 5) * 5;
+                    } else {
+                        this.costingBreakdown = [
+                            { key: 'labor_cost', label: 'Labor & Utilities', amount: this.foodCost * 0.20 },
+                            { key: 'equipment_cost', label: 'Equipment & Transport', amount: this.foodCost * 0.10 }
+                        ];
+                        this.profitPercent = 25;
+                        this.profitAmount = this.foodCost * 0.25;
+
+                        const total = this.foodCost + this.costingBreakdown.reduce((sum, item) => sum + item.amount, 0) + this.profitAmount;
+                        this.calculatedPrice = Math.round(total / 5) * 5;
+                    }
+
+                    const checkedAlt = document.querySelectorAll(
+                        '#createPackageForm .alt-item-checkbox:checked'
+                    );
+
+                    this.selectedItems = Array.from(checkedAlt).map(cb => cb.value);
+
+                    this.syncDefaultInputs();
+                },
+
+                syncDefaultInputs() {
+                    const container = document.getElementById('defaultItemsContainer');
+                    if (!container) return;
+                    container.innerHTML = '';
+                    document.querySelectorAll(
+                        '#createPackageForm .default-item-checkbox:checked'
+                    ).forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'default_items[]';
+                        input.value = cb.dataset.itemId;
+                        container.appendChild(input);
+                    });
                 }
-                this.updateEditPrice();
-                this.syncEditDefaultInputs();
-            },
+            };
+        }
 
-            updateEditPrice() {
-                const defaultCheckboxes = document.querySelectorAll(
-                    '#editPackageForm .edit-default-item-checkbox:checked'
-                );
-                this.foodCost = Array.from(defaultCheckboxes).reduce(
-                    (sum, r) => sum + parseFloat(r.dataset.price), 0
-                );
-                const total = this.foodCost * (1 + 0.20 + 0.10 + 0.25);
-                this.calculatedPrice = Math.round(total / 5) * 5;
+        // ── EDIT package price calculator ─────────────────────────────────────────
+        function editPackagePriceCalculator() {
+            return {
+                selectedEditItems: [],
+                foodCost: 0,
+                calculatedPrice: 0,
+                pax: 1,
+                costingBreakdown: [],
+                profitAmount: 0,
+                profitPercent: 0,
 
-                const checked = document.querySelectorAll(
-                    '#editPackageForm .edit-menu-item-checkbox:checked'
-                );
-                this.selectedEditItems = Array.from(checked).map(c => c.value);
+                init() {
+                    this.$nextTick(() => this.updateEditPrice());
+                },
 
-                this.syncEditDefaultInputs();
-            },
+                onEditDefaultCheckboxChange(event) {
+                    const checkbox = event.target;
+                    const itemId = checkbox.dataset.itemId;
 
-            syncEditDefaultInputs() {
-                const container = document.getElementById('editDefaultItemsContainer');
-                if (!container) return;
-                container.innerHTML = '';
-                document.querySelectorAll(
-                    '#editPackageForm .edit-default-item-checkbox:checked'
-                ).forEach(r => {
-                    const input = document.createElement('input');
-                    input.type  = 'hidden';
-                    input.name  = 'default_items[]';
-                    input.value = r.dataset.itemId;
-                    container.appendChild(input);
-                });
-            }
-        };
-    }
+                    // Auto-check corresponding alt checkbox when default is selected
+                    const cb = document.querySelector(
+                        `#editPackageForm .edit-menu-item-checkbox[value="${itemId}"]`
+                    );
+                    if (cb && !cb.checked) {
+                        cb.checked = true;
+                        cb.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    }
 
-    // ── Open Edit Package Modal ────────────────────────────────────────────────
-    function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
-        // Populate basic fields
-        document.getElementById('editPackageName').value        = name;
-        document.getElementById('editPackageDescription').value = description;
-        document.getElementById('editPackagePax').value         = pax;
-        document.getElementById('editPackageForm').action       = `/caterer/packages/${packageId}`;
+                    this.updateEditPrice();
+                    this.syncEditDefaultInputs();
+                },
 
-        // Dietary tags
-        document.querySelectorAll('#editPackageModal .dietary-tag-checkbox').forEach(cb => {
-            cb.checked = dietaryTags.includes(cb.value);
-            if (typeof toggleDietaryTag === 'function') toggleDietaryTag(cb);
-        });
+                onEditAltCheckboxChange(event) {
+                    const itemId = event.target.value;
+                    const category = event.target.dataset.category;
 
-        // Reset all checkboxes before loading
-        document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => cb.checked = false);
-        document.querySelectorAll('.edit-default-item-checkbox').forEach(r => r.checked = false);
-        const editDefaultContainer = document.getElementById('editDefaultItemsContainer');
-        if (editDefaultContainer) editDefaultContainer.innerHTML = '';
+                    if (!event.target.checked) {
+                        const defaultCheckbox = document.querySelector(
+                            `#editPackageForm .edit-default-item-checkbox[data-item-id="${itemId}"]`
+                        );
+                        if (defaultCheckbox && defaultCheckbox.checked) {
+                            defaultCheckbox.checked = false;
+                            defaultCheckbox.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    }
+                    this.updateEditPrice();
+                    this.syncEditDefaultInputs();
+                },
 
-        // Show modal with loading state
-        document.getElementById('editPackageModal').classList.remove('hidden');
-        const container = document.getElementById('editSelectedItemsContainer');
-        container.innerHTML = `
+                updateEditPrice() {
+                    const defaultCheckboxes = document.querySelectorAll(
+                        '#editPackageForm .edit-default-item-checkbox:checked'
+                    );
+
+                    this.foodCost = Array.from(defaultCheckboxes).reduce(
+                        (sum, r) => sum + parseFloat(r.dataset.price || 0), 0
+                    );
+
+                    if (DEFAULT_COSTING) {
+                        const templateFoodCost = parseFloat(DEFAULT_COSTING.ingredient_cost || 0) || 1;
+                        let extraCost = 0;
+
+                        this.costingBreakdown = [];
+
+                        (DEFAULT_COSTING.components || []).forEach(component => {
+                            const templateAmount = parseFloat(component.amount || 0);
+                            const rate = templateAmount / templateFoodCost;
+                            const amount = this.foodCost * rate;
+
+                            extraCost += amount;
+
+                            this.costingBreakdown.push({
+                                key: component.key,
+                                label: component.label,
+                                amount: amount
+                            });
+                        });
+
+                        this.profitPercent = parseFloat(DEFAULT_COSTING.profit_margin_percent || 0);
+
+                        const subtotal = this.foodCost + extraCost;
+                        this.profitAmount = subtotal * (this.profitPercent / 100);
+
+                        this.calculatedPrice = Math.ceil((subtotal + this.profitAmount) / 5) * 5;
+                    } else {
+                        this.costingBreakdown = [
+                            { key: 'labor_cost', label: 'Labor & Utilities', amount: this.foodCost * 0.20 },
+                            { key: 'equipment_cost', label: 'Equipment & Transport', amount: this.foodCost * 0.10 }
+                        ];
+                        this.profitPercent = 25;
+                        this.profitAmount = this.foodCost * 0.25;
+
+                        const total = this.foodCost + this.costingBreakdown.reduce((sum, item) => sum + item.amount, 0) + this.profitAmount;
+                        this.calculatedPrice = Math.round(total / 5) * 5;
+                    }
+
+                    const checked = document.querySelectorAll(
+                        '#editPackageForm .edit-menu-item-checkbox:checked'
+                    );
+
+                    this.selectedEditItems = Array.from(checked).map(c => c.value);
+
+                    this.syncEditDefaultInputs();
+                },
+
+                syncEditDefaultInputs() {
+                    const container = document.getElementById('editDefaultItemsContainer');
+                    if (!container) return;
+                    container.innerHTML = '';
+                    document.querySelectorAll(
+                        '#editPackageForm .edit-default-item-checkbox:checked'
+                    ).forEach(r => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'default_items[]';
+                        input.value = r.dataset.itemId;
+                        container.appendChild(input);
+                    });
+                }
+            };
+        }
+
+        // ── Open Edit Package Modal ────────────────────────────────────────────────
+        function openEditPackageModal(packageId, name, description, pax, dietaryTags = []) {
+            // Populate basic fields
+            document.getElementById('editPackageName').value = name;
+            document.getElementById('editPackageDescription').value = description;
+            document.getElementById('editPackagePax').value = pax;
+            document.getElementById('editPackageForm').action = `/caterer/packages/${packageId}`;
+
+            // Dietary tags
+            document.querySelectorAll('#editPackageModal .dietary-tag-checkbox').forEach(cb => {
+                cb.checked = dietaryTags.includes(cb.value);
+                if (typeof toggleDietaryTag === 'function') toggleDietaryTag(cb);
+            });
+
+            // Reset all checkboxes before loading
+            document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.edit-default-item-checkbox').forEach(r => r.checked = false);
+            const editDefaultContainer = document.getElementById('editDefaultItemsContainer');
+            if (editDefaultContainer) editDefaultContainer.innerHTML = '';
+
+            // Show modal with loading state
+            document.getElementById('editPackageModal').classList.remove('hidden');
+            const container = document.getElementById('editSelectedItemsContainer');
+            container.innerHTML = `
             <div class="flex items-center gap-2 text-sm text-gray-500 py-2">
                 <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1425,95 +1605,104 @@
                 Loading package items…
             </div>`;
 
-        // Sync Alpine state to zero while loading
-        const editForm = document.getElementById('editPackageForm');
-        if (editForm && editForm._x_dataStack) {
-            const alpineData = editForm._x_dataStack[0];
-            if (alpineData) {
-                alpineData.selectedEditItems = [];
-                alpineData.foodCost          = 0;
-                alpineData.calculatedPrice   = 0;
-                alpineData.pax               = parseInt(pax) || 1;
+            // Sync Alpine state to zero while loading
+            const editForm = document.getElementById('editPackageForm');
+            if (editForm && editForm._x_dataStack) {
+                const alpineData = editForm._x_dataStack[0];
+                if (alpineData) {
+                    alpineData.selectedEditItems = [];
+                    alpineData.foodCost = 0;
+                    alpineData.calculatedPrice = 0;
+                    alpineData.pax = parseInt(pax) || 1;
+                }
             }
+
+            // Fetch items — now returns { items[], default_items[] }
+            fetch(`/caterer/packages/${packageId}/items`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Failed');
+                    return r.json();
+                })
+                .then(data => {
+                    const allItems = data.items || [];
+                    const defaultItems = data.default_items || [];
+
+                    // Check alt checkboxes for all items
+                    allItems.forEach(itemId => {
+                        const cb = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
+                        if (cb) cb.checked = true;
+                    });
+
+                    // Check default checkboxes
+                    defaultItems.forEach(itemId => {
+                        const checkbox = document.querySelector(
+                            `.edit-default-item-checkbox[data-item-id="${itemId}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+
+                    requestAnimationFrame(() => {
+                        // Trigger Alpine update via a change event
+                        const trigger = document.querySelector('.edit-menu-item-checkbox:checked');
+                        if (trigger) trigger.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+
+                        updateEditSelectedItemsDisplay();
+
+                        // Populate hidden default_items inputs
+                        const defContainer = document.getElementById('editDefaultItemsContainer');
+                        if (defContainer) {
+                            defContainer.innerHTML = '';
+                            defaultItems.forEach(itemId => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'default_items[]';
+                                input.value = itemId;
+                                defContainer.appendChild(input);
+                            });
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('Error loading package items:', err);
+                    container.innerHTML =
+                        '<p class="text-sm text-red-500">Error loading items. Please close and try again.</p>';
+                });
         }
 
-        // Fetch items — now returns { items[], default_items[] }
-        fetch(`/caterer/packages/${packageId}/items`)
-            .then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); })
-            .then(data => {
-                const allItems     = data.items         || [];
-                const defaultItems = data.default_items || [];
+        function closeEditPackageModal() {
+            document.getElementById('editPackageModal').classList.add('hidden');
+            document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.edit-default-item-checkbox').forEach(r => r.checked = false);
+            document.getElementById('editSelectedItemsContainer').innerHTML =
+                '<p class="text-sm text-gray-500 italic">No items selected.</p>';
+            const c = document.getElementById('editDefaultItemsContainer');
+            if (c) c.innerHTML = '';
+        }
 
-                // Check alt checkboxes for all items
-                allItems.forEach(itemId => {
-                    const cb = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
-                    if (cb) cb.checked = true;
-                });
+        function updateEditSelectedItemsDisplay() {
+            const container = document.getElementById('editSelectedItemsContainer');
+            const checkedBoxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
 
-                // Check default checkboxes
-                defaultItems.forEach(itemId => {
-                    const checkbox = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`);
-                    if (checkbox) checkbox.checked = true;
-                });
-
-                requestAnimationFrame(() => {
-                    // Trigger Alpine update via a change event
-                    const trigger = document.querySelector('.edit-menu-item-checkbox:checked');
-                    if (trigger) trigger.dispatchEvent(new Event('change', { bubbles: true }));
-
-                    updateEditSelectedItemsDisplay();
-
-                    // Populate hidden default_items inputs
-                    const defContainer = document.getElementById('editDefaultItemsContainer');
-                    if (defContainer) {
-                        defContainer.innerHTML = '';
-                        defaultItems.forEach(itemId => {
-                            const input = document.createElement('input');
-                            input.type  = 'hidden';
-                            input.name  = 'default_items[]';
-                            input.value = itemId;
-                            defContainer.appendChild(input);
-                        });
-                    }
-                });
-            })
-            .catch(err => {
-                console.error('Error loading package items:', err);
+            if (checkedBoxes.length === 0) {
                 container.innerHTML =
-                    '<p class="text-sm text-red-500">Error loading items. Please close and try again.</p>';
-            });
-    }
+                    '<p class="text-sm text-gray-500 italic">No items selected. Please select at least one menu item.</p>';
+                return;
+            }
 
-    function closeEditPackageModal() {
-        document.getElementById('editPackageModal').classList.add('hidden');
-        document.querySelectorAll('.edit-menu-item-checkbox').forEach(cb => cb.checked = false);
-        document.querySelectorAll('.edit-default-item-checkbox').forEach(r => r.checked = false);
-        document.getElementById('editSelectedItemsContainer').innerHTML =
-            '<p class="text-sm text-gray-500 italic">No items selected.</p>';
-        const c = document.getElementById('editDefaultItemsContainer');
-        if (c) c.innerHTML = '';
-    }
+            let html = '<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2">';
+            html +=
+                `<p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Selected Items (${checkedBoxes.length}):</p>`;
 
-    function updateEditSelectedItemsDisplay() {
-        const container   = document.getElementById('editSelectedItemsContainer');
-        const checkedBoxes = document.querySelectorAll('.edit-menu-item-checkbox:checked');
+            checkedBoxes.forEach(checkbox => {
+                const itemName = checkbox.dataset.itemName;
+                const itemPrice = parseFloat(checkbox.dataset.itemPrice).toFixed(2);
+                const itemId = checkbox.value;
+                const isDefault = document.querySelector(
+                    `.edit-default-item-checkbox[data-item-id="${itemId}"]`
+                )?.checked;
 
-        if (checkedBoxes.length === 0) {
-            container.innerHTML =
-                '<p class="text-sm text-gray-500 italic">No items selected. Please select at least one menu item.</p>';
-            return;
-        }
-
-        let html = '<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2">';
-        html += `<p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Selected Items (${checkedBoxes.length}):</p>`;
-
-        checkedBoxes.forEach(checkbox => {
-            const itemName  = checkbox.dataset.itemName;
-            const itemPrice = parseFloat(checkbox.dataset.itemPrice).toFixed(2);
-            const itemId    = checkbox.value;
-            const isDefault = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`)?.checked;
-
-            html += `
+                html += `
                 <div class="flex items-center justify-between bg-white dark:bg-gray-600 rounded px-3 py-2">
                     <div class="flex items-center gap-2">
                         ${isDefault ? '<span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" title="Default item"></span>' : '<span class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" title="Alternative item"></span>'}
@@ -1530,417 +1719,491 @@
                         </svg>
                     </button>
                 </div>`;
-        });
+            });
 
-        html += '</div>';
-        container.innerHTML = html;
-    }
-
-    function removeEditMenuItem(itemId) {
-        const checkbox = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
-        const checkboxDefault = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`);
-        if (checkboxDefault) checkboxDefault.checked = false;
-        if (checkbox) {
-            checkbox.checked = false;
-            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            html += '</div>';
+            container.innerHTML = html;
         }
-        updateEditSelectedItemsDisplay();
-    }
 
-    // ── Main Alpine.js component ──────────────────────────────────────────────
-    function menuManager() {
-        return {
-            activeTab: localStorage.getItem(TAB_KEY) || 'packages',
-            selectedCategory: 'all',
-            loading: false,
-            bulkMode: false,
-            selectedCategories: [],
-            selectedItems: [],
+        function removeEditMenuItem(itemId) {
+            const checkbox = document.querySelector(`.edit-menu-item-checkbox[value="${itemId}"]`);
+            const checkboxDefault = document.querySelector(`.edit-default-item-checkbox[data-item-id="${itemId}"]`);
+            if (checkboxDefault) checkboxDefault.checked = false;
+            if (checkbox) {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+            updateEditSelectedItemsDisplay();
+        }
 
-            confirmModal: {
-                show: false,
-                title: '',
-                message: '',
-                type: 'danger',
-                confirmText: 'Delete',
-                action: null
-            },
+        // ── Main Alpine.js component ──────────────────────────────────────────────
+        function menuManager() {
+            return {
+                activeTab: localStorage.getItem(TAB_KEY) || 'packages',
+                selectedCategory: 'all',
+                loading: false,
+                bulkMode: false,
+                selectedCategories: [],
+                selectedItems: [],
 
-            setTab(tab) {
-                this.activeTab = tab;
-                localStorage.setItem(TAB_KEY, tab);
-            },
+                confirmModal: {
+                    show: false,
+                    title: '',
+                    message: '',
+                    type: 'danger',
+                    confirmText: 'Delete',
+                    action: null
+                },
 
-            openModal(modalId) {
-                document.getElementById(modalId).classList.remove('hidden');
-            },
+                setTab(tab) {
+                    this.activeTab = tab;
+                    localStorage.setItem(TAB_KEY, tab);
+                },
 
-            showDeleteConfirm(url, type, name, itemCount = 0) {
-                let title, message, confirmText;
+                openModal(modalId) {
+                    document.getElementById(modalId).classList.remove('hidden');
+                },
 
-                if (type === 'category') {
-                    title = 'Delete Category?';
-                    if (itemCount > 0) {
-                        message     = `Cannot delete "${name}" - This category has ${itemCount} item(s). Please delete all items first before deleting the category.`;
-                        confirmText = 'OK, Got It';
-                        this.confirmModal.type   = 'warning';
-                        this.confirmModal.action = null;
-                    } else {
-                        message     = `Are you sure you want to delete the category "${name}"? This action cannot be undone.`;
-                        confirmText = 'Delete Category';
-                        this.confirmModal.type   = 'danger';
+                showDeleteConfirm(url, type, name, itemCount = 0) {
+                    let title, message, confirmText;
+
+                    if (type === 'category') {
+                        title = 'Delete Category?';
+                        if (itemCount > 0) {
+                            message =
+                                `Cannot delete "${name}" - This category has ${itemCount} item(s). Please delete all items first before deleting the category.`;
+                            confirmText = 'OK, Got It';
+                            this.confirmModal.type = 'warning';
+                            this.confirmModal.action = null;
+                        } else {
+                            message =
+                                `Are you sure you want to delete the category "${name}"? This action cannot be undone.`;
+                            confirmText = 'Delete Category';
+                            this.confirmModal.type = 'danger';
+                            this.confirmModal.action = url;
+                        }
+                    } else if (type === 'item') {
+                        title = 'Delete Menu Item?';
+                        message =
+                            `Are you sure you want to delete "${name}"? This will remove it from all packages that include it. This action cannot be undone.`;
+                        confirmText = 'Delete Item';
+                        this.confirmModal.type = 'danger';
+                        this.confirmModal.action = url;
+                    } else if (type === 'package') {
+                        title = 'Delete Package?';
+                        message =
+                        `Are you sure you want to delete the package "${name}"? This action cannot be undone.`;
+                        confirmText = 'Delete Package';
+                        this.confirmModal.type = 'danger';
+                        this.confirmModal.action = url;
+                    } else if (type === 'display_menu') {
+                        title = 'Delete Display Menu?';
+                        message =
+                            `Are you sure you want to delete "${name}"? This will remove it from your customer-facing menu. This action cannot be undone.`;
+                        confirmText = 'Delete Menu';
+                        this.confirmModal.type = 'danger';
                         this.confirmModal.action = url;
                     }
-                } else if (type === 'item') {
-                    title       = 'Delete Menu Item?';
-                    message     = `Are you sure you want to delete "${name}"? This will remove it from all packages that include it. This action cannot be undone.`;
-                    confirmText = 'Delete Item';
-                    this.confirmModal.type   = 'danger';
-                    this.confirmModal.action = url;
-                } else if (type === 'package') {
-                    title       = 'Delete Package?';
-                    message     = `Are you sure you want to delete the package "${name}"? This action cannot be undone.`;
-                    confirmText = 'Delete Package';
-                    this.confirmModal.type   = 'danger';
-                    this.confirmModal.action = url;
-                } else if (type === 'display_menu') {
-                    title       = 'Delete Display Menu?';
-                    message     = `Are you sure you want to delete "${name}"? This will remove it from your customer-facing menu. This action cannot be undone.`;
-                    confirmText = 'Delete Menu';
-                    this.confirmModal.type   = 'danger';
-                    this.confirmModal.action = url;
-                }
 
-                this.confirmModal.show        = true;
-                this.confirmModal.title       = title;
-                this.confirmModal.message     = message;
-                this.confirmModal.confirmText = confirmText;
-            },
+                    this.confirmModal.show = true;
+                    this.confirmModal.title = title;
+                    this.confirmModal.message = message;
+                    this.confirmModal.confirmText = confirmText;
+                },
 
-            toggleBulkMode() {
-                this.bulkMode = !this.bulkMode;
-                if (!this.bulkMode) this.clearAllSelections();
-            },
+                toggleBulkMode() {
+                    this.bulkMode = !this.bulkMode;
+                    if (!this.bulkMode) this.clearAllSelections();
+                },
 
-            toggleCategorySelection(categoryId, itemIds) {
-                const index = this.selectedCategories.indexOf(categoryId);
-                if (index > -1) {
-                    this.selectedCategories.splice(index, 1);
-                    if (itemIds && itemIds.length) {
-                        itemIds.forEach(itemId => {
-                            const i = this.selectedItems.indexOf(itemId);
-                            if (i > -1) this.selectedItems.splice(i, 1);
-                        });
+                toggleCategorySelection(categoryId, itemIds) {
+                    const index = this.selectedCategories.indexOf(categoryId);
+                    if (index > -1) {
+                        this.selectedCategories.splice(index, 1);
+                        if (itemIds && itemIds.length) {
+                            itemIds.forEach(itemId => {
+                                const i = this.selectedItems.indexOf(itemId);
+                                if (i > -1) this.selectedItems.splice(i, 1);
+                            });
+                        }
+                    } else {
+                        this.selectedCategories.push(categoryId);
+                        if (itemIds && itemIds.length) {
+                            itemIds.forEach(itemId => {
+                                if (!this.selectedItems.includes(itemId)) {
+                                    this.selectedItems.push(itemId);
+                                }
+                            });
+                        }
                     }
-                } else {
-                    this.selectedCategories.push(categoryId);
-                    if (itemIds && itemIds.length) {
-                        itemIds.forEach(itemId => {
-                            if (!this.selectedItems.includes(itemId)) {
-                                this.selectedItems.push(itemId);
+                },
+
+                toggleItemSelection(itemId) {
+                    const index = this.selectedItems.indexOf(itemId);
+                    if (index > -1) {
+                        this.selectedItems.splice(index, 1);
+                    } else {
+                        this.selectedItems.push(itemId);
+                    }
+                },
+
+                clearAllSelections() {
+                    this.selectedCategories = [];
+                    this.selectedItems = [];
+                },
+
+                bulkChangeStatus(status) {
+                    if (this.selectedItems.length === 0) {
+                        alert('Please select at least one item to change status');
+                        return;
+                    }
+                    this.confirmModal.show = true;
+                    this.confirmModal.type = 'info';
+                    this.confirmModal.title = 'Change Status';
+                    this.confirmModal.message = `Set ${this.selectedItems.length} item(s) as ${status}?`;
+                    this.confirmModal.confirmText = 'Change Status';
+                    this.confirmModal.action = () => {
+                        this.performBulkAction('change_status', status);
+                    };
+                },
+
+                bulkDelete() {
+                    const totalSelected = this.selectedCategories.length + this.selectedItems.length;
+                    if (totalSelected === 0) {
+                        alert('Please select items or categories to delete');
+                        return;
+                    }
+
+                    let message;
+                    if (this.selectedCategories.length > 0 && this.selectedItems.length > 0) {
+                        message =
+                            `Are you sure you want to delete ${this.selectedCategories.length} category(ies) and ${this.selectedItems.length} item(s)?`;
+                    } else if (this.selectedCategories.length > 0) {
+                        message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies)?`;
+                    } else {
+                        message = `Are you sure you want to delete ${this.selectedItems.length} item(s)?`;
+                    }
+
+                    this.confirmModal.show = true;
+                    this.confirmModal.type = 'danger';
+                    this.confirmModal.title = 'Delete Selected Items';
+                    this.confirmModal.message = message + ' This action cannot be undone.';
+                    this.confirmModal.confirmText = 'Delete All';
+                    this.confirmModal.action = () => {
+                        this.performBulkAction('delete', null);
+                    };
+                },
+
+                async performBulkAction(action, value = null) {
+                    this.loading = true;
+                    const formData = new FormData();
+                    formData.append('category_ids', JSON.stringify(this.selectedCategories));
+                    formData.append('item_ids', JSON.stringify(this.selectedItems));
+                    formData.append('action', action);
+                    if (value) formData.append('value', value);
+
+                    try {
+                        const response = await fetch('/caterer/bulk-action', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
                             }
                         });
-                    }
-                }
-            },
-
-            toggleItemSelection(itemId) {
-                const index = this.selectedItems.indexOf(itemId);
-                if (index > -1) {
-                    this.selectedItems.splice(index, 1);
-                } else {
-                    this.selectedItems.push(itemId);
-                }
-            },
-
-            clearAllSelections() {
-                this.selectedCategories = [];
-                this.selectedItems      = [];
-            },
-
-            bulkChangeStatus(status) {
-                if (this.selectedItems.length === 0) {
-                    alert('Please select at least one item to change status');
-                    return;
-                }
-                this.confirmModal.show        = true;
-                this.confirmModal.type        = 'info';
-                this.confirmModal.title       = 'Change Status';
-                this.confirmModal.message     = `Set ${this.selectedItems.length} item(s) as ${status}?`;
-                this.confirmModal.confirmText = 'Change Status';
-                this.confirmModal.action      = () => { this.performBulkAction('change_status', status); };
-            },
-
-            bulkDelete() {
-                const totalSelected = this.selectedCategories.length + this.selectedItems.length;
-                if (totalSelected === 0) { alert('Please select items or categories to delete'); return; }
-
-                let message;
-                if (this.selectedCategories.length > 0 && this.selectedItems.length > 0) {
-                    message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies) and ${this.selectedItems.length} item(s)?`;
-                } else if (this.selectedCategories.length > 0) {
-                    message = `Are you sure you want to delete ${this.selectedCategories.length} category(ies)?`;
-                } else {
-                    message = `Are you sure you want to delete ${this.selectedItems.length} item(s)?`;
-                }
-
-                this.confirmModal.show        = true;
-                this.confirmModal.type        = 'danger';
-                this.confirmModal.title       = 'Delete Selected Items';
-                this.confirmModal.message     = message + ' This action cannot be undone.';
-                this.confirmModal.confirmText = 'Delete All';
-                this.confirmModal.action      = () => { this.performBulkAction('delete', null); };
-            },
-
-            async performBulkAction(action, value = null) {
-                this.loading = true;
-                const formData = new FormData();
-                formData.append('category_ids', JSON.stringify(this.selectedCategories));
-                formData.append('item_ids',     JSON.stringify(this.selectedItems));
-                formData.append('action',       action);
-                if (value) formData.append('value', value);
-
-                try {
-                    const response = await fetch('/caterer/bulk-action', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
+                        const data = await response.json();
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'An error occurred');
                         }
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        window.location.reload();
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while processing your request');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                confirmAction() {
+                    if (typeof this.confirmModal.action === 'function') {
+                        this.confirmModal.action();
+                        this.confirmModal.show = false;
+                    } else if (this.confirmModal.action) {
+                        const form = document.getElementById('deleteForm');
+                        if (form) {
+                            form.action = this.confirmModal.action;
+                            form.submit();
+                        }
                     } else {
-                        alert(data.message || 'An error occurred');
+                        this.confirmModal.show = false;
                     }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request');
-                } finally {
-                    this.loading = false;
-                }
-            },
+                },
 
-            confirmAction() {
-                if (typeof this.confirmModal.action === 'function') {
-                    this.confirmModal.action();
-                    this.confirmModal.show = false;
-                } else if (this.confirmModal.action) {
-                    const form = document.getElementById('deleteForm');
-                    if (form) { form.action = this.confirmModal.action; form.submit(); }
-                } else {
-                    this.confirmModal.show = false;
-                }
-            },
+                openItemModal(categoryId) {
+                    document.getElementById('itemCategoryId').value = categoryId;
+                    this.openModal('itemModal');
+                },
 
-            openItemModal(categoryId) {
-                document.getElementById('itemCategoryId').value = categoryId;
-                this.openModal('itemModal');
-            },
+                openEditItemModal(id, name, description, price, status) {
+                    document.getElementById('editItemName').value = name;
+                    document.getElementById('editItemDescription').value = description;
+                    document.getElementById('editItemPrice').value = price;
+                    document.getElementById('editItemStatus').value = status;
+                    document.getElementById('editItemForm').action = `/caterer/menu-items/${id}`;
+                    this.openModal('editItemModal');
+                },
 
-            openEditItemModal(id, name, description, price, status) {
-                document.getElementById('editItemName').value        = name;
-                document.getElementById('editItemDescription').value = description;
-                document.getElementById('editItemPrice').value       = price;
-                document.getElementById('editItemStatus').value      = status;
-                document.getElementById('editItemForm').action       = `/caterer/menu-items/${id}`;
-                this.openModal('editItemModal');
-            },
+                openEditCategoryModal(id, name, description) {
+                    document.getElementById('editCategoryName').value = name;
+                    document.getElementById('editCategoryDescription').value = description;
+                    document.getElementById('editCategoryForm').action = `/caterer/categories/${id}`;
+                    this.openModal('editCategoryModal');
+                },
 
-            openEditCategoryModal(id, name, description) {
-                document.getElementById('editCategoryName').value        = name;
-                document.getElementById('editCategoryDescription').value = description;
-                document.getElementById('editCategoryForm').action       = `/caterer/categories/${id}`;
-                this.openModal('editCategoryModal');
-            },
+                openEditDisplayMenuModal(id, name, category, description, price, status) {
+                    this.setTab('display');
+                    document.getElementById('displayMenuModalTitle').textContent = 'Edit Display Menu';
+                    document.getElementById('displayMenuSubmitText').textContent = 'Update Display Menu';
+                    document.getElementById('displayMenuForm').action = `/caterer/display-menus/${id}`;
+                    document.getElementById('displayMenuFormMethod').innerHTML =
+                        '<input type="hidden" name="_method" value="PUT">';
+                    document.getElementById('display_menu_name').value = name;
+                    document.getElementById('display_menu_description').value = description || '';
+                    document.getElementById('display_menu_price').value = price || '';
+                    document.getElementById('display_menu_status').value = status;
 
-            openEditDisplayMenuModal(id, name, category, description, price, status) {
-                this.setTab('display');
-                document.getElementById('displayMenuModalTitle').textContent  = 'Edit Display Menu';
-                document.getElementById('displayMenuSubmitText').textContent  = 'Update Display Menu';
-                document.getElementById('displayMenuForm').action             = `/caterer/display-menus/${id}`;
-                document.getElementById('displayMenuFormMethod').innerHTML    = '<input type="hidden" name="_method" value="PUT">';
-                document.getElementById('display_menu_name').value           = name;
-                document.getElementById('display_menu_description').value    = description || '';
-                document.getElementById('display_menu_price').value          = price || '';
-                document.getElementById('display_menu_status').value         = status;
-
-                const categorySelect = document.getElementById('display_menu_category_select');
-                let categoryExists   = false;
-                for (let option of categorySelect.options) {
-                    if (option.value === category && option.value !== '__new__') {
-                        categorySelect.value = category;
-                        categoryExists = true;
-                        break;
-                    }
-                }
-                if (!categoryExists && category) {
-                    categorySelect.value = '__new__';
-                    document.getElementById('newDisplayCategoryInput').classList.remove('hidden');
-                    document.getElementById('newDisplayCategoryInput').value    = category;
-                    document.getElementById('newDisplayCategoryInput').required = true;
-                } else {
-                    document.getElementById('newDisplayCategoryInput').classList.add('hidden');
-                    document.getElementById('newDisplayCategoryInput').required = false;
-                }
-                const imagePreview = document.getElementById('display_menu_image_preview');
-                if (imagePreview) imagePreview.classList.add('hidden');
-                document.getElementById('displayMenuModal').classList.remove('hidden');
-            },
-
-            openDisplayMenuModal() {
-                this.setTab('display');
-                document.getElementById('displayMenuForm').reset();
-                document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
-                document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
-                document.getElementById('displayMenuForm').action            = '{{ route("caterer.display-menus.store") }}';
-                document.getElementById('displayMenuFormMethod').innerHTML   = '';
-                const categorySelect = document.getElementById('display_menu_category_select');
-                categorySelect.value = '';
-                document.getElementById('newDisplayCategoryInput').classList.add('hidden');
-                document.getElementById('newDisplayCategoryInput').value    = '';
-                document.getElementById('newDisplayCategoryInput').required = false;
-                const imagePreview = document.getElementById('display_menu_image_preview');
-                if (imagePreview) imagePreview.classList.add('hidden');
-                document.getElementById('displayMenuModal').classList.remove('hidden');
-            }
-        };
-    }
-
-    // ── Global helpers ────────────────────────────────────────────────────────
-    function openModal(modalId)  { document.getElementById(modalId).classList.remove('hidden'); }
-    function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
-
-    function closeDisplayMenuModal() {
-        document.getElementById('displayMenuModal').classList.add('hidden');
-        document.getElementById('displayMenuForm').reset();
-        const imagePreview = document.getElementById('display_menu_image_preview');
-        if (imagePreview) imagePreview.classList.add('hidden');
-    }
-
-    function toggleNewCategoryInput(select) {
-        const newCategoryInput   = document.getElementById('newDisplayCategoryInput');
-        const hiddenCategoryInput = document.getElementById('newDisplayCategory');
-        if (select.value === '__new__') {
-            newCategoryInput.classList.remove('hidden');
-            newCategoryInput.required = true;
-            newCategoryInput.value    = '';
-            hiddenCategoryInput.value = '';
-        } else {
-            newCategoryInput.classList.add('hidden');
-            newCategoryInput.required = false;
-            hiddenCategoryInput.value = select.value;
-        }
-    }
-
-    // Close modals on outside click
-    document.addEventListener('click', function (e) {
-        if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
-            document.querySelectorAll('[id$="Modal"]').forEach(modal => {
-                if (!modal.id.includes('confirm')) modal.classList.add('hidden');
-            });
-        }
-    });
-
-    // Close modals on Escape
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('[id$="Modal"]').forEach(modal => {
-                if (!modal.id.includes('confirm')) modal.classList.add('hidden');
-            });
-        }
-    });
-
-    // Display menu image preview
-    (function () {
-        const imageInput = document.getElementById('display_menu_image');
-        if (imageInput) {
-            imageInput.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file) {
-                    if (file.size > 2097152) { alert('File size must be less than 2MB'); this.value = ''; return; }
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const previewImg   = document.getElementById('display_menu_preview_img');
-                        const imagePreview = document.getElementById('display_menu_image_preview');
-                        if (previewImg && imagePreview) {
-                            previewImg.src = e.target.result;
-                            imagePreview.classList.remove('hidden');
+                    const categorySelect = document.getElementById('display_menu_category_select');
+                    let categoryExists = false;
+                    for (let option of categorySelect.options) {
+                        if (option.value === category && option.value !== '__new__') {
+                            categorySelect.value = category;
+                            categoryExists = true;
+                            break;
                         }
-                    };
-                    reader.readAsDataURL(file);
+                    }
+                    if (!categoryExists && category) {
+                        categorySelect.value = '__new__';
+                        document.getElementById('newDisplayCategoryInput').classList.remove('hidden');
+                        document.getElementById('newDisplayCategoryInput').value = category;
+                        document.getElementById('newDisplayCategoryInput').required = true;
+                    } else {
+                        document.getElementById('newDisplayCategoryInput').classList.add('hidden');
+                        document.getElementById('newDisplayCategoryInput').required = false;
+                    }
+                    const imagePreview = document.getElementById('display_menu_image_preview');
+                    if (imagePreview) imagePreview.classList.add('hidden');
+                    document.getElementById('displayMenuModal').classList.remove('hidden');
+                },
+
+                openDisplayMenuModal() {
+                    this.setTab('display');
+                    document.getElementById('displayMenuForm').reset();
+                    document.getElementById('displayMenuModalTitle').textContent = 'Add Display Menu';
+                    document.getElementById('displayMenuSubmitText').textContent = 'Add Display Menu';
+                    document.getElementById('displayMenuForm').action = '{{ route("caterer.display-menus.store") }}';
+                    document.getElementById('displayMenuFormMethod').innerHTML = '';
+                    const categorySelect = document.getElementById('display_menu_category_select');
+                    categorySelect.value = '';
+                    document.getElementById('newDisplayCategoryInput').classList.add('hidden');
+                    document.getElementById('newDisplayCategoryInput').value = '';
+                    document.getElementById('newDisplayCategoryInput').required = false;
+                    const imagePreview = document.getElementById('display_menu_image_preview');
+                    if (imagePreview) imagePreview.classList.add('hidden');
+                    document.getElementById('displayMenuModal').classList.remove('hidden');
                 }
-            });
-        }
-    })();
-
-    // Handle display menu category submission
-    document.addEventListener('DOMContentLoaded', function () {
-        const displayMenuForm = document.getElementById('displayMenuForm');
-        if (displayMenuForm) {
-            displayMenuForm.addEventListener('submit', function () {
-                const categorySelect      = document.getElementById('display_menu_category_select');
-                const newCategoryInput    = document.getElementById('newDisplayCategory');
-                if (categorySelect.value === '__new__') {
-                    newCategoryInput.value = document.getElementById('newDisplayCategoryInput').value;
-                } else {
-                    newCategoryInput.value = categorySelect.value;
-                }
-            });
+            };
         }
 
-        // Add logging for menu item form submissions
-        const addItemForm = document.getElementById('addItemForm');
-        if (addItemForm) {
-            addItemForm.addEventListener('submit', function(e) {
-                console.log('Add Item Form Submitting...', {
-                    category_id: document.getElementById('itemCategoryId').value,
-                    name: document.getElementById('itemName').value,
-                    price: document.getElementById('itemPrice').value,
-                    status: document.getElementById('itemStatus').value,
+        // ── Global helpers ────────────────────────────────────────────────────────
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function closeDisplayMenuModal() {
+            document.getElementById('displayMenuModal').classList.add('hidden');
+            document.getElementById('displayMenuForm').reset();
+            const imagePreview = document.getElementById('display_menu_image_preview');
+            if (imagePreview) imagePreview.classList.add('hidden');
+        }
+
+        function toggleNewCategoryInput(select) {
+            const newCategoryInput = document.getElementById('newDisplayCategoryInput');
+            const hiddenCategoryInput = document.getElementById('newDisplayCategory');
+            if (select.value === '__new__') {
+                newCategoryInput.classList.remove('hidden');
+                newCategoryInput.required = true;
+                newCategoryInput.value = '';
+                hiddenCategoryInput.value = '';
+            } else {
+                newCategoryInput.classList.add('hidden');
+                newCategoryInput.required = false;
+                hiddenCategoryInput.value = select.value;
+            }
+        }
+
+        // Close modals on outside click
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+                document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                    if (!modal.id.includes('confirm')) modal.classList.add('hidden');
                 });
-            });
-        }
+            }
+        });
 
-        const editItemForm = document.getElementById('editItemForm');
-        if (editItemForm) {
-            editItemForm.addEventListener('submit', function(e) {
-                console.log('Edit Item Form Submitting...', {
-                    name: document.getElementById('editItemName').value,
-                    price: document.getElementById('editItemPrice').value,
-                    status: document.getElementById('editItemStatus').value,
-                    action: editItemForm.action,
+        // Close modals on Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                    if (!modal.id.includes('confirm')) modal.classList.add('hidden');
                 });
-            });
-        }
+            }
+        });
 
-        // Auto-open packageModal from URL param (after form errors, etc.)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('open') === 'packageModal') {
-            document.getElementById('packageModal').classList.remove('hidden');
-            window.history.replaceState({}, '', '{{ route("caterer.menus") }}');
-        }
-    });
+        // Display menu image preview
+        (function () {
+            const imageInput = document.getElementById('display_menu_image');
+            if (imageInput) {
+                imageInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.size > 2097152) {
+                            alert('File size must be less than 2MB');
+                            this.value = '';
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const previewImg = document.getElementById('display_menu_preview_img');
+                            const imagePreview = document.getElementById('display_menu_image_preview');
+                            if (previewImg && imagePreview) {
+                                previewImg.src = e.target.result;
+                                imagePreview.classList.remove('hidden');
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        })();
+
+        // Handle display menu category submission
+        document.addEventListener('DOMContentLoaded', function () {
+            const displayMenuForm = document.getElementById('displayMenuForm');
+            if (displayMenuForm) {
+                displayMenuForm.addEventListener('submit', function () {
+                    const categorySelect = document.getElementById('display_menu_category_select');
+                    const newCategoryInput = document.getElementById('newDisplayCategory');
+                    if (categorySelect.value === '__new__') {
+                        newCategoryInput.value = document.getElementById('newDisplayCategoryInput')
+                            .value;
+                    } else {
+                        newCategoryInput.value = categorySelect.value;
+                    }
+                });
+            }
+
+            // Add logging for menu item form submissions
+            const addItemForm = document.getElementById('addItemForm');
+            if (addItemForm) {
+                addItemForm.addEventListener('submit', function (e) {
+                    console.log('Add Item Form Submitting...', {
+                        category_id: document.getElementById('itemCategoryId').value,
+                        name: document.getElementById('itemName').value,
+                        price: document.getElementById('itemPrice').value,
+                        status: document.getElementById('itemStatus').value,
+                    });
+                });
+            }
+
+            const editItemForm = document.getElementById('editItemForm');
+            if (editItemForm) {
+                editItemForm.addEventListener('submit', function (e) {
+                    console.log('Edit Item Form Submitting...', {
+                        name: document.getElementById('editItemName').value,
+                        price: document.getElementById('editItemPrice').value,
+                        status: document.getElementById('editItemStatus').value,
+                        action: editItemForm.action,
+                    });
+                });
+            }
+
+            // Auto-open packageModal from URL param (after form errors, etc.)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('open') === 'packageModal') {
+                document.getElementById('packageModal').classList.remove('hidden');
+                window.history.replaceState({}, '', '{{ route("caterer.menus") }}');
+            }
+        });
+
     </script>
 
     <style>
         @media (min-width: 475px) {
-            .xs\:flex-row      { flex-direction: row; }
-            .xs\:w-auto        { width: auto; }
-            .xs\:flex-shrink-0 { flex-shrink: 0; }
-            .xs\:inline        { display: inline; }
-            .xs\:items-center  { align-items: center; }
-            .xs\:justify-start { justify-content: flex-start; }
+            .xs\:flex-row {
+                flex-direction: row;
+            }
+
+            .xs\:w-auto {
+                width: auto;
+            }
+
+            .xs\:flex-shrink-0 {
+                flex-shrink: 0;
+            }
+
+            .xs\:inline {
+                display: inline;
+            }
+
+            .xs\:items-center {
+                align-items: center;
+            }
+
+            .xs\:justify-start {
+                justify-content: flex-start;
+            }
         }
-        body.modal-open { overflow: hidden; }
-        .overflow-y-auto::-webkit-scrollbar       { width: 8px; }
-        .overflow-y-auto::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .overflow-y-auto::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover { background: #555; }
-        .dark .overflow-y-auto::-webkit-scrollbar-track { background: #374151; }
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb { background: #4b5563; }
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .dark .overflow-y-auto::-webkit-scrollbar-track {
+            background: #374151;
+        }
+
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
     </style>
 </x-app-layout>

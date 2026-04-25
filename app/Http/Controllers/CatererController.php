@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Services\NotificationService;
 use App\Models\MenuItem;
+use App\Models\PackageCosting;
 
 class CatererController extends Controller
 {
@@ -878,7 +879,15 @@ class CatererController extends Controller
             ->sort()
             ->values();
 
-        return view('caterer.menus', compact('categories', 'packages', 'displayMenus', 'displayCategories'));
+        $defaultCosting = PackageCosting::getDefaultForCaterer($userId);
+
+        return view('caterer.menus', compact(
+            'categories',
+            'packages',
+            'displayMenus',
+            'displayCategories',
+            'defaultCosting'
+        ));
     }
 
     public function packages()
