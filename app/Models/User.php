@@ -84,16 +84,28 @@ class User extends Authenticatable
      */
     public function getProfilePhotoUrlAttribute(): string
     {
-        $photo = $this->profile_photo;
+        $photo = trim((string) $this->profile_photo);
 
-        if (empty($photo)) {
+        if ($photo === '') {
             return asset('images/default-avatar.svg');
         }
 
-        if (filter_var($photo, FILTER_VALIDATE_URL) || str_starts_with($photo, '/storage/')) {
+        // Cloudinary/external absolute URL - use as-is.
+        if (filter_var($photo, FILTER_VALIDATE_URL)) {
             return $photo;
         }
 
+        // Local public storage URL already saved as /storage/...
+        if (str_starts_with($photo, '/storage/')) {
+            return asset(ltrim($photo, '/'));
+        }
+
+        // Local public storage URL accidentally saved as storage/...
+        if (str_starts_with($photo, 'storage/')) {
+            return asset($photo);
+        }
+
+        // Plain local disk path, example: profile-photos/avatar.jpg
         return asset('storage/' . ltrim($photo, '/'));
     }
 

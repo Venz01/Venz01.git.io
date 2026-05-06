@@ -95,9 +95,24 @@
                         @if($caterer->business_permit_file_path)
                             <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                 @php
-                                    $fileExtension = pathinfo($caterer->business_permit_file_path, PATHINFO_EXTENSION);
-                                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif']);
-                                    $fileUrl = asset('storage/' . $caterer->business_permit_file_path);
+                                    $filePath = trim((string) $caterer->business_permit_file_path);
+                                    $cleanPath = strtok($filePath, '?') ?: $filePath;
+                                    $fileExtension = pathinfo($cleanPath, PATHINFO_EXTENSION);
+                                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif']);
+
+                                    if (filter_var($filePath, FILTER_VALIDATE_URL)) {
+                                        // Cloudinary or any external/live URL saved in database
+                                        $fileUrl = $filePath;
+                                    } elseif (str_starts_with($filePath, '/storage/')) {
+                                        // Local URL saved as /storage/filename.jpg
+                                        $fileUrl = asset(ltrim($filePath, '/'));
+                                    } elseif (str_starts_with($filePath, 'storage/')) {
+                                        // Local URL saved as storage/filename.jpg
+                                        $fileUrl = asset($filePath);
+                                    } else {
+                                        // Plain local disk path saved as filename/folder.jpg
+                                        $fileUrl = asset('storage/' . ltrim($filePath, '/'));
+                                    }
                                 @endphp
 
                                 @if($isImage)
