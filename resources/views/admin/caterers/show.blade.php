@@ -95,24 +95,9 @@
                         @if($caterer->business_permit_file_path)
                             <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                 @php
-                                    $filePath = trim((string) $caterer->business_permit_file_path);
-                                    $cleanPath = strtok($filePath, '?') ?: $filePath;
-                                    $fileExtension = pathinfo($cleanPath, PATHINFO_EXTENSION);
-                                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif']);
-
-                                    if (filter_var($filePath, FILTER_VALIDATE_URL)) {
-                                        // Cloudinary or any external/live URL saved in database
-                                        $fileUrl = $filePath;
-                                    } elseif (str_starts_with($filePath, '/storage/')) {
-                                        // Local URL saved as /storage/filename.jpg
-                                        $fileUrl = asset(ltrim($filePath, '/'));
-                                    } elseif (str_starts_with($filePath, 'storage/')) {
-                                        // Local URL saved as storage/filename.jpg
-                                        $fileUrl = asset($filePath);
-                                    } else {
-                                        // Plain local disk path saved as filename/folder.jpg
-                                        $fileUrl = asset('storage/' . ltrim($filePath, '/'));
-                                    }
+                                    $fileExtension = pathinfo($caterer->business_permit_file_path, PATHINFO_EXTENSION);
+                                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif']);
+                                    $fileUrl = asset('storage/' . $caterer->business_permit_file_path);
                                 @endphp
 
                                 @if($isImage)
@@ -167,21 +152,24 @@
                         @endif
                     </div>
 
+                    @if($caterer->status === 'rejected' && !empty($caterer->rejection_reason))
+                    <div class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                        <h3 class="text-sm font-semibold text-red-800 dark:text-red-200">Rejection Reason</h3>
+                        <p class="mt-1 text-sm text-red-700 dark:text-red-300">{{ $caterer->rejection_reason }}</p>
+                    </div>
+                    @endif
+
                     <!-- Action Buttons -->
                     @if($caterer->status === 'pending')
                     <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <form action="{{ route('admin.caterers.reject', $caterer->id) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                                    onclick="return confirm('Are you sure you want to reject this caterer application?')">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                                Reject Application
-                            </button>
-                        </form>
+                        <button type="button"
+                                onclick="sessionStorage.setItem('lastRejectCatererAction', '{{ route('admin.caterers.reject', $caterer->id) }}'); openRejectCatererModal('{{ route('admin.caterers.reject', $caterer->id) }}')"
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Reject Application
+                        </button>
                         <form action="{{ route('admin.caterers.approve', $caterer->id) }}" method="POST" class="inline">
                             @csrf
                             @method('PATCH')
@@ -200,4 +188,94 @@
             </div>
         </div>
     </div>
+
+    <!-- Reject Caterer Modal -->
+    <div id="rejectCatererModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
+        <div class="w-full max-w-lg rounded-xl bg-white dark:bg-gray-800 shadow-xl">
+            <form id="rejectCatererForm" method="POST" class="p-6">
+                @csrf
+                @method('POST')
+                <div class="flex items-start gap-4">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Reject Caterer Application</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Please provide a clear reason. This will be saved with the caterer application.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <label for="rejectionReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Rejection Reason <span class="text-red-500">*</span>
+                    </label>
+                    <textarea
+                        id="rejectionReason"
+                        name="rejection_reason"
+                        rows="5"
+                        minlength="5"
+                        maxlength="1000"
+                        required
+                        placeholder="Example: Business permit is expired or uploaded document is unreadable."
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-red-500 focus:ring-red-500"
+                    >{{ old('rejection_reason') }}</textarea>
+                    @error('rejection_reason')
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeRejectCatererModal()" class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                        Reject Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRejectCatererModal(actionUrl) {
+            const modal = document.getElementById('rejectCatererModal');
+            const form = document.getElementById('rejectCatererForm');
+            if (!modal || !form) return;
+
+            form.action = actionUrl;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                const textarea = document.getElementById('rejectionReason');
+                if (textarea) textarea.focus();
+            }, 50);
+        }
+
+        function closeRejectCatererModal() {
+            const modal = document.getElementById('rejectCatererModal');
+            if (!modal) return;
+
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.getElementById('rejectCatererModal')?.addEventListener('click', function (event) {
+            if (event.target === this) closeRejectCatererModal();
+        });
+
+        @if($errors->has('rejection_reason'))
+            document.addEventListener('DOMContentLoaded', function () {
+                const previousAction = sessionStorage.getItem('lastRejectCatererAction');
+                if (previousAction) openRejectCatererModal(previousAction);
+            });
+        @endif
+    </script>
+
 </x-app-layout>

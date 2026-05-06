@@ -267,8 +267,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/users/bulk-action', [AdminController::class, 'bulkAction'])->name('users.bulk-action');
 
     Route::get('/caterers/{caterer}', [AdminController::class, 'showCaterer'])->name('caterers.show');
-    Route::post('/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
-    Route::post('/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
+    Route::match(['post', 'patch'], '/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
+    Route::match(['post', 'patch'], '/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
 
     Route::get('/feedback-ratings', [AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
     Route::get('/feedback-ratings/{review}', [AdminController::class, 'showReview'])->name('feedback-ratings.show');

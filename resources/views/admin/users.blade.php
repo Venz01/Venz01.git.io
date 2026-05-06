@@ -210,6 +210,11 @@
                                                 </svg>
                                                 Rejected
                                             </span>
+                                            @if(!empty($user->rejection_reason))
+                                                <p class="mt-1 max-w-xs text-xs text-red-600 dark:text-red-300 truncate" title="{{ $user->rejection_reason }}">
+                                                    Reason: {{ $user->rejection_reason }}
+                                                </p>
+                                            @endif
                                         @elseif($user->status === 'suspended')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
                                                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -390,6 +395,21 @@
                         <div id="modalUserInfo" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-left max-h-60 overflow-y-auto">
                             <!-- User info will be inserted here -->
                         </div>
+
+                        <div id="rejectionReasonWrap" class="hidden mt-4 text-left">
+                            <label for="confirmationRejectionReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Rejection Reason <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                id="confirmationRejectionReason"
+                                rows="4"
+                                minlength="5"
+                                maxlength="1000"
+                                placeholder="Example: Business permit is expired or uploaded document is unreadable."
+                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-red-500 focus:ring-red-500"
+                            ></textarea>
+                            <p id="rejectionReasonError" class="hidden mt-2 text-sm text-red-600 dark:text-red-400">Please enter a rejection reason with at least 5 characters.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -418,6 +438,7 @@
     <form id="rejectForm" method="POST" style="display: none;">
         @csrf
         @method('POST')
+        <input type="hidden" name="rejection_reason" id="rejectReasonInput">
     </form>
 
     <form id="statusForm" method="POST" style="display: none;">
@@ -503,6 +524,13 @@
             const modalIconContainer = document.getElementById('modalIconContainer');
             const modalIcon = document.getElementById('modalIcon');
             const confirmButton = document.getElementById('confirmButton');
+            const rejectionReasonWrap = document.getElementById('rejectionReasonWrap');
+            const rejectionReasonField = document.getElementById('confirmationRejectionReason');
+            const rejectionReasonError = document.getElementById('rejectionReasonError');
+
+            if (rejectionReasonWrap) rejectionReasonWrap.classList.add('hidden');
+            if (rejectionReasonField) rejectionReasonField.value = '';
+            if (rejectionReasonError) rejectionReasonError.classList.add('hidden');
 
             // Configure modal based on action
             switch(action) {
@@ -561,6 +589,13 @@
             const modalIconContainer = document.getElementById('modalIconContainer');
             const modalIcon = document.getElementById('modalIcon');
             const confirmButton = document.getElementById('confirmButton');
+            const rejectionReasonWrap = document.getElementById('rejectionReasonWrap');
+            const rejectionReasonField = document.getElementById('confirmationRejectionReason');
+            const rejectionReasonError = document.getElementById('rejectionReasonError');
+
+            if (rejectionReasonWrap) rejectionReasonWrap.classList.add('hidden');
+            if (rejectionReasonField) rejectionReasonField.value = '';
+            if (rejectionReasonError) rejectionReasonError.classList.add('hidden');
 
             // Configure modal based on action
             switch(action) {
@@ -582,7 +617,7 @@
 
                 case 'reject':
                     modalTitle.textContent = 'Reject Caterer';
-                    modalMessage.textContent = 'Are you sure you want to reject this caterer application? This action will deny their access to the platform.';
+                    modalMessage.textContent = 'Please provide the reason why this caterer application is being rejected.';
                     modalIconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 bg-red-100 dark:bg-red-900';
                     modalIcon.className = 'h-6 w-6 text-red-600 dark:text-red-300';
                     modalIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
@@ -594,6 +629,7 @@
                             <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
                         </div>
                     `;
+                    if (rejectionReasonWrap) rejectionReasonWrap.classList.remove('hidden');
                     break;
 
                 case 'suspend':
@@ -652,8 +688,13 @@
 
         function closeConfirmation() {
             const modal = document.getElementById('confirmationModal');
+            const rejectionReasonField = document.getElementById('confirmationRejectionReason');
+            const rejectionReasonError = document.getElementById('rejectionReasonError');
+
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
+            if (rejectionReasonField) rejectionReasonField.value = '';
+            if (rejectionReasonError) rejectionReasonError.classList.add('hidden');
         }
 
         function confirmAction() {
@@ -675,8 +716,19 @@
                         break;
                         
                     case 'reject':
+                        const reasonField = document.getElementById('confirmationRejectionReason');
+                        const reasonError = document.getElementById('rejectionReasonError');
+                        const reason = reasonField ? reasonField.value.trim() : '';
+
+                        if (reason.length < 5) {
+                            if (reasonError) reasonError.classList.remove('hidden');
+                            if (reasonField) reasonField.focus();
+                            return;
+                        }
+
                         form = document.getElementById('rejectForm');
                         form.action = `/admin/caterers/${currentUserId}/reject`;
+                        document.getElementById('rejectReasonInput').value = reason;
                         break;
                         
                     case 'suspend':

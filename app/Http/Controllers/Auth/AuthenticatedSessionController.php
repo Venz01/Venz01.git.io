@@ -91,12 +91,18 @@ class AuthenticatedSessionController extends Controller
 
             $messages = [
                 'suspended' => 'Your account has been suspended. Please contact support.',
-                'rejected'  => 'Your application has been rejected. Please contact support.',
+                'rejected'  => 'Your application has been rejected.',
                 'pending'   => 'Your account is pending approval. Please wait for admin approval.',
             ];
 
+            $message = $messages[$user->status];
+
+            if ($user->status === 'rejected' && !empty($user->rejection_reason)) {
+                $message .= ' Reason: ' . $user->rejection_reason;
+            }
+
             throw ValidationException::withMessages([
-                'email' => __($messages[$user->status]),
+                'email' => __($message),
             ]);
         }
 

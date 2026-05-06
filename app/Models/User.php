@@ -50,6 +50,7 @@ class User extends Authenticatable
         'offers_setup',
         'special_features',
         'status',
+        'rejection_reason',
         // Customer fields
         'preferred_cuisine',
         'default_address',
@@ -180,6 +181,16 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isRejected()
+    {
+        return $this->status === 'rejected';
+    }
+
+    public function hasRejectionReason(): bool
+    {
+        return ! empty($this->rejection_reason);
     }
 
     // ─────────────────────────────────────────────

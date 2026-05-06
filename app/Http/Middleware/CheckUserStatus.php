@@ -54,8 +54,16 @@ class CheckUserStatus
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
+                $message = 'Your caterer application has been reviewed and unfortunately was not approved at this time.';
+
+                if (!empty($user->rejection_reason)) {
+                    $message .= ' Reason: ' . $user->rejection_reason;
+                }
+
+                $message .= ' Please contact the administrator if you have questions or would like to reapply.';
+
                 return redirect()->route('login')->withErrors([
-                    'email' => 'Your caterer application has been reviewed and unfortunately was not approved at this time. Please contact the administrator if you have questions or would like to reapply.',
+                    'email' => $message,
                 ]);
             }
         }
