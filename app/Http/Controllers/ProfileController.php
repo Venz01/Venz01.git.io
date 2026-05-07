@@ -68,6 +68,7 @@ class ProfileController extends Controller
                 'business_hours_start' => 'nullable|string',
                 'business_hours_end'   => 'nullable|string',
                 'business_days'        => 'nullable|array',
+                'business_permit_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             ]);
         }
 
@@ -120,7 +121,19 @@ class ProfileController extends Controller
                     $validated['business_hours_end'] = $request->business_hours_end;
                 }
             }
+
+            if ($request->hasFile('business_permit_file')) {
+                $validated['business_permit_file_path'] = $this->handleImageUpload(
+                    $request->file('business_permit_file'),
+                    'business-permits'
+                );
+                $validated['document_update_reason'] = null;
+                $validated['document_update_resolved_at'] = now();
+                $validated['status'] = 'pending';
+            }
         }
+
+        unset($validated['business_permit_file']);
 
         // Update only validated fields
         foreach ($validated as $key => $value) {

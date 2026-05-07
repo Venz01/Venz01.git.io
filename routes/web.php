@@ -15,6 +15,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageCostingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DietaryTagController;
+use App\Http\Controllers\CatererDocumentUpdateController;
 
 // ============================================
 // 🏠 PUBLIC ROUTES (No Login Required)
@@ -156,6 +157,16 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/orders/{order}/reject-delivery-fee', [OrderController::class, 'rejectDeliveryFee'])->name('orders.reject-delivery-fee');
 });
 
+
+// Secure document update page for caterers with admin document-update request.
+// This must stay outside the approved caterer route group so pending/update-required caterers can access it.
+Route::middleware(['auth', 'role:caterer'])->prefix('caterer')->name('caterer.')->group(function () {
+    Route::get('/document-update', [CatererDocumentUpdateController::class, 'edit'])->name('document-update.edit');
+    Route::post('/document-update', [CatererDocumentUpdateController::class, 'update'])
+    ->middleware('throttle:20,1')
+    ->name('document-update.update');
+});
+
 // ============================================
 // 🍽️ CATERER ROUTES
 // ============================================
@@ -269,6 +280,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/caterers/{caterer}', [AdminController::class, 'showCaterer'])->name('caterers.show');
     Route::match(['post', 'patch'], '/caterers/{caterer}/approve', [AdminController::class, 'approveCaterer'])->name('caterers.approve');
     Route::match(['post', 'patch'], '/caterers/{caterer}/reject', [AdminController::class, 'rejectCaterer'])->name('caterers.reject');
+    Route::post('/caterers/{caterer}/request-document-update', [AdminController::class, 'requestCatererDocumentUpdate'])->name('caterers.request-document-update');
 
     Route::get('/feedback-ratings', [AdminController::class, 'feedbackRatings'])->name('feedback-ratings');
     Route::get('/feedback-ratings/{review}', [AdminController::class, 'showReview'])->name('feedback-ratings.show');

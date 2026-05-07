@@ -258,6 +258,17 @@
                                                 Review
                                             </a>
 
+                                            <!-- Request Document Update Button -->
+                                            <button type="button"
+                                                    onclick="showConfirmation('request_document_update', {{ $user->id }}, {{ json_encode($user->name) }}, {{ json_encode($user->business_name ?? $user->email) }})"
+                                                    class="inline-flex items-center px-3 py-1.5 border border-amber-300 dark:border-amber-700 rounded-md text-xs font-medium text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                                                    title="Request BIR/Business Permit Update">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 12v9m0-9l-3 3m3-3l3 3"/>
+                                                </svg>
+                                                Update Doc
+                                            </button>
+
                                             @if($user->status === 'pending')
                                                 <!-- Quick Approve Button -->
                                                 <button type="button"
@@ -441,6 +452,12 @@
         <input type="hidden" name="rejection_reason" id="rejectReasonInput">
     </form>
 
+    <form id="documentUpdateForm" method="POST" style="display: none;">
+        @csrf
+        @method('POST')
+        <input type="hidden" name="document_update_reason" id="documentUpdateReasonInput">
+    </form>
+
     <form id="statusForm" method="POST" style="display: none;">
         @csrf
         @method('PATCH')
@@ -527,10 +544,21 @@
             const rejectionReasonWrap = document.getElementById('rejectionReasonWrap');
             const rejectionReasonField = document.getElementById('confirmationRejectionReason');
             const rejectionReasonError = document.getElementById('rejectionReasonError');
+            const reasonLabel = document.querySelector('label[for="confirmationRejectionReason"]');
 
             if (rejectionReasonWrap) rejectionReasonWrap.classList.add('hidden');
             if (rejectionReasonField) rejectionReasonField.value = '';
             if (rejectionReasonError) rejectionReasonError.classList.add('hidden');
+            if (reasonLabel) reasonLabel.innerHTML = 'Rejection Reason <span class="text-red-500">*</span>';
+            if (rejectionReasonField) {
+                rejectionReasonField.placeholder = 'Example: Business permit is expired or uploaded document is unreadable.';
+                rejectionReasonField.className = 'w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-red-500 focus:ring-red-500';
+            }
+            if (reasonLabel) reasonLabel.innerHTML = 'Rejection Reason <span class="text-red-500">*</span>';
+            if (rejectionReasonField) {
+                rejectionReasonField.placeholder = 'Example: Business permit is expired or uploaded document is unreadable.';
+                rejectionReasonField.className = 'w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-red-500 focus:ring-red-500';
+            }
 
             // Configure modal based on action
             switch(action) {
@@ -592,6 +620,7 @@
             const rejectionReasonWrap = document.getElementById('rejectionReasonWrap');
             const rejectionReasonField = document.getElementById('confirmationRejectionReason');
             const rejectionReasonError = document.getElementById('rejectionReasonError');
+            const reasonLabel = document.querySelector('label[for="confirmationRejectionReason"]');
 
             if (rejectionReasonWrap) rejectionReasonWrap.classList.add('hidden');
             if (rejectionReasonField) rejectionReasonField.value = '';
@@ -613,6 +642,29 @@
                             <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
                         </div>
                     `;
+                    break;
+
+                case 'request_document_update':
+                    modalTitle.textContent = 'Request Document Update';
+                    modalMessage.textContent = 'State why this caterer must upload a new BIR/business permit document.';
+                    modalIconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 bg-amber-100 dark:bg-amber-900';
+                    modalIcon.className = 'h-6 w-6 text-amber-600 dark:text-amber-300';
+                    modalIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>';
+                    confirmButton.className = 'px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500';
+                    confirmButton.textContent = 'Send Request';
+                    modalUserInfo.innerHTML = `
+                        <div class="text-sm">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">${userName}</div>
+                            <div class="text-gray-500 dark:text-gray-400">${userDetail}</div>
+                        </div>
+                    `;
+                    if (rejectionReasonWrap) rejectionReasonWrap.classList.remove('hidden');
+                    if (reasonLabel) reasonLabel.innerHTML = 'Reason for Document Update <span class="text-red-500">*</span>';
+                    if (rejectionReasonField) {
+                        rejectionReasonField.placeholder = 'Example: Uploaded BIR document is blurred/unreadable. Please upload a clearer copy.';
+                        rejectionReasonField.className = 'w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-amber-500 focus:ring-amber-500';
+                    }
+                    if (rejectionReasonError) rejectionReasonError.textContent = 'Please enter a reason with at least 5 characters.';
                     break;
 
                 case 'reject':
@@ -690,6 +742,7 @@
             const modal = document.getElementById('confirmationModal');
             const rejectionReasonField = document.getElementById('confirmationRejectionReason');
             const rejectionReasonError = document.getElementById('rejectionReasonError');
+            const reasonLabel = document.querySelector('label[for="confirmationRejectionReason"]');
 
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
@@ -715,6 +768,22 @@
                         form.action = `/admin/caterers/${currentUserId}/approve`;
                         break;
                         
+                    case 'request_document_update':
+                        const docReasonField = document.getElementById('confirmationRejectionReason');
+                        const docReasonError = document.getElementById('rejectionReasonError');
+                        const docReason = docReasonField ? docReasonField.value.trim() : '';
+
+                        if (docReason.length < 5) {
+                            if (docReasonError) docReasonError.classList.remove('hidden');
+                            if (docReasonField) docReasonField.focus();
+                            return;
+                        }
+
+                        form = document.getElementById('documentUpdateForm');
+                        form.action = `/admin/caterers/${currentUserId}/request-document-update`;
+                        document.getElementById('documentUpdateReasonInput').value = docReason;
+                        break;
+
                     case 'reject':
                         const reasonField = document.getElementById('confirmationRejectionReason');
                         const reasonError = document.getElementById('rejectionReasonError');

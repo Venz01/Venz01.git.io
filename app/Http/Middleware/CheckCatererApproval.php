@@ -21,6 +21,15 @@ class CheckCatererApproval
             return $next($request);
         }
 
+        // If admin requested a document update, only allow the special update page and logout.
+        if ($user->document_update_requested) {
+            if ($request->routeIs('caterer.document-update.*') || $request->routeIs('logout')) {
+                return $next($request);
+            }
+
+            return redirect()->route('caterer.document-update.edit');
+        }
+
         // Check if caterer is approved
         if ($user->status !== 'approved') {
             // Redirect to pending page with appropriate message

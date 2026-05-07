@@ -95,11 +95,9 @@
                         @if($caterer->business_permit_file_path)
                             <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                 @php
-                                    $fileUrl = $caterer->business_permit_file_url;
-                                    $filePathForExtension = parse_url($fileUrl ?? $caterer->business_permit_file_path, PHP_URL_PATH) ?: $caterer->business_permit_file_path;
-                                    $fileExtension = strtolower(pathinfo($filePathForExtension, PATHINFO_EXTENSION));
-                                    $isImage = in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                                    $isPdf = $fileExtension === 'pdf';
+                                    $fileExtension = pathinfo($caterer->business_permit_file_path, PATHINFO_EXTENSION);
+                                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif']);
+                                    $fileUrl = filter_var($caterer->business_permit_file_path, FILTER_VALIDATE_URL) ? $caterer->business_permit_file_path : asset('storage/' . ltrim($caterer->business_permit_file_path, '/'));
                                 @endphp
 
                                 @if($isImage)
@@ -161,9 +159,23 @@
                     </div>
                     @endif
 
+                    @if($caterer->hasPendingDocumentUpdateRequest())
+                    <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                        <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">Document Update Request</h3>
+                        <p class="mt-1 text-sm text-amber-800 dark:text-amber-200">{{ $caterer->document_update_reason }}</p>
+                        @if($caterer->document_update_requested_at)
+                            <p class="mt-2 text-xs text-amber-700 dark:text-amber-300">Requested on {{ $caterer->document_update_requested_at->format('M d, Y h:i A') }}</p>
+                        @endif
+                    </div>
+                    @endif
+
                     <!-- Action Buttons -->
-                    @if($caterer->status === 'pending')
-                    <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-wrap items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <button type="button"
+                                onclick="sessionStorage.setItem('lastDocumentUpdateAction', '{{ route('admin.caterers.request-document-update', $caterer->id) }}'); openDocumentUpdateModal('{{ route('admin.caterers.request-document-update', $caterer->id) }}')"
+                                class="inline-flex items-center px-4 py-2 border border-amber-300 dark:border-amber-700 rounded-md shadow-sm text-sm font-medium text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40">
+                            Request Document Update
+                        </button>
                         <button type="button"
                                 onclick="sessionStorage.setItem('lastRejectCatererAction', '{{ route('admin.caterers.reject', $caterer->id) }}'); openRejectCatererModal('{{ route('admin.caterers.reject', $caterer->id) }}')"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -172,6 +184,7 @@
                             </svg>
                             Reject Application
                         </button>
+                        @if($caterer->status === 'pending')
                         <form action="{{ route('admin.caterers.approve', $caterer->id) }}" method="POST" class="inline">
                             @csrf
                             @method('PATCH')
@@ -184,10 +197,50 @@
                                 Approve Application
                             </button>
                         </form>
+                        @endif
                     </div>
-                    @endif
                 </div>
             </div>
+        </div>
+    </div>
+
+
+    <!-- Request Document Update Modal -->
+    <div id="documentUpdateModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
+        <div class="w-full max-w-lg rounded-xl bg-white dark:bg-gray-800 shadow-xl">
+            <form id="documentUpdateForm" method="POST" class="p-6">
+                @csrf
+                <div class="flex items-start gap-4">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900">
+                        <svg class="h-6 w-6 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Request Document Update</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            State why the caterer must upload a new BIR/business permit document.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <label for="documentUpdateReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Reason for Update <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="documentUpdateReason" name="document_update_reason" rows="5" minlength="5" maxlength="1000" required
+                        placeholder="Example: Uploaded BIR document is blurred/unreadable. Please upload a clearer copy."
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-amber-500 focus:ring-amber-500">{{ old('document_update_reason') }}</textarea>
+                    @error('document_update_reason')
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeDocumentUpdateModal()" class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">Send Request</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -243,6 +296,34 @@
     </div>
 
     <script>
+        function openDocumentUpdateModal(actionUrl) {
+            const modal = document.getElementById('documentUpdateModal');
+            const form = document.getElementById('documentUpdateForm');
+            if (!modal || !form) return;
+
+            form.action = actionUrl;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                const textarea = document.getElementById('documentUpdateReason');
+                if (textarea) textarea.focus();
+            }, 50);
+        }
+
+        function closeDocumentUpdateModal() {
+            const modal = document.getElementById('documentUpdateModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.getElementById('documentUpdateModal')?.addEventListener('click', function (event) {
+            if (event.target === this) closeDocumentUpdateModal();
+        });
+
         function openRejectCatererModal(actionUrl) {
             const modal = document.getElementById('rejectCatererModal');
             const form = document.getElementById('rejectCatererForm');
@@ -271,6 +352,13 @@
         document.getElementById('rejectCatererModal')?.addEventListener('click', function (event) {
             if (event.target === this) closeRejectCatererModal();
         });
+
+        @if($errors->has('document_update_reason'))
+            document.addEventListener('DOMContentLoaded', function () {
+                const previousAction = sessionStorage.getItem('lastDocumentUpdateAction');
+                if (previousAction) openDocumentUpdateModal(previousAction);
+            });
+        @endif
 
         @if($errors->has('rejection_reason'))
             document.addEventListener('DOMContentLoaded', function () {

@@ -50,6 +50,10 @@ class User extends Authenticatable
         'offers_setup',
         'special_features',
         'status',
+        'document_update_requested',
+        'document_update_reason',
+        'document_update_requested_at',
+        'document_update_resolved_at',
         'rejection_reason',
         // Customer fields
         'preferred_cuisine',
@@ -76,7 +80,10 @@ class User extends Authenticatable
             'business_days'       => 'array',
             'offers_delivery'     => 'boolean',
             'offers_setup'        => 'boolean',
-            'dietary_preferences' => 'array',   // ← new
+            'dietary_preferences' => 'array',  
+            'document_update_requested' => 'boolean',
+            'document_update_requested_at' => 'datetime',
+            'document_update_resolved_at' => 'datetime',
         ];
     }
 
@@ -224,6 +231,21 @@ class User extends Authenticatable
     public function hasRejectionReason(): bool
     {
         return ! empty($this->rejection_reason);
+    }
+
+    public function hasPendingDocumentUpdateRequest(): bool
+    {
+        return (bool) $this->document_update_requested;
+    }
+
+    public function hasDocumentUpdateReason(): bool
+    {
+        return !empty($this->document_update_reason);
+    }
+
+    public function needsDocumentUpdate(): bool
+    {
+        return (bool) $this->document_update_requested;
     }
 
     // ─────────────────────────────────────────────

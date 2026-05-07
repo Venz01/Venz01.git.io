@@ -8,7 +8,19 @@
         </p>
     </header>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    @if($user->hasPendingDocumentUpdateRequest())
+        <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">Document Update Requested</h3>
+            <p class="mt-1 text-sm text-amber-800 dark:text-amber-200">
+                Admin requested you to upload an updated BIR/business permit document.
+            </p>
+            <p class="mt-2 text-sm text-amber-900 dark:text-amber-100">
+                <strong>Reason:</strong> {{ $user->document_update_reason }}
+            </p>
+        </div>
+    @endif
+
+    <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
         @csrf
         @method('patch')
 

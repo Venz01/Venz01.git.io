@@ -302,6 +302,47 @@ class AdminController extends Controller
             ->with('success', 'Caterer rejected successfully.');
     }
 
+
+    public function requestCatererDocumentUpdate(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'document_update_reason' => 'required|string|min:5|max:1000',
+        ], [
+            'document_update_reason.required' => 'Please enter the reason why the caterer must update the document.',
+            'document_update_reason.min' => 'The reason must be at least 5 characters.',
+            'document_update_reason.max' => 'The reason must not exceed 1000 characters.',
+        ]);
+
+        $caterer = User::where('role', 'caterer')->findOrFail($id);
+        $oldStatus = $caterer->status;
+
+        $caterer->update([
+            // Keep current status so the caterer can still authenticate,
+            // but document_update_requested will restrict access to the update page only.
+            'document_update_requested' => true,
+            'document_update_reason' => $validated['document_update_reason'],
+            'document_update_requested_at' => now(),
+            'document_update_resolved_at' => null,
+        ]);
+
+        ActivityLogger::logAdmin(
+            'caterer_document_update_requested',
+            "Requested updated document from caterer application: {$caterer->business_name}",
+            [
+                'caterer_id' => $caterer->id,
+                'caterer_name' => $caterer->name,
+                'caterer_email' => $caterer->email,
+                'business_name' => $caterer->business_name,
+                'old_status' => $oldStatus,
+                'new_status' => $oldStatus,
+                'document_update_reason' => $validated['document_update_reason'],
+            ]
+        );
+
+        return redirect()->back()
+            ->with('success', 'Document update request sent to caterer successfully.');
+    }
+
     /**
      * Activity Logs - Enhanced with filters
      */
