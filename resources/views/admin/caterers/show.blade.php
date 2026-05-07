@@ -95,9 +95,11 @@
                         @if($caterer->business_permit_file_path)
                             <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                 @php
-                                    $fileExtension = pathinfo($caterer->business_permit_file_path, PATHINFO_EXTENSION);
-                                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif']);
-                                    $fileUrl = asset('storage/' . $caterer->business_permit_file_path);
+                                    $fileUrl = $caterer->business_permit_file_url;
+                                    $filePathForExtension = parse_url($fileUrl ?? $caterer->business_permit_file_path, PHP_URL_PATH) ?: $caterer->business_permit_file_path;
+                                    $fileExtension = strtolower(pathinfo($filePathForExtension, PATHINFO_EXTENSION));
+                                    $isImage = in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                    $isPdf = $fileExtension === 'pdf';
                                 @endphp
 
                                 @if($isImage)

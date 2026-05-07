@@ -110,6 +110,39 @@ class User extends Authenticatable
         return asset('storage/' . ltrim($photo, '/'));
     }
 
+
+
+    /**
+     * Resolve a display-safe business permit document URL.
+     * Supports Cloudinary/external URLs and local public storage paths.
+     */
+    public function getBusinessPermitFileUrlAttribute(): ?string
+    {
+        $file = trim((string) $this->business_permit_file_path);
+
+        if ($file === '') {
+            return null;
+        }
+
+        // Cloudinary/external absolute URL - use as-is.
+        if (filter_var($file, FILTER_VALIDATE_URL)) {
+            return $file;
+        }
+
+        // Local public storage URL already saved as /storage/...
+        if (str_starts_with($file, '/storage/')) {
+            return asset(ltrim($file, '/'));
+        }
+
+        // Local public storage URL accidentally saved as storage/...
+        if (str_starts_with($file, 'storage/')) {
+            return asset($file);
+        }
+
+        // Plain local disk path, example: business-permits/file.jpg
+        return asset('storage/' . ltrim($file, '/'));
+    }
+
     // ─────────────────────────────────────────────
     // Relationships
     // ─────────────────────────────────────────────
