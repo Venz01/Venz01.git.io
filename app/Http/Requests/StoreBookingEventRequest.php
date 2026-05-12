@@ -19,6 +19,8 @@ class StoreBookingEventRequest extends FormRequest
             'event_type'           => 'required|string|max:255',
             'event_date'           => 'required|date|after:today',
             'time_slot'            => 'required|string|max:100',
+            'time_from'            => 'nullable|string|max:10',
+            'time_to'              => 'nullable|string|max:10',
             'guests'               => 'required|integer|min:1',
             'venue_name'           => 'required|string|max:255',
             'venue_address'        => 'required|string|max:500',

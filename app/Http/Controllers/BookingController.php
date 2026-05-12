@@ -140,7 +140,7 @@ class BookingController extends Controller
         }
 
         $package       = Package::with('user')->findOrFail($bookingDetails['package_id']);
-        $selectedItems = MenuItem::whereIn('id', $bookingDetails['selected_items'])->get();
+        $selectedItems = MenuItem::with('category')->whereIn('id', $bookingDetails['selected_items'])->get();
         $deposit       = $bookingDetails['total_price'] * 0.25;
         $serviceFee    = max(0, (float) SystemSetting::getValue('booking_service_fee', config('services.booking.service_fee', 500)));
         $depositDue    = $deposit + $serviceFee;

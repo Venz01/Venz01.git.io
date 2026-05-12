@@ -84,8 +84,43 @@
                             <span class="text-sm text-gray-500">Included</span>
                         </div>
                         @endif
+
+                        <!-- Selected Menu Items with Images -->
+                        @if($selectedItems->count() > 0)
+                        <div class="mt-4 pt-4 border-t border-gray-300 dark:border-gray-600">
+                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Selected Menu Items:</h4>
+                            <div class="space-y-2 max-h-64 overflow-y-auto">
+                                @foreach($selectedItems as $item)
+                                <div class="flex items-center gap-3 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
+                                    <!-- Menu Item Image -->
+                                    @if($item->image_path)
+                                    <img 
+                                        src="{{ $item->image_path }}" 
+                                        alt="{{ $item->name }}"
+                                        class="w-16 h-16 rounded-lg object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
+                                    >
+                                    @else
+                                    <div class="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg border border-gray-300 dark:border-gray-600 flex-shrink-0">
+                                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- Menu Item Details -->
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $item->name }}</p>
+                                        @if($item->category)
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $item->category->name }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                         
-                        <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                        <div class="flex justify-between text-gray-700 dark:text-gray-300 pt-3">
                             <span>Service fee</span>
                             <span class="font-medium">₱{{ number_format($serviceFee, 0) }}</span>
                         </div>

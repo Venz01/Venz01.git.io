@@ -145,8 +145,7 @@
                                 <div class="space-y-4">
                                     @foreach($package->items->groupBy('category.name') as $categoryName => $items)
                                         <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-5 py-3 flex items-center justify-between cursor-pointer hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-colors"
-                                                onclick="toggleCategory('{{ $categoryName }}')">
+                                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-5 py-3 flex items-center justify-between hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-colors">
                                                 <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                                     @if(str_contains(strtolower($categoryName), 'appetizer'))
                                                         <span class="text-xl">🥗</span>
@@ -162,7 +161,10 @@
                                                     {{ $categoryName }}
                                                     <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $items->count() }} items)</span>
                                                 </h3>
-                                                <span class="text-green-600 dark:text-green-400 font-medium text-sm">Click to toggle all</span>
+                                                <button type="button"
+                                                    class="category-toggle-btn text-green-600 dark:text-green-400 font-medium text-sm hover:text-green-800 dark:hover:text-green-200 focus:outline-none"
+                                                    data-category="{{ $categoryName }}"
+                                                    onclick="toggleCategoryBtn(this, '{{ $categoryName }}')">Select all</button>
                                             </div>
                                             <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 @foreach($items as $item)
@@ -179,6 +181,24 @@
                                                                 class="menu-item-checkbox mt-1 w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
                                                                 {{ $isDefault ? 'checked' : '' }}
                                                                 onchange="updatePrice()">
+                                                            
+                                                            <!-- Menu Item Image -->
+                                                            <div class="flex-shrink-0">
+                                                                @if($item->image_path)
+                                                                    <img 
+                                                                        src="{{ $item->image_path }}" 
+                                                                        alt="{{ $item->name }}"
+                                                                        class="w-20 h-20 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
+                                                                    >
+                                                                @else
+                                                                    <div class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 rounded-lg border border-gray-300 dark:border-gray-600">
+                                                                        <svg class="w-10 h-10 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                                        </svg>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+
                                                             <div class="flex-1 min-w-0">
                                                                 <div class="flex items-start justify-between gap-2">
                                                                     <div class="flex-1 min-w-0">
@@ -193,10 +213,6 @@
                                                                         </span>
                                                                     @endif
                                                                 </div>
-                                                                <div class="mt-2 flex items-center justify-between">
-                                                                    <span class="text-sm font-medium text-green-600 dark:text-green-400">₱{{ number_format($item->price, 2) }}</span>
-                                                                    <span class="text-xs text-gray-400 dark:text-gray-500">per serving</span>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </label>
@@ -206,51 +222,18 @@
                                     @endforeach
                                 </div>
 
-                                <!-- Price Breakdown — now uses real costing data from caterer -->
+                                <!-- Package Price -->
                                 <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                        💰 Price Breakdown
-                                        @if($hasCosting)
-                                            <span class="text-xs font-normal text-green-600 dark:text-green-400">(Based on caterer's actual costs)</span>
-                                        @else
-                                            <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Estimated)</span>
-                                        @endif
-                                    </h3>
-                                    <div class="space-y-2 text-sm" id="costBreakdownContainer">
-                                        @if($hasCosting && $costing->cost_breakdown)
-                                            {{-- Display actual cost components from caterer's costing --}}
-                                            @foreach($costing->cost_breakdown as $component)
-                                                <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                                    <span>{{ $component['label'] }}:</span>
-                                                    <span class="font-medium" data-cost-type="{{ strtolower(str_replace(' ', '_', $component['label'])) }}">
-                                                        ₱<span class="cost-value">{{ number_format($component['amount'], 2) }}</span>
-                                                        <span class="text-xs text-gray-500 dark:text-gray-400">({{ number_format($component['percent'], 1) }}%)</span>
-                                                    </span>
-                                                </div>
-                                            @endforeach
-                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                                <span>Profit Margin ({{ number_format($costing->profit_margin_percent, 0) }}%):</span>
-                                                <span class="font-medium">₱<span id="profitMargin">{{ number_format($costing->profit_amount, 2) }}</span></span>
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Package Price</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Per person rate for your selected items</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-3xl font-bold text-green-600 dark:text-green-400">
+                                                ₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span>
                                             </div>
-                                        @else
-                                            {{-- Fallback: Show simplified breakdown when no costing exists --}}
-                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                                <span>Food Cost:</span>
-                                                <span class="font-medium">₱<span id="foodCost">0.00</span></span>
-                                            </div>
-                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                                <span>Labor & Other Costs:</span>
-                                                <span class="font-medium">₱<span id="otherCosts">0.00</span></span>
-                                            </div>
-                                            <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                                                <span>Service Fee:</span>
-                                                <span class="font-medium">₱<span id="profitMargin">0.00</span></span>
-                                            </div>
-                                        @endif
-                                        <div class="border-t-2 border-gray-300 dark:border-gray-600 my-3"></div>
-                                        <div class="flex justify-between text-base font-semibold text-gray-900 dark:text-white">
-                                            <span>Price per Head:</span>
-                                            <span>₱<span id="pricePerHead">{{ number_format($package->price, 0) }}</span></span>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">per head</p>
                                         </div>
                                     </div>
                                 </div>
@@ -320,14 +303,22 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Slot *</label>
-                                <select name="time_slot" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                                    <option value="">Select time slot</option>
-                                    <option value="Morning (6:00 AM - 12:00 PM)">Morning (6:00 AM - 12:00 PM)</option>
-                                    <option value="Afternoon (12:00 PM - 6:00 PM)">Afternoon (12:00 PM - 6:00 PM)</option>
-                                    <option value="Evening (6:00 PM - 12:00 AM)">Evening (6:00 PM - 12:00 AM)</option>
-                                    <option value="Whole Day (6:00 AM - 12:00 AM)">Whole Day (6:00 AM - 12:00 AM)</option>
-                                </select>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time *</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">From</label>
+                                        <input type="time" name="time_from" id="time_from"
+                                            class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">To</label>
+                                        <input type="time" name="time_to" id="time_to"
+                                            class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            required>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="time_error" style="display:none; color:#dc2626;">End time must be after start time.</p>
                             </div>
 
                             <div>
@@ -576,6 +567,7 @@
         };
 
         function updatePrice() {
+            syncCategoryBtnLabels();
             const checkboxes  = Array.from(document.querySelectorAll('.menu-item-checkbox:checked'));
             const menuItems   = checkboxes.map(cb => cb.closest('.menu-item'));
 
@@ -592,14 +584,10 @@
 
             if (costingData.has_costing) {
                 // Use actual caterer's costing structure
-                const totalCost = costingData.total_cost;
-                const profitMarginPercent = costingData.profit_margin_percent;
-                
-                // Calculate proportional costs based on food cost ratio
                 const baseFoodCost = costingData.ingredient_cost || 0;
                 const ratio = baseFoodCost > 0 ? foodCost / baseFoodCost : 1;
                 
-                // Scale all costs proportionally
+                // Scale all costs proportionally (internal calculation only)
                 const ingredientCost = (costingData.ingredient_cost || 0) * ratio;
                 const laborCost = (costingData.labor_cost || 0) * ratio;
                 const equipmentCost = (costingData.equipment_cost || 0) * ratio;
@@ -608,56 +596,16 @@
                 const transportCost = (costingData.transport_cost || 0) * ratio;
                 
                 const scaledTotalCost = ingredientCost + laborCost + equipmentCost + consumablesCost + overheadCost + transportCost;
+                const profitMarginPercent = costingData.profit_margin_percent;
                 const profitAmount = scaledTotalCost * (profitMarginPercent / 100);
                 
                 pricePerHead = scaledTotalCost + profitAmount;
-                
-                // Update breakdown display values
-                document.querySelectorAll('.cost-value').forEach(function(el) {
-                    const parent = el.closest('[data-cost-type]');
-                    if (parent) {
-                        const costType = parent.dataset.costType;
-                        let value = 0;
-                        
-                        // Map cost types to their values
-                        if (costType.includes('ingredient') || costType.includes('raw_food')) {
-                            value = ingredientCost;
-                        } else if (costType.includes('labor') || costType.includes('staffing')) {
-                            value = laborCost;
-                        } else if (costType.includes('equipment') || costType.includes('rental')) {
-                            value = equipmentCost;
-                        } else if (costType.includes('consumable') || costType.includes('packaging')) {
-                            value = consumablesCost;
-                        } else if (costType.includes('overhead') || costType.includes('utilities')) {
-                            value = overheadCost;
-                        } else if (costType.includes('transport') || costType.includes('logistics')) {
-                            value = transportCost;
-                        }
-                        
-                        el.textContent = value.toFixed(2);
-                    }
-                });
-                
-                // Update profit margin
-                const profitMarginEl = document.getElementById('profitMargin');
-                if (profitMarginEl) {
-                    profitMarginEl.textContent = profitAmount.toFixed(2);
-                }
-                
             } else {
                 // Fallback: Simple calculation when no costing exists
                 const otherCosts = foodCost * 0.30; // 30% for labor and other costs
                 const profitMargin = foodCost * 0.25; // 25% profit
                 
                 pricePerHead = foodCost + otherCosts + profitMargin;
-                
-                const foodCostEl = document.getElementById('foodCost');
-                const otherCostsEl = document.getElementById('otherCosts');
-                const profitMarginEl = document.getElementById('profitMargin');
-                
-                if (foodCostEl) foodCostEl.textContent = foodCost.toFixed(2);
-                if (otherCostsEl) otherCostsEl.textContent = otherCosts.toFixed(2);
-                if (profitMarginEl) profitMarginEl.textContent = profitMargin.toFixed(2);
             }
 
             pricePerHead = Math.ceil(pricePerHead / 5) * 5; // Round to nearest 5
@@ -726,12 +674,64 @@
             updatePrice();
         }
 
+        function toggleCategoryBtn(btn, categoryName) {
+            const categoryItems = document.querySelectorAll(
+                '.menu-item[data-category="' + categoryName + '"] .menu-item-checkbox'
+            );
+            const allChecked = Array.from(categoryItems).every(function (cb) { return cb.checked; });
+            categoryItems.forEach(function (cb) { cb.checked = !allChecked; });
+            btn.textContent = allChecked ? 'Select all' : 'Unselect all';
+            updatePrice();
+        }
+
+        // Keep category button labels in sync when individual checkboxes are clicked
+        function syncCategoryBtnLabels() {
+            document.querySelectorAll('.category-toggle-btn').forEach(function (btn) {
+                const categoryName = btn.getAttribute('data-category');
+                const categoryItems = document.querySelectorAll(
+                    '.menu-item[data-category="' + categoryName + '"] .menu-item-checkbox'
+                );
+                if (categoryItems.length === 0) return;
+                const allChecked = Array.from(categoryItems).every(function (cb) { return cb.checked; });
+                btn.textContent = allChecked ? 'Unselect all' : 'Select all';
+            });
+        }
+
         function submitBooking() {
             if (!elements.bookingForm) return;
 
             if (!elements.bookingForm.checkValidity()) {
                 elements.bookingForm.reportValidity();
                 return;
+            }
+
+            // Validate time_from < time_to
+            const timeFrom = document.getElementById('time_from');
+            const timeTo   = document.getElementById('time_to');
+            const timeErr  = document.getElementById('time_error');
+            if (timeFrom && timeTo && timeFrom.value && timeTo.value) {
+                if (timeTo.value <= timeFrom.value) {
+                    if (timeErr) timeErr.style.display = '';
+                    timeTo.focus();
+                    return;
+                }
+                if (timeErr) timeErr.style.display = 'none';
+
+                // Format helper: "08:00" → "8:00 AM"
+                function fmt(t) {
+                    const [h, m] = t.split(':').map(Number);
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    const h12  = h % 12 || 12;
+                    return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+                }
+
+                // Append hidden time_slot field combining from/to for backend
+                elements.bookingForm.querySelectorAll('input[name="time_slot"]').forEach(el => el.remove());
+                const slotInput = document.createElement('input');
+                slotInput.type  = 'hidden';
+                slotInput.name  = 'time_slot';
+                slotInput.value = fmt(timeFrom.value) + ' - ' + fmt(timeTo.value);
+                elements.bookingForm.appendChild(slotInput);
             }
 
             const selectedItems = Array.from(document.querySelectorAll('.menu-item-checkbox:checked'))

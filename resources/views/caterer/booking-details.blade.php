@@ -212,7 +212,7 @@
                                     {{ $booking->event_date->format('l, F d, Y') }}</p>
                             </div>
                             <div>
-                                <label class="text-sm text-gray-600 dark:text-gray-400">Time Slot</label>
+                                <label class="text-sm text-gray-600 dark:text-gray-400">Time</label>
                                 <p class="font-medium text-gray-900 dark:text-white">{{ $booking->time_slot }}</p>
                             </div>
                             <div>
